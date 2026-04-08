@@ -259,21 +259,21 @@ lib/
     </td>
     <td align="center">
       <img width="200" alt="cap3" src="./cap3.png" />
-      <br>123456
+      <br>빈 강의실 
     </td>
   </tr>
   <tr>
     <td align="center">
       <img width="200" alt="cap4" src="./cap4.png" />
-      <br>123456
+      <br>빈 강의실 상세
     </td>
     <td align="center">
-      <img width="200" alt="cap5" src="./cap5.png" />
+      <img width="200" alt="cap5" src="./ca5.png" />
       <br>버스 시간표
     </td>
     <td align="center">
       <img width="200" alt="cap6" src="./cap6.png" />
-      <br>123456
+      <br>공지사항
     </td>
   </tr>
 </table>
