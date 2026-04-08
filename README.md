@@ -268,7 +268,7 @@ lib/
       <br>빈 강의실 상세
     </td>
     <td align="center">
-      <img width="200" alt="cap5" src="./ca5.png" />
+      <img width="200" alt="cap5" src="./cap5.png" />
       <br>버스 시간표
     </td>
     <td align="center">
