@@ -251,11 +251,11 @@ lib/
   <tr>
     <td align="center">
       <img width="200" alt="cap1" src="./cap1.png" />
-      <br>123456
+      <br>홈 
     </td>
     <td align="center">
       <img width="200" alt="cap2" src="./cap2.png" />
-      <br>123456
+      <br>식단
     </td>
     <td align="center">
       <img width="200" alt="cap3" src="./cap3.png" />
