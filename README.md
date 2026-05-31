@@ -251,21 +251,21 @@ lib/
   <tr>
     <td align="center">
       <img width="200" alt="cap1" src="./cap1.png" />
-      <br>123456
+      <br>홈 
     </td>
     <td align="center">
       <img width="200" alt="cap2" src="./cap2.png" />
-      <br>123456
+      <br>식단
     </td>
     <td align="center">
       <img width="200" alt="cap3" src="./cap3.png" />
-      <br>123456
+      <br>빈 강의실 
     </td>
   </tr>
   <tr>
     <td align="center">
       <img width="200" alt="cap4" src="./cap4.png" />
-      <br>123456
+      <br>빈 강의실 상세
     </td>
     <td align="center">
       <img width="200" alt="cap5" src="./cap5.png" />
@@ -273,7 +273,7 @@ lib/
     </td>
     <td align="center">
       <img width="200" alt="cap6" src="./cap6.png" />
-      <br>123456
+      <br>공지사항
     </td>
   </tr>
 </table>
