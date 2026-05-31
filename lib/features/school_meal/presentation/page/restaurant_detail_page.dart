@@ -1,32 +1,37 @@
 import 'package:flutter/material.dart';
-import 'package:handori/features/school_meal/model/meal_model.dart';
-import 'package:handori/common/repository/static_repository.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:handori/common/layout/root_tab.dart';
+import 'package:handori/features/school_meal/domain/model/restaurant.dart';
+import 'package:handori/features/school_meal/presentation/model/restaurant_menu.dart';
+import 'package:handori/features/school_meal/presentation/provider/meal_list_notifier.dart';
+import 'package:handori/features/school_meal/presentation/provider/restaurant_list_notifier.dart';
 
 // ── 색상 상수 ──────────────────────────────────────────────────
-const _kPrimary    = Color(0xFF00C4F9);
+const _kPrimary = Color(0xFF00C4F9);
 const _kCardBorder = Color(0xFFEAEAEA);
-const _kCardBg     = Color(0xFFF8F8F8);
-const _kGreen      = Color(0xFF66BB6A);
-const _kOrange     = Color(0xFFFFB74D);
-const _kRed        = Color(0xFFE57373);
+const _kCardBg = Color(0xFFF8F8F8);
+const _kGreen = Color(0xFF66BB6A);
+const _kOrange = Color(0xFFFFB74D);
+const _kRed = Color(0xFFE57373);
+
+const _kWeekdays = ['월', '화', '수', '목', '금', '토', '일'];
 
 enum _MealStatus { notOperated, preparing, operating, closed }
 
 /// 현재 시간 기준 운영 상태 판단
-_MealStatus _computeStatus(MealTimeSlot slot) {
-  if (slot.timeRange.isEmpty || slot.menus.isEmpty) return _MealStatus.notOperated;
+_MealStatus _computeStatus(MenuSlot slot) {
+  if (!slot.isOperated) return _MealStatus.notOperated;
   final parts = slot.timeRange.split('~');
   if (parts.length != 2) return _MealStatus.notOperated;
   final s = parts[0].trim().split(':');
   final e = parts[1].trim().split(':');
   if (s.length != 2 || e.length != 2) return _MealStatus.notOperated;
-  final now    = TimeOfDay.now();
-  final start  = int.parse(s[0]) * 60 + int.parse(s[1]);
-  final end    = int.parse(e[0]) * 60 + int.parse(e[1]);
+  final now = TimeOfDay.now();
+  final start = int.parse(s[0]) * 60 + int.parse(s[1]);
+  final end = int.parse(e[0]) * 60 + int.parse(e[1]);
   final nowMin = now.hour * 60 + now.minute;
   if (nowMin < start) return _MealStatus.preparing;
-  if (nowMin <= end)  return _MealStatus.operating;
+  if (nowMin <= end) return _MealStatus.operating;
   return _MealStatus.closed;
 }
 
@@ -41,18 +46,22 @@ String _formatPrice(int price) {
   return buf.toString();
 }
 
+String _dateString(DateTime d) =>
+    '${d.year}-${d.month.toString().padLeft(2, '0')}-${d.day.toString().padLeft(2, '0')}';
+
 // ──────────────────────────────────────────────────────────────
-class RestaurantDetailScreen extends StatefulWidget {
-  const RestaurantDetailScreen({super.key});
+class RestaurantDetailPage extends ConsumerStatefulWidget {
+  const RestaurantDetailPage({super.key});
 
   @override
-  State<RestaurantDetailScreen> createState() => _RestaurantDetailScreenState();
+  ConsumerState<RestaurantDetailPage> createState() =>
+      _RestaurantDetailPageState();
 }
 
-class _RestaurantDetailScreenState extends State<RestaurantDetailScreen> {
+class _RestaurantDetailPageState extends ConsumerState<RestaurantDetailPage> {
   int _selectedTabIndex = 0;
   int _selectedDateOffset = 0; // 0=오늘, 1=내일, ...
-  // 확장된 시간대 인덱스 (0=조식, 1=중식, 2=석식)
+  // 확장된 시간대 인덱스
   final Set<int> _expandedSlots = {1, 2};
 
   void _backToHome() {
@@ -64,169 +73,220 @@ class _RestaurantDetailScreenState extends State<RestaurantDetailScreen> {
     }
   }
 
+  String get _selectedDate =>
+      _dateString(DateTime.now().add(Duration(days: _selectedDateOffset)));
+
   @override
   Widget build(BuildContext context) {
-    final meals = StaticDataRepository.meals;
-
-    if (meals.isEmpty) return const Center(child: Text('데이터가 없습니다'));
-
-    final textTheme    = Theme.of(context).textTheme;
-    final selectedMeal = meals[_selectedTabIndex];
+    final restaurantsAsync = ref.watch(restaurantListNotifierProvider);
 
     return Scaffold(
       backgroundColor: const Color(0xFFFAFAFA),
       body: CustomScrollView(
         slivers: [
-          // ── 상단 바 (기존 유지) ──────────────────────────────
-          SliverAppBar(
-            pinned: true,
-            backgroundColor: const Color(0xFFFAFAFA),
-            foregroundColor: Colors.black,
-            surfaceTintColor: Colors.transparent,
-            automaticallyImplyLeading: false,
-            toolbarHeight: 72,
-            title: SafeArea(
-              bottom: false,
-              child: Padding(
-                padding: const EdgeInsets.fromLTRB(12, 8, 12, 10),
-                child: Row(
-                  children: [
-                    Material(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(12),
-                      elevation: 2,
-                      child: InkWell(
-                        borderRadius: BorderRadius.circular(12),
-                        onTap: _backToHome,
-                        child: const SizedBox(
-                          width: 44, height: 44,
-                          child: Icon(Icons.arrow_back, color: Colors.black),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: Material(
-                        elevation: 2,
-                        borderRadius: BorderRadius.circular(12),
-                        child: Container(
-                          height: 44,
-                          decoration: BoxDecoration(
-                            color: Colors.white,
-                            borderRadius: BorderRadius.circular(12),
-                            border: Border.all(color: Colors.grey.shade300),
-                          ),
-                          padding: const EdgeInsets.symmetric(horizontal: 12),
-                          child: Row(
-                            children: [
-                              Expanded(
-                                child: Text(
-                                  '학식조회',
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                  style: textTheme.titleMedium?.copyWith(
-                                    fontWeight: FontWeight.w700,
-                                    color: Colors.black87,
-                                  ),
-                                ),
-                              ),
-                              IconButton(
-                                tooltip: '알림',
-                                onPressed: () {},
-                                icon: const Icon(Icons.notifications_none, size: 20),
-                                color: Colors.black54,
-                                padding: EdgeInsets.zero,
-                                constraints: const BoxConstraints(),
-                              ),
-                              const SizedBox(width: 6),
-                              IconButton(
-                                tooltip: '내 정보',
-                                onPressed: () {},
-                                icon: const Icon(Icons.account_circle_outlined, size: 22),
-                                color: Colors.black54,
-                                padding: EdgeInsets.zero,
-                                constraints: const BoxConstraints(),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
+          _buildAppBar(context),
+          SliverToBoxAdapter(
+            child: restaurantsAsync.when(
+              data: (restaurants) => _buildContent(restaurants),
+              loading: () => const Padding(
+                padding: EdgeInsets.only(top: 80),
+                child: Center(
+                  child: CircularProgressIndicator(color: _kPrimary),
                 ),
               ),
-            ),
-          ),
-
-          // ── 본문 ──────────────────────────────────────────────
-          SliverToBoxAdapter(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                // 날짜 선택 탭
-                _DateTabBar(
-                  selectedOffset: _selectedDateOffset,
-                  onDateSelected: (i) => setState(() => _selectedDateOffset = i),
-                ),
-
-                const SizedBox(height: 12),
-
-                // 식당 선택 탭 바
-                _RestaurantTabBar(
-                  meals: meals,
-                  selectedIndex: _selectedTabIndex,
-                  onTabSelected: (i) => setState(() {
-                    _selectedTabIndex = i;
-                    _expandedSlots
-                      ..clear()
-                      ..addAll({1, 2});
-                  }),
-                ),
-
-                const SizedBox(height: 14),
-
-                // 선택된 식당 요약 헤더 카드
-                _RestaurantHeaderCard(meal: selectedMeal),
-
-                const SizedBox(height: 18),
-
-                // 식사 시간대 섹션
-                if (selectedMeal.timeSlots != null)
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
-                    child: Column(
-                      children: selectedMeal.timeSlots!.asMap().entries.map((entry) {
-                        final idx      = entry.key;
-                        final slot     = entry.value;
-                        final status   = _computeStatus(slot);
-                        final expanded = _expandedSlots.contains(idx);
-                        return Padding(
-                          padding: const EdgeInsets.only(bottom: 10),
-                          child: _MealTimeCard(
-                            slot: slot,
-                            status: status,
-                            isExpanded: expanded,
-                            onToggle: status != _MealStatus.notOperated
-                                ? () => setState(() {
-                                      if (expanded) {
-                                        _expandedSlots.remove(idx);
-                                      } else {
-                                        _expandedSlots.add(idx);
-                                      }
-                                    })
-                                : null,
-                          ),
-                        );
-                      }).toList(),
-                    ),
-                  ),
-
-                const SizedBox(height: 24),
-              ],
+              error: (e, _) => _ErrorView(
+                message: '식당 정보를 불러올 수 없습니다.',
+                onRetry: () => ref.invalidate(restaurantListNotifierProvider),
+              ),
             ),
           ),
         ],
       ),
+    );
+  }
+
+  // ── 상단 바 (기존 유지) ──────────────────────────────────────
+  Widget _buildAppBar(BuildContext context) {
+    final textTheme = Theme.of(context).textTheme;
+    return SliverAppBar(
+      pinned: true,
+      backgroundColor: const Color(0xFFFAFAFA),
+      foregroundColor: Colors.black,
+      surfaceTintColor: Colors.transparent,
+      automaticallyImplyLeading: false,
+      toolbarHeight: 72,
+      title: SafeArea(
+        bottom: false,
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(12, 8, 12, 10),
+          child: Row(
+            children: [
+              Material(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(12),
+                elevation: 2,
+                child: InkWell(
+                  borderRadius: BorderRadius.circular(12),
+                  onTap: _backToHome,
+                  child: const SizedBox(
+                    width: 44,
+                    height: 44,
+                    child: Icon(Icons.arrow_back, color: Colors.black),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Material(
+                  elevation: 2,
+                  borderRadius: BorderRadius.circular(12),
+                  child: Container(
+                    height: 44,
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: Colors.grey.shade300),
+                    ),
+                    padding: const EdgeInsets.symmetric(horizontal: 12),
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: Text(
+                            '학식조회',
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: textTheme.titleMedium?.copyWith(
+                              fontWeight: FontWeight.w700,
+                              color: Colors.black87,
+                            ),
+                          ),
+                        ),
+                        IconButton(
+                          tooltip: '알림',
+                          onPressed: () {},
+                          icon: const Icon(Icons.notifications_none, size: 20),
+                          color: Colors.black54,
+                          padding: EdgeInsets.zero,
+                          constraints: const BoxConstraints(),
+                        ),
+                        const SizedBox(width: 6),
+                        IconButton(
+                          tooltip: '내 정보',
+                          onPressed: () {},
+                          icon: const Icon(Icons.account_circle_outlined,
+                              size: 22),
+                          color: Colors.black54,
+                          padding: EdgeInsets.zero,
+                          constraints: const BoxConstraints(),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  // ── 본문 ──────────────────────────────────────────────────────
+  Widget _buildContent(List<Restaurant> restaurants) {
+    if (restaurants.isEmpty) {
+      return const _EmptyView(message: '등록된 식당이 없습니다');
+    }
+    if (_selectedTabIndex >= restaurants.length) _selectedTabIndex = 0;
+
+    final mealsAsync = ref.watch(mealListNotifierProvider(date: _selectedDate));
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        // 날짜 선택 탭 → 변경 시 mealListNotifier(date) 재요청
+        _DateTabBar(
+          selectedOffset: _selectedDateOffset,
+          onDateSelected: (i) => setState(() => _selectedDateOffset = i),
+        ),
+        const SizedBox(height: 12),
+
+        // 식당 선택 탭 바
+        _RestaurantTabBar(
+          restaurants: restaurants,
+          selectedIndex: _selectedTabIndex,
+          onTabSelected: (i) => setState(() {
+            _selectedTabIndex = i;
+            _expandedSlots
+              ..clear()
+              ..addAll({1, 2});
+          }),
+        ),
+        const SizedBox(height: 14),
+
+        // 선택된 날짜의 메뉴 (식사 데이터)
+        mealsAsync.when(
+          data: (meals) {
+            final menus = buildRestaurantMenus(restaurants, meals);
+            final selected = menus[_selectedTabIndex];
+            return _buildMenuSection(selected);
+          },
+          loading: () => const Padding(
+            padding: EdgeInsets.only(top: 40, bottom: 40),
+            child: Center(child: CircularProgressIndicator(color: _kPrimary)),
+          ),
+          error: (e, _) => _ErrorView(
+            message: '식단 정보를 불러올 수 없습니다.',
+            onRetry: () => ref.invalidate(
+              mealListNotifierProvider(date: _selectedDate),
+            ),
+          ),
+        ),
+        const SizedBox(height: 24),
+      ],
+    );
+  }
+
+  Widget _buildMenuSection(RestaurantMenu menu) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        // 선택된 식당 요약 헤더 카드
+        _RestaurantHeaderCard(menu: menu),
+        const SizedBox(height: 18),
+
+        // 식사 시간대 섹션
+        if (menu.slots.isEmpty)
+          const _EmptyView(message: '오늘은 등록된 식단이 없어요')
+        else
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: Column(
+              children: menu.slots.asMap().entries.map((entry) {
+                final idx = entry.key;
+                final slot = entry.value;
+                final status = _computeStatus(slot);
+                final expanded = _expandedSlots.contains(idx);
+                return Padding(
+                  padding: const EdgeInsets.only(bottom: 10),
+                  child: _MealTimeCard(
+                    slot: slot,
+                    status: status,
+                    isExpanded: expanded,
+                    onToggle: status != _MealStatus.notOperated
+                        ? () => setState(() {
+                              if (expanded) {
+                                _expandedSlots.remove(idx);
+                              } else {
+                                _expandedSlots.add(idx);
+                              }
+                            })
+                        : null,
+                  ),
+                );
+              }).toList(),
+            ),
+          ),
+      ],
     );
   }
 }
@@ -242,8 +302,6 @@ class _DateTabBar extends StatelessWidget {
     required this.onDateSelected,
   });
 
-  static const _weekdays = ['월', '화', '수', '목', '금', '토', '일'];
-
   @override
   Widget build(BuildContext context) {
     final today = DateTime.now();
@@ -255,7 +313,7 @@ class _DateTabBar extends StatelessWidget {
           children: List.generate(7, (i) {
             final date = today.add(Duration(days: i));
             final isSelected = i == selectedOffset;
-            final dayLabel = _weekdays[date.weekday - 1];
+            final dayLabel = _kWeekdays[date.weekday - 1];
 
             return Expanded(
               child: GestureDetector(
@@ -284,8 +342,7 @@ class _DateTabBar extends StatelessWidget {
                       Text(
                         dayLabel,
                         style: TextStyle(
-                          color:
-                              isSelected ? Colors.white60 : Colors.black38,
+                          color: isSelected ? Colors.white60 : Colors.black38,
                           fontSize: 12,
                           fontWeight: FontWeight.w500,
                         ),
@@ -305,12 +362,12 @@ class _DateTabBar extends StatelessWidget {
 // ──────────────────────────────────────────────────────────────
 /// 식당 선택 수평 스크롤 탭 바
 class _RestaurantTabBar extends StatelessWidget {
-  final List<Meal> meals;
+  final List<Restaurant> restaurants;
   final int selectedIndex;
   final void Function(int) onTabSelected;
 
   const _RestaurantTabBar({
-    required this.meals,
+    required this.restaurants,
     required this.selectedIndex,
     required this.onTabSelected,
   });
@@ -322,7 +379,7 @@ class _RestaurantTabBar extends StatelessWidget {
       child: ListView.separated(
         scrollDirection: Axis.horizontal,
         padding: const EdgeInsets.symmetric(horizontal: 16),
-        itemCount: meals.length,
+        itemCount: restaurants.length,
         separatorBuilder: (_, _) => const SizedBox(width: 8),
         itemBuilder: (context, i) {
           final isSelected = i == selectedIndex;
@@ -350,7 +407,7 @@ class _RestaurantTabBar extends StatelessWidget {
                     : [],
               ),
               child: Text(
-                meals[i].Name,
+                restaurants[i].name,
                 style: TextStyle(
                   fontSize: 13.5,
                   fontWeight: FontWeight.w600,
@@ -366,18 +423,15 @@ class _RestaurantTabBar extends StatelessWidget {
 }
 
 // ──────────────────────────────────────────────────────────────
-/// 선택된 식당 요약 헤더 카드 (그라디언트)
+/// 선택된 식당 요약 헤더 카드
 class _RestaurantHeaderCard extends StatelessWidget {
-  final Meal meal;
-  const _RestaurantHeaderCard({required this.meal});
+  final RestaurantMenu menu;
+  const _RestaurantHeaderCard({required this.menu});
 
   @override
   Widget build(BuildContext context) {
     // 메뉴가 있는 시간대만 chips로 표시
-    final slots = meal.timeSlots
-            ?.where((s) => s.timeRange.isNotEmpty && s.menus.isNotEmpty)
-            .toList() ??
-        [];
+    final slots = menu.slots.where((s) => s.isOperated).toList();
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -399,9 +453,7 @@ class _RestaurantHeaderCard extends StatelessWidget {
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                // 왼쪽 accent bar
                 Container(width: 4, color: _kPrimary),
-
                 Expanded(
                   child: Padding(
                     padding: const EdgeInsets.fromLTRB(16, 16, 16, 14),
@@ -429,7 +481,7 @@ class _RestaurantHeaderCard extends StatelessWidget {
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   Text(
-                                    meal.Name,
+                                    menu.name,
                                     style: const TextStyle(
                                       color: Colors.black87,
                                       fontSize: 18,
@@ -448,7 +500,7 @@ class _RestaurantHeaderCard extends StatelessWidget {
                                       const SizedBox(width: 3),
                                       Expanded(
                                         child: Text(
-                                          meal.location ?? '',
+                                          menu.location ?? '',
                                           style: const TextStyle(
                                             color: Colors.black45,
                                             fontSize: 12,
@@ -464,8 +516,6 @@ class _RestaurantHeaderCard extends StatelessWidget {
                             ),
                           ],
                         ),
-
-                        // 운영 시간대 chips
                         if (slots.isNotEmpty) ...[
                           const SizedBox(height: 12),
                           Wrap(
@@ -508,7 +558,7 @@ class _RestaurantHeaderCard extends StatelessWidget {
 // ──────────────────────────────────────────────────────────────
 /// 식사 시간대 확장/축소 카드 (조식 / 중식 / 석식)
 class _MealTimeCard extends StatelessWidget {
-  final MealTimeSlot slot;
+  final MenuSlot slot;
   final _MealStatus status;
   final bool isExpanded;
   final VoidCallback? onToggle;
@@ -522,29 +572,40 @@ class _MealTimeCard extends StatelessWidget {
 
   Color get _statusColor {
     switch (status) {
-      case _MealStatus.notOperated: return Colors.black38;
-      case _MealStatus.preparing:   return _kOrange;
-      case _MealStatus.operating:   return _kGreen;
-      case _MealStatus.closed:      return _kRed;
+      case _MealStatus.notOperated:
+        return Colors.black38;
+      case _MealStatus.preparing:
+        return _kOrange;
+      case _MealStatus.operating:
+        return _kGreen;
+      case _MealStatus.closed:
+        return _kRed;
     }
   }
 
   String get _statusText {
     switch (status) {
-      case _MealStatus.notOperated: return '미운영';
-      case _MealStatus.preparing:   return '준비중  ${slot.timeRange}';
-      case _MealStatus.operating:   return '운영중  ${slot.timeRange}';
-      case _MealStatus.closed:      return '운영종료';
+      case _MealStatus.notOperated:
+        return '미운영';
+      case _MealStatus.preparing:
+        return '준비중  ${slot.timeRange}';
+      case _MealStatus.operating:
+        return '운영중  ${slot.timeRange}';
+      case _MealStatus.closed:
+        return '운영종료';
     }
   }
 
-  /// 시간대별 아이콘
   IconData get _slotIcon {
     switch (slot.label) {
-      case '조식': return Icons.wb_sunny_outlined;
-      case '중식': return Icons.wb_sunny;
-      case '석식': return Icons.brightness_3;
-      default:    return Icons.access_time_outlined;
+      case '조식':
+        return Icons.wb_sunny_outlined;
+      case '중식':
+        return Icons.wb_sunny;
+      case '석식':
+        return Icons.brightness_3;
+      default:
+        return Icons.access_time_outlined;
     }
   }
 
@@ -566,7 +627,6 @@ class _MealTimeCard extends StatelessWidget {
       clipBehavior: Clip.antiAlias,
       child: Column(
         children: [
-          // ── 헤더 ──
           GestureDetector(
             onTap: onToggle,
             behavior: HitTestBehavior.opaque,
@@ -574,9 +634,9 @@ class _MealTimeCard extends StatelessWidget {
               padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 13),
               child: Row(
                 children: [
-                  // 시간대 아이콘
                   Container(
-                    width: 36, height: 36,
+                    width: 36,
+                    height: 36,
                     decoration: BoxDecoration(
                       color: _kCardBg,
                       borderRadius: BorderRadius.circular(10),
@@ -593,9 +653,9 @@ class _MealTimeCard extends StatelessWidget {
                     ),
                   ),
                   const Spacer(),
-                  // 상태 뱃지 (pill)
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
                     decoration: BoxDecoration(
                       color: _statusColor.withValues(alpha: 0.10),
                       borderRadius: BorderRadius.circular(999),
@@ -604,7 +664,8 @@ class _MealTimeCard extends StatelessWidget {
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         Container(
-                          width: 5, height: 5,
+                          width: 5,
+                          height: 5,
                           decoration: BoxDecoration(
                             color: _statusColor,
                             shape: BoxShape.circle,
@@ -624,7 +685,6 @@ class _MealTimeCard extends StatelessWidget {
                   ),
                   if (onToggle != null) ...[
                     const SizedBox(width: 6),
-                    // 화살표 회전 애니메이션
                     AnimatedRotation(
                       turns: isExpanded ? 0.5 : 0.0,
                       duration: const Duration(milliseconds: 250),
@@ -639,32 +699,17 @@ class _MealTimeCard extends StatelessWidget {
               ),
             ),
           ),
-
-          // ── 메뉴 내용 (부드러운 확장/축소 애니메이션) ──
           AnimatedSize(
             duration: const Duration(milliseconds: 280),
             curve: Curves.easeInOut,
             alignment: Alignment.topCenter,
-            child: slot.menus.isNotEmpty && isExpanded
+            child: slot.menu.isNotEmpty && isExpanded
                 ? Column(
                     children: [
                       const Divider(height: 1, color: _kCardBorder),
                       Padding(
                         padding: const EdgeInsets.fromLTRB(12, 10, 12, 12),
-                        child: Column(
-                          children: slot.menus.asMap().entries.map((entry) {
-                            return Column(
-                              children: [
-                                if (entry.key > 0)
-                                  const Padding(
-                                    padding: EdgeInsets.symmetric(vertical: 8),
-                                    child: Divider(height: 1, color: _kCardBorder),
-                                  ),
-                                _MealSetSection(menuSet: entry.value),
-                              ],
-                            );
-                          }).toList(),
-                        ),
+                        child: _MealSetSection(slot: slot),
                       ),
                     ],
                   )
@@ -679,8 +724,8 @@ class _MealTimeCard extends StatelessWidget {
 // ──────────────────────────────────────────────────────────────
 /// 메뉴 세트 (가격 뱃지 + 아이템 목록)
 class _MealSetSection extends StatelessWidget {
-  final MealSet menuSet;
-  const _MealSetSection({required this.menuSet});
+  final MenuSlot slot;
+  const _MealSetSection({required this.slot});
 
   @override
   Widget build(BuildContext context) {
@@ -695,23 +740,23 @@ class _MealSetSection extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // 가격 표시
-          Text(
-            '${_formatPrice(menuSet.price)} 원',
-            style: const TextStyle(
-              fontSize: 14,
-              fontWeight: FontWeight.w700,
-              color: Colors.black87,
+          if (slot.price != null) ...[
+            Text(
+              '${_formatPrice(slot.price!)} 원',
+              style: const TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.w700,
+                color: Colors.black87,
+              ),
             ),
-          ),
-          const SizedBox(height: 10),
-          ..._buildRows(menuSet.items),
+            const SizedBox(height: 10),
+          ],
+          ..._buildRows(slot.menu),
         ],
       ),
     );
   }
 
-  /// 메뉴 항목 2열 Row 목록으로 변환
   List<Widget> _buildRows(List<String> items) {
     final rows = <Widget>[];
     for (int i = 0; i < items.length; i += 2) {
@@ -746,7 +791,8 @@ class _MenuItem extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
         Container(
-          width: 4, height: 4,
+          width: 4,
+          height: 4,
           decoration: const BoxDecoration(
             color: Colors.black26,
             shape: BoxShape.circle,
@@ -764,3 +810,64 @@ class _MenuItem extends StatelessWidget {
   }
 }
 
+// ──────────────────────────────────────────────────────────────
+/// 빈 상태 뷰
+class _EmptyView extends StatelessWidget {
+  final String message;
+  const _EmptyView({required this.message});
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 60),
+      child: Center(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Icon(Icons.restaurant_outlined,
+                size: 44, color: Colors.black26),
+            const SizedBox(height: 12),
+            Text(
+              message,
+              style: const TextStyle(color: Colors.black45, fontSize: 14),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// 공통 에러 뷰 (재시도 버튼 포함)
+class _ErrorView extends StatelessWidget {
+  final String message;
+  final VoidCallback onRetry;
+
+  const _ErrorView({required this.message, required this.onRetry});
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 60),
+      child: Center(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Icon(Icons.error_outline, size: 48, color: Colors.grey),
+            const SizedBox(height: 12),
+            Text(message, style: Theme.of(context).textTheme.bodyMedium),
+            const SizedBox(height: 16),
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: _kPrimary,
+                foregroundColor: Colors.white,
+              ),
+              onPressed: onRetry,
+              child: const Text('다시 시도'),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}

@@ -1,20 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:handori/core/constants/app_colors.dart';
-import 'package:handori/features/school_meal/model/meal_model.dart';
+import 'package:handori/features/school_meal/presentation/model/restaurant_menu.dart';
 
 const _kPrimary = AppColors.primary;
 
-MealTimeSlot? _findCurrentOrNextSlot(List<MealTimeSlot>? timeSlots) {
-  if (timeSlots == null || timeSlots.isEmpty) return null;
+/// 현재 시간 기준 운영 중이거나 다음 운영 예정인 시간대를 찾는다.
+MenuSlot? _findCurrentOrNextSlot(List<MenuSlot> slots) {
+  final operated = slots.where((s) => s.isOperated).toList();
+  if (operated.isEmpty) return null;
 
   final now = DateTime.now();
   final nowMinutes = now.hour * 60 + now.minute;
 
-  MealTimeSlot? nextSlot;
-
-  for (final slot in timeSlots) {
-    if (slot.timeRange.isEmpty || slot.menus.isEmpty) continue;
-
+  MenuSlot? nextSlot;
+  for (final slot in operated) {
     final parts = slot.timeRange.split('~');
     if (parts.length != 2) continue;
 
@@ -22,32 +21,23 @@ MealTimeSlot? _findCurrentOrNextSlot(List<MealTimeSlot>? timeSlots) {
     final endParts = parts[1].trim().split(':');
     if (startParts.length != 2 || endParts.length != 2) continue;
 
-    final startMinutes =
-        (int.tryParse(startParts[0]) ?? 0) * 60 + (int.tryParse(startParts[1]) ?? 0);
-    final endMinutes =
-        (int.tryParse(endParts[0]) ?? 0) * 60 + (int.tryParse(endParts[1]) ?? 0);
+    final startMinutes = (int.tryParse(startParts[0]) ?? 0) * 60 +
+        (int.tryParse(startParts[1]) ?? 0);
+    final endMinutes = (int.tryParse(endParts[0]) ?? 0) * 60 +
+        (int.tryParse(endParts[1]) ?? 0);
 
-    if (nowMinutes >= startMinutes && nowMinutes < endMinutes) {
-      return slot;
-    }
-
-    if (nowMinutes < startMinutes) {
-      nextSlot ??= slot;
-    }
+    if (nowMinutes >= startMinutes && nowMinutes < endMinutes) return slot;
+    if (nowMinutes < startMinutes) nextSlot ??= slot;
   }
 
-  return nextSlot ??
-      timeSlots.lastWhere(
-        (s) => s.timeRange.isNotEmpty && s.menus.isNotEmpty,
-        orElse: () => timeSlots.first,
-      );
+  return nextSlot ?? operated.last;
 }
 
 class HomeMealSection extends StatefulWidget {
-  final List<Meal> meals;
+  final List<RestaurantMenu> menus;
   final VoidCallback? onTap;
 
-  const HomeMealSection({required this.meals, this.onTap, super.key});
+  const HomeMealSection({required this.menus, this.onTap, super.key});
 
   @override
   State<HomeMealSection> createState() => _HomeMealSectionState();
@@ -58,11 +48,12 @@ class _HomeMealSectionState extends State<HomeMealSection> {
 
   @override
   Widget build(BuildContext context) {
-    if (widget.meals.isEmpty) return const SizedBox.shrink();
+    if (widget.menus.isEmpty) return const SizedBox.shrink();
+    if (_selected >= widget.menus.length) _selected = 0;
 
-    final meal = widget.meals[_selected];
-    final slot = _findCurrentOrNextSlot(meal.timeSlots);
-    final price = slot?.menus.isNotEmpty == true ? slot!.menus.first.price : null;
+    final menu = widget.menus[_selected];
+    final slot = _findCurrentOrNextSlot(menu.slots);
+    final price = slot?.price;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -72,7 +63,7 @@ class _HomeMealSectionState extends State<HomeMealSection> {
           height: 40,
           child: ListView.separated(
             scrollDirection: Axis.horizontal,
-            itemCount: widget.meals.length,
+            itemCount: widget.menus.length,
             separatorBuilder: (_, _) => const SizedBox(width: 8),
             itemBuilder: (context, i) {
               final isSelected = i == _selected;
@@ -81,7 +72,8 @@ class _HomeMealSectionState extends State<HomeMealSection> {
                 child: AnimatedContainer(
                   duration: const Duration(milliseconds: 200),
                   alignment: Alignment.center,
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 9),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 16, vertical: 9),
                   decoration: BoxDecoration(
                     color: isSelected ? _kPrimary : Colors.white,
                     borderRadius: BorderRadius.circular(20),
@@ -99,7 +91,7 @@ class _HomeMealSectionState extends State<HomeMealSection> {
                         : [],
                   ),
                   child: Text(
-                    widget.meals[i].Name,
+                    widget.menus[i].name,
                     style: TextStyle(
                       fontSize: 13,
                       fontWeight: FontWeight.w600,
@@ -141,14 +133,14 @@ class _HomeMealSectionState extends State<HomeMealSection> {
                 Row(
                   children: [
                     Text(
-                      meal.Name,
+                      menu.name,
                       style: const TextStyle(
                         fontSize: 15,
                         fontWeight: FontWeight.w700,
                         color: Colors.black87,
                       ),
                     ),
-                    if (meal.location != null) ...[
+                    if (menu.location != null) ...[
                       const SizedBox(width: 6),
                       const Icon(
                         Icons.location_on_outlined,
@@ -158,7 +150,7 @@ class _HomeMealSectionState extends State<HomeMealSection> {
                       const SizedBox(width: 2),
                       Expanded(
                         child: Text(
-                          meal.location!,
+                          menu.location!,
                           style: const TextStyle(
                             fontSize: 12,
                             color: Colors.black45,
@@ -184,11 +176,11 @@ class _HomeMealSectionState extends State<HomeMealSection> {
                 const SizedBox(height: 10),
 
                 // 메뉴 아이템 칩
-                if (slot != null && slot.menus.isNotEmpty)
+                if (slot != null && slot.menu.isNotEmpty)
                   Wrap(
                     spacing: 6,
                     runSpacing: 6,
-                    children: slot.menus.first.items.map((item) {
+                    children: slot.menu.map((item) {
                       return Container(
                         padding: const EdgeInsets.symmetric(
                             horizontal: 10, vertical: 5),

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:get_it/get_it.dart';
 import 'package:go_router/go_router.dart';
 import 'package:handori/common/component/top_bar.dart';
@@ -6,19 +7,21 @@ import 'package:handori/common/layout/root_tab.dart';
 import 'package:handori/core/router/route_paths.dart';
 import 'package:handori/features/home/model/banner_model.dart';
 import 'package:handori/features/empty_class/model/class_model.dart';
-import 'package:handori/features/school_meal/model/meal_model.dart';
 import 'package:handori/features/empty_class/repository/empty_class_repository.dart';
 import 'package:handori/common/repository/static_repository.dart';
 import 'package:handori/features/home/component/banner_card_top.dart';
 import 'package:handori/features/bus/component/bus_time_card.dart';
 import 'package:handori/features/empty_class/component/empty_class_card.dart';
-import 'package:handori/features/school_meal/component/meal_card.dart';
+import 'package:handori/features/school_meal/presentation/model/restaurant_menu.dart';
+import 'package:handori/features/school_meal/presentation/provider/meal_list_notifier.dart';
+import 'package:handori/features/school_meal/presentation/provider/restaurant_list_notifier.dart';
+import 'package:handori/features/school_meal/presentation/widget/meal_card.dart';
 
-class HomeScreen extends StatefulWidget {
+class HomeScreen extends ConsumerStatefulWidget {
   const HomeScreen({super.key});
 
   @override
-  State<HomeScreen> createState() => _HomeScreenState();
+  ConsumerState<HomeScreen> createState() => _HomeScreenState();
 }
 
 class _SectionHeader extends StatelessWidget {
@@ -109,11 +112,10 @@ class _OrganizationCard extends StatelessWidget {
   }
 }
 
-class _HomeScreenState extends State<HomeScreen> {
+class _HomeScreenState extends ConsumerState<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     final dataRepository = GetIt.I<StaticDataRepository>();
-    final List<Meal> meals = StaticDataRepository.meals;
     final List<Banners> banner = dataRepository.banners;
 
 
@@ -145,10 +147,7 @@ class _HomeScreenState extends State<HomeScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-                    HomeMealSection(
-                      meals: meals,
-                      onTap: () => RootTab.of(context)?.jumpTo(1),
-                    ),
+                    _buildMealSection(),
 
                     const SizedBox(height: 20),
 
@@ -208,6 +207,77 @@ class _HomeScreenState extends State<HomeScreen> {
             ],
           ),
         ),
+      ),
+    );
+  }
+
+  /// 학식 섹션 — 식당 목록 + 오늘 최신 식사를 결합해 표시.
+  Widget _buildMealSection() {
+    final restaurantsAsync = ref.watch(restaurantListNotifierProvider);
+    final mealsAsync = ref.watch(mealListNotifierProvider());
+
+    if (restaurantsAsync.isLoading || mealsAsync.isLoading) {
+      return const SizedBox(
+        height: 120,
+        child:
+            Center(child: CircularProgressIndicator(color: Color(0xFF00C4F9))),
+      );
+    }
+    if (restaurantsAsync.hasError || mealsAsync.hasError) {
+      return _MealErrorView(
+        onRetry: () {
+          ref.invalidate(restaurantListNotifierProvider);
+          ref.invalidate(mealListNotifierProvider());
+        },
+      );
+    }
+
+    final restaurants = restaurantsAsync.value ?? const [];
+    final meals = mealsAsync.value ?? const [];
+    if (restaurants.isEmpty) {
+      return const Padding(
+        padding: EdgeInsets.symmetric(vertical: 24),
+        child: Text(
+          '등록된 식당이 없습니다',
+          style: TextStyle(color: Colors.black45, fontSize: 13),
+        ),
+      );
+    }
+
+    return HomeMealSection(
+      menus: buildRestaurantMenus(restaurants, meals),
+      onTap: () => RootTab.of(context)?.jumpTo(1),
+    );
+  }
+}
+
+/// 학식 섹션 에러 뷰 (재시도 포함)
+class _MealErrorView extends StatelessWidget {
+  final VoidCallback onRetry;
+  const _MealErrorView({required this.onRetry});
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 16),
+      child: Row(
+        children: [
+          const Icon(Icons.error_outline, color: Colors.grey, size: 20),
+          const SizedBox(width: 8),
+          const Expanded(
+            child: Text(
+              '학식 정보를 불러올 수 없습니다.',
+              style: TextStyle(color: Colors.black54, fontSize: 13),
+            ),
+          ),
+          TextButton(
+            onPressed: onRetry,
+            style: TextButton.styleFrom(
+              foregroundColor: const Color(0xFF00C4F9),
+            ),
+            child: const Text('다시 시도'),
+          ),
+        ],
       ),
     );
   }

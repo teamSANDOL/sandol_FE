@@ -26,6 +26,22 @@ class OrganizationNodeCard extends StatelessWidget {
   }
 }
 
+TextStyle _getDepthTextStyle(int depth) {
+  if (depth == 0) {
+    return const TextStyle(
+      fontSize: 16,
+      fontWeight: FontWeight.bold,
+      color: Colors.black87,
+    );
+  } else {
+    return TextStyle(
+      fontSize: 14,
+      fontWeight: FontWeight.w500,
+      color: Colors.grey[600],
+    );
+  }
+}
+
 class _GroupTile extends StatelessWidget {
   final OrganizationGroupNode node;
   final int depth;
@@ -34,25 +50,36 @@ class _GroupTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final indent = depth * 16.0;
-
-    return Padding(
-      padding: EdgeInsets.only(left: indent),
+    return Container(
+      decoration: depth > 0
+          ? BoxDecoration(
+              border: Border(
+                left: BorderSide(
+                  color: Colors.grey[300]!,
+                  width: 2,
+                ),
+              ),
+            )
+          : null,
       child: Theme(
         data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
         child: ExpansionTile(
-          tilePadding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+          tilePadding: EdgeInsets.only(
+            left: depth > 0 ? 8 : 0,
+            right: 8,
+            top: 0,
+            bottom: 0,
+          ),
+          iconColor: const Color(0xFF00C4F9),
+          collapsedIconColor: const Color(0xFF00C4F9),
           leading: Icon(
             Icons.folder_outlined,
-            color: const Color(0xFF0088CC),
+            color: depth == 0 ? const Color(0xFF00C4F9) : Colors.grey[500],
             size: 20,
           ),
           title: Text(
             node.name,
-            style: const TextStyle(
-              fontWeight: FontWeight.w700,
-              fontSize: 15,
-            ),
+            style: _getDepthTextStyle(depth),
           ),
           children: node.children
               .map((child) => OrganizationNodeCard(
@@ -74,38 +101,81 @@ class _UnitTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final indent = depth * 16.0;
-
-    return Padding(
-      padding: EdgeInsets.only(left: indent),
+    return Container(
+      decoration: depth > 0
+          ? BoxDecoration(
+              border: Border(
+                left: BorderSide(
+                  color: Colors.grey[300]!,
+                  width: 2,
+                ),
+              ),
+            )
+          : null,
       child: ListTile(
-        contentPadding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-        leading: const Icon(
+        contentPadding: EdgeInsets.only(
+          left: depth > 0 ? 8 : 8,
+          right: 8,
+          top: 2,
+          bottom: 2,
+        ),
+        leading: Icon(
           Icons.person_outline,
-          color: Color(0xFF6B7A89),
+          color: depth == 0 ? const Color(0xFF00C4F9) : Colors.grey[500],
           size: 20,
         ),
         title: Text(
           node.name,
-          style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
+          style: _getDepthTextStyle(depth),
         ),
         subtitle: node.phone != null || node.url != null
             ? Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   if (node.phone != null)
-                    Text(
-                      node.phone!,
-                      style: const TextStyle(
-                          fontSize: 12, color: Color(0xFF0088CC)),
+                    Row(
+                      children: [
+                        Icon(
+                          Icons.phone,
+                          size: 12,
+                          color: Colors.grey[500],
+                        ),
+                        const SizedBox(width: 4),
+                        Expanded(
+                          child: Text(
+                            node.phone!,
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: Colors.grey[600],
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
                   if (node.url != null)
-                    Text(
-                      node.url!,
-                      style: const TextStyle(
-                          fontSize: 12, color: Color(0xFF0088CC)),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
+                    Padding(
+                      padding: const EdgeInsets.only(top: 4),
+                      child: Row(
+                        children: [
+                          Icon(
+                            Icons.link,
+                            size: 12,
+                            color: Colors.grey[500],
+                          ),
+                          const SizedBox(width: 4),
+                          Expanded(
+                            child: Text(
+                              node.url!,
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: Colors.grey[600],
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                 ],
               )

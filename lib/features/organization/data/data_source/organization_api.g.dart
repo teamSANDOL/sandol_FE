@@ -27,7 +27,7 @@ class _OrganizationApi implements OrganizationApi {
       Options(method: 'GET', headers: _headers, extra: _extra)
           .compose(
             _dio.options,
-            '/organization/tree',
+            '/static-info/organization/tree',
             queryParameters: queryParameters,
             data: _data,
           )
@@ -54,7 +54,7 @@ class _OrganizationApi implements OrganizationApi {
       Options(method: 'GET', headers: _headers, extra: _extra)
           .compose(
             _dio.options,
-            '/organization/search/${name}',
+            '/static-info/organization/search/${name}',
             queryParameters: queryParameters,
             data: _data,
           )
@@ -88,7 +88,7 @@ class _OrganizationApi implements OrganizationApi {
       Options(method: 'GET', headers: _headers, extra: _extra)
           .compose(
             _dio.options,
-            '/organization/${orgPath}',
+            '/static-info/organization/${orgPath}',
             queryParameters: queryParameters,
             data: _data,
           )
@@ -115,7 +115,7 @@ class _OrganizationApi implements OrganizationApi {
       Options(method: 'GET', headers: _headers, extra: _extra)
           .compose(
             _dio.options,
-            '/organization/${orgPath}/children',
+            '/static-info/organization/${orgPath}/children',
             queryParameters: queryParameters,
             data: _data,
           )

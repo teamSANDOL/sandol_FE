@@ -4,7 +4,7 @@ import 'package:handori/common/component/app_bottom_nav.dart';
 import 'package:handori/features/notice/presentation/page/notice_page.dart';
 import 'package:handori/features/bus/screen/bus_time_detail_screen.dart';
 import 'package:handori/features/empty_class/screen/empty_detail_screen.dart';
-import 'package:handori/features/school_meal/screen/restaurant_detail_screen.dart';
+import 'package:handori/features/school_meal/presentation/page/restaurant_detail_page.dart';
 import 'package:handori/features/home/screen/home_screen.dart';
 
 class RootTab extends StatefulWidget {
@@ -23,7 +23,7 @@ class RootTabState extends State<RootTab> with TickerProviderStateMixin {
 
   static const _pages = [
     BusTimeDetailScreen(),    // 0
-    RestaurantDetailScreen(), // 1
+    RestaurantDetailPage(), // 1
     HomeScreen(),             // 2 ← 중앙 (기본)
     NoticePage(),             // 3
     EmptyDetailScreen(),      // 4

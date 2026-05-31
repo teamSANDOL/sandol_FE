@@ -9,9 +9,9 @@ part 'bus_image_api.g.dart';
 abstract class BusImageApi {
   factory BusImageApi(Dio dio, {String? baseUrl}) = _BusImageApi;
 
-  @GET('/bus/images')
+  @GET('/static-info/bus/images')
   Future<BusImagesResponse> getAllBusImages();
 
-  @GET('/bus/image/{index}')
+  @GET('/static-info/bus/image/{index}')
   Future<BusImageResponse> getBusImageByIndex(@Path('index') int index);
 }

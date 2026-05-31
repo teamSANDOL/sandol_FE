@@ -9,20 +9,20 @@ part 'organization_api.g.dart';
 abstract class OrganizationApi {
   factory OrganizationApi(Dio dio, {String? baseUrl}) = _OrganizationApi;
 
-  @GET('/organization/tree')
+  @GET('/static-info/organization/tree')
   Future<OrganizationGroupResponse> getTree();
 
-  @GET('/organization/search/{name}')
+  @GET('/static-info/organization/search/{name}')
   Future<List<OrganizationNodeRawResponse>> searchByName(
     @Path('name') String name,
   );
 
-  @GET('/organization/{orgPath}')
+  @GET('/static-info/organization/{orgPath}')
   Future<OrganizationNodeRawResponse> getByPath(
     @Path('orgPath') String orgPath,
   );
 
-  @GET('/organization/{orgPath}/children')
+  @GET('/static-info/organization/{orgPath}/children')
   Future<List<OrganizationNodeRawResponse>> getChildren(
     @Path('orgPath') String orgPath,
   );
