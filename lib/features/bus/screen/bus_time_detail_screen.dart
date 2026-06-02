@@ -5,9 +5,9 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:sliding_up_panel/sliding_up_panel.dart';
 
 import 'package:handori/common/layout/root_tab.dart';
-import 'package:handori/common/repository/static_repository.dart';
-import 'package:handori/features/bus/model/bus_model.dart';
-import 'package:handori/features/bus/presentation/provider/bus_image_provider.dart';
+import 'package:handori/features/bus/domain/model/shuttle_schedule.dart';
+import 'package:handori/features/bus/presentation/provider/next_shuttle_provider.dart';
+import 'package:handori/features/bus/presentation/widget/realtime_bus_arrival_section.dart';
 
 // ─── Color tokens ──────────────────────────────────────────────────────────
 const Color _kPrimary = Color(0xFF00C4F9); // 핀포인트 전용
@@ -34,13 +34,6 @@ const TextStyle _kSectionTitle = TextStyle(
   fontWeight: FontWeight.w700,
   color: _kTextMuted,
   letterSpacing: 0.4,
-);
-const TextStyle _kBusNumber = TextStyle(
-  fontSize: 20,
-  fontWeight: FontWeight.w800,
-  color: _kTextPrimary,
-  letterSpacing: -0.4,
-  height: 1.1,
 );
 const TextStyle _kBusSubLabel = TextStyle(
   fontSize: 12.5,
@@ -233,7 +226,6 @@ class _BusTimeDetailScreenState extends ConsumerState<BusTimeDetailScreen> {
           );
         }
 
-        final size = MediaQuery.of(context).size;
         final fabBottom =
             _kMinPanelHeight +
             (_panelPos * (_kMaxPanelHeight - _kMinPanelHeight)) +
@@ -459,14 +451,29 @@ class _BusInfoPanel extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final buses = StaticDataRepository.bus;
-    final busImageUrls = ref.watch(busImagesProvider).valueOrNull ?? [];
-
     // 방면별 라벨
     final isToStation = selectedDestination == 0;
     final shuttleRoute = isToStation ? '정왕역(셔틀)행' : '학교(셔틀)행';
-    final stopLabel = isToStation ? '정문 정류장' : '정왕역 정류장';
     final stopSectionTitle = isToStation ? '정문 버스 정류장' : '정왕역 버스 정류장';
+    // 토글 → 실시간 도착 정보를 조회할 정류장 ID 목록.
+    //  - 정왕역 방면(학교에서 탑승)  = 정문 정류장 1곳
+    //  - 학교 방면(정왕역에서 탑승)  = 정왕역 승차 정류장 2곳(25835, 25904)
+    final stationIds = isToStation
+        ? const [CampusBusStops.mainGate]
+        : CampusBusStops.jeongwangStations;
+
+    // 화면 토글 → 노선1(정왕역↔본교) 방향 매핑
+    //  - 정왕역 방면(학교에서 탑승)  = 학교 → 정왕 (하교)
+    //  - 학교 방면(정왕역에서 탑승)  = 정왕 → 학교 (등교)
+    final direction = isToStation
+        ? ShuttleDirection.schoolToJeongwang
+        : ShuttleDirection.jeongwangToSchool;
+    final nextShuttle = ref.watch(
+      nextShuttleProvider(
+        route: ShuttleRoute.route1,
+        direction: direction,
+      ),
+    );
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -515,8 +522,7 @@ class _BusInfoPanel extends ConsumerWidget {
               const SizedBox(height: 14),
               _ShuttleCard(
                 route: shuttleRoute,
-                remainMinutes: '13',
-                isImminent: true,
+                next: nextShuttle,
               ),
               const SizedBox(height: 36),
               // 일반 버스 정보
@@ -526,21 +532,16 @@ class _BusInfoPanel extends ConsumerWidget {
                 actionLabel: '위치 보기',
               ),
               const SizedBox(height: 14),
-              ...buses.asMap().entries.map((entry) {
-                final idx = entry.key;
-                final bus = entry.value;
-                final imageUrl =
-                    idx < busImageUrls.length ? busImageUrls[idx] : null;
-                return Padding(
-                  padding: const EdgeInsets.only(bottom: 12),
-                  child: _BusCard(
-                    bus: bus,
-                    imageUrl: imageUrl,
-                    stopLabel: stopLabel,
-                    isImminent: idx == 0,
-                  ),
-                );
-              }),
+              for (int i = 0; i < stationIds.length; i++) ...[
+                if (i > 0) const SizedBox(height: 20),
+                RealtimeBusArrivalSection(
+                  stationId: stationIds[i],
+                  // 정류장이 2곳 이상일 때만 구분용 라벨을 표시한다.
+                  label: stationIds.length > 1
+                      ? '정류장 ${stationIds[i]}'
+                      : null,
+                ),
+              ],
             ],
           ),
         ),
@@ -690,18 +691,17 @@ class _RouteCard extends StatelessWidget {
 }
 
 class _ShuttleCard extends StatelessWidget {
-  final String route;
-  final String remainMinutes;
-  final bool isImminent;
+  // 임박 강조 기준(분) — 이 시간 이하면 핀포인트 블루로 강조.
+  static const int _imminentThreshold = 15;
 
-  const _ShuttleCard({
-    required this.route,
-    required this.remainMinutes,
-    required this.isImminent,
-  });
+  final String route;
+  final NextShuttle next;
+
+  const _ShuttleCard({required this.route, required this.next});
 
   @override
   Widget build(BuildContext context) {
+    final subText = next.subText;
     return _RouteCard(
       child: Padding(
         padding: const EdgeInsets.fromLTRB(18, 18, 18, 18),
@@ -726,8 +726,6 @@ class _ShuttleCard extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text('셔틀', style: _kBusSubLabel),
-                  const SizedBox(height: 4),
                   Text(
                     route,
                     style: const TextStyle(
@@ -737,10 +735,23 @@ class _ShuttleCard extends StatelessWidget {
                       letterSpacing: -0.3,
                     ),
                   ),
+                  if (subText != null && subText.isNotEmpty) ...[
+                    const SizedBox(height: 4),
+                    Text(
+                      subText,
+                      style: _kBusSubLabel,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ],
                 ],
               ),
             ),
-            _ArrivalTime(minutes: remainMinutes, isImminent: isImminent),
+            const SizedBox(width: 12),
+            _ShuttleTrailing(
+              next: next,
+              imminentThreshold: _imminentThreshold,
+            ),
           ],
         ),
       ),
@@ -748,68 +759,43 @@ class _ShuttleCard extends StatelessWidget {
   }
 }
 
-class _BusCard extends StatelessWidget {
-  final Bus bus;
-  final String? imageUrl;
-  final String stopLabel;
-  final bool isImminent;
+/// 셔틀 카드 우측 표시 — 정시 출발은 분 카운트다운, 그 외(수시운행·도착버스
+/// 탑승·운행 종료·운행 안함)는 상태 라벨로 렌더한다.
+class _ShuttleTrailing extends StatelessWidget {
+  final NextShuttle next;
+  final int imminentThreshold;
 
-  const _BusCard({
-    required this.bus,
-    required this.imageUrl,
-    required this.stopLabel,
-    required this.isImminent,
-  });
-
-  Widget _busIconWidget() {
-    if (imageUrl != null) {
-      return Image.network(
-        imageUrl!,
-        width: 28,
-        height: 28,
-        fit: BoxFit.contain,
-        errorBuilder:
-            (_, _, _) =>
-                Image.asset('assets/img/bus.png', width: 28, height: 28),
-      );
-    }
-    return Image.asset('assets/img/bus.png', width: 28, height: 28);
-  }
-
-  // "2분" → "2"
-  String get _minutesOnly =>
-      RegExp(r'\d+').firstMatch(bus.busTime)?.group(0) ?? bus.busTime;
+  const _ShuttleTrailing({required this.next, required this.imminentThreshold});
 
   @override
   Widget build(BuildContext context) {
-    return _RouteCard(
-      child: Padding(
-        padding: const EdgeInsets.fromLTRB(18, 18, 18, 18),
-        child: Row(
-          children: [
-            Container(
-              width: 52,
-              height: 52,
-              decoration: BoxDecoration(
-                color: _kBgSoft,
-                borderRadius: BorderRadius.circular(14),
-                border: Border.all(color: _kBorderSoft),
-              ),
-              child: Center(child: _busIconWidget()),
-            ),
-            const SizedBox(width: 16),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(bus.busNumber, style: _kBusNumber),
-                  const SizedBox(height: 4),
-                  Text(stopLabel, style: _kBusSubLabel),
-                ],
-              ),
-            ),
-            _ArrivalTime(minutes: _minutesOnly, isImminent: isImminent),
-          ],
+    final remain = next.remainMinutes;
+    if (next.showsMinutes && remain != null && remain > 0) {
+      return _ArrivalTime(
+        minutes: '$remain',
+        isImminent: remain <= imminentThreshold,
+      );
+    }
+
+    // 정각 출발 직전(remain == 0) → "곧 도착", 그 외는 상태 라벨.
+    final label = (next.status == ShuttleStatus.upcoming)
+        ? '곧 도착'
+        : (next.statusLabel ?? '-');
+    final emphasize = next.status == ShuttleStatus.upcoming ||
+        next.status == ShuttleStatus.flexible ||
+        next.status == ShuttleStatus.arrivalBoarding;
+
+    return ConstrainedBox(
+      constraints: const BoxConstraints(maxWidth: 96),
+      child: Text(
+        label,
+        textAlign: TextAlign.end,
+        style: TextStyle(
+          fontSize: 15,
+          fontWeight: FontWeight.w800,
+          color: emphasize ? _kPrimary : _kTextMuted,
+          letterSpacing: -0.3,
+          height: 1.15,
         ),
       ),
     );

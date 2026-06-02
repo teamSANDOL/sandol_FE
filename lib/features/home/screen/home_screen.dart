@@ -131,7 +131,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
         surfaceTintColor: Colors.transparent,
         elevation: 0,
         automaticallyImplyLeading: false,
-        titleSpacing: 30,
+        titleSpacing: 20,
         title: TopBar(
           headerText: '산돌이',
           onBellPressed: () {},
@@ -141,7 +141,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       body: SingleChildScrollView(
         child: Padding(
           padding: const EdgeInsets.symmetric(
-            horizontal: 30.0,
+            horizontal: 20.0,
             vertical: 10.0,
           ),
           child: Column(

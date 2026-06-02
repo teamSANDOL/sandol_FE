@@ -2,11 +2,11 @@ import 'package:handori/features/school_meal/domain/model/meal.dart';
 import 'package:handori/features/school_meal/domain/model/meal_type.dart';
 import 'package:handori/features/school_meal/domain/model/restaurant.dart';
 
-/// 한 식당의 한 식사 시간대 (조식/중식/석식/브런치) — 도메인 모델로부터 파생된
+/// 한 식당의 한 식사 시간대 (조식/점심/저녁/브런치) — 도메인 모델로부터 파생된
 /// presentation 전용 view model. (DTO 미참조, §1 준수)
 class MenuSlot {
   final MealType mealType;
-  final String label; // 조식 / 브런치 / 중식 / 석식
+  final String label; // 조식 / 브런치 / 점심 / 저녁
   final String timeRange; // "11:00~13:00" — 미운영이면 빈 문자열
   final List<String> menu; // 메뉴 항목
   final int? price;
@@ -30,7 +30,27 @@ class RestaurantMenu {
   const RestaurantMenu({required this.restaurant, required this.slots});
 
   String get name => restaurant.name;
-  String? get location => restaurant.locationLabel;
+
+  /// 위치 표기. API(`location.building`)가 있으면 그대로 쓰고, 없으면 식당명
+  /// 기준 하드코딩 폴백을 사용한다.
+  String? get location =>
+      restaurant.locationLabel ?? _fallbackLocationOf(restaurant.name);
+}
+
+/// 식당명 부분 일치 → 위치 폴백 매핑.
+/// 서버에 위치 정보가 누락된 식당의 위치를 보완한다.
+const _kLocationFallback = <String, String>{
+  '가가': 'TIP 1층',
+  'E동': 'E동 1층',
+  '세미콘': '경기도 시흥시 정왕동 1269-13',
+  '미가': '경기도 시흥시 산기대학로 236',
+};
+
+String? _fallbackLocationOf(String name) {
+  for (final entry in _kLocationFallback.entries) {
+    if (name.contains(entry.key)) return entry.value;
+  }
+  return null;
 }
 
 /// 시간 문자열을 "HH:MM" 형태로 정규화한다.
@@ -57,7 +77,7 @@ List<RestaurantMenu> buildRestaurantMenus(
   List<Restaurant> restaurants,
   List<Meal> meals,
 ) {
-  // 표시 순서 고정: 조식 → 브런치 → 중식 → 석식
+  // 표시 순서 고정: 조식 → 브런치 → 점심 → 저녁
   const order = [
     MealType.breakfast,
     MealType.brunch,

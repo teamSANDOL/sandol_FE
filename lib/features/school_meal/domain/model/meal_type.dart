@@ -12,7 +12,7 @@ enum MealType {
   String get label => switch (this) {
         MealType.breakfast => '조식',
         MealType.brunch => '브런치',
-        MealType.lunch => '중식',
-        MealType.dinner => '석식',
+        MealType.lunch => '점심',
+        MealType.dinner => '저녁',
       };
 }

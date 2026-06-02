@@ -52,6 +52,9 @@ dependencies:
   # ── 보안 ─────────────────────────────────────────────────────────────────────
   flutter_secure_storage: ^10.0.0  # 토큰 안전 저장소 (SharedPreferences 대체)
 
+  # ── 환경 변수 ─────────────────────────────────────────────────────────────────
+  flutter_dotenv: ^5.2.1           # .env 로드 (API 키 등 비밀값)
+
   # ── 로깅 ─────────────────────────────────────────────────────────────────────
   logger: ^2.7.0                   # print() 대체 Logger
 
@@ -88,6 +91,7 @@ flutter:
   uses-material-design: true
   assets:
     - assets/img/
+    - .env
 
   fonts:
     - family: Pretendard

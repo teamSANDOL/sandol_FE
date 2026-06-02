@@ -26,13 +26,22 @@ RestaurantRepository restaurantRepository(Ref ref) {
 
 @riverpod
 class RestaurantListNotifier extends _$RestaurantListNotifier {
-  static const int _size = 100;
+  /// 서버가 size 쿼리 파라미터를 최대 100으로 제한한다(초과 시 422).
+  /// 따라서 한 페이지당 최대치(100)로 요청하고 전체 페이지를 순회해 누락을 방지한다.
+  static const int _maxPageSize = 100;
 
   @override
   Future<List<Restaurant>> build() async {
     final repo = ref.watch(restaurantRepositoryProvider);
-    final result = await repo.getRestaurants(size: _size);
-    return result.items;
+    final items = <Restaurant>[];
+    var page = 1;
+    while (true) {
+      final result = await repo.getRestaurants(page: page, size: _maxPageSize);
+      items.addAll(result.items);
+      if (result.items.isEmpty || items.length >= result.total) break;
+      page++;
+    }
+    return items;
   }
 
   Future<void> refresh() async {

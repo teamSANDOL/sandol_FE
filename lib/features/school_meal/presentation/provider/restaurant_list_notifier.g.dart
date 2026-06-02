@@ -45,7 +45,7 @@ final restaurantRepositoryProvider =
 // ignore: unused_element
 typedef RestaurantRepositoryRef = AutoDisposeProviderRef<RestaurantRepository>;
 String _$restaurantListNotifierHash() =>
-    r'45fc68f55e6653621ea29f6519e43187d4ae7834';
+    r'54369b79bb013dff649726dab9b513ad05645b61';
 
 /// See also [RestaurantListNotifier].
 @ProviderFor(RestaurantListNotifier)

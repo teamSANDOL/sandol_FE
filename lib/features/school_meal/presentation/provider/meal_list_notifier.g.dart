@@ -40,7 +40,7 @@ final mealRepositoryProvider = AutoDisposeProvider<MealRepository>.internal(
 @Deprecated('Will be removed in 3.0. Use Ref instead')
 // ignore: unused_element
 typedef MealRepositoryRef = AutoDisposeProviderRef<MealRepository>;
-String _$mealListNotifierHash() => r'22995b0df9f3b943d96fc7d39ecac8099a6a3e1a';
+String _$mealListNotifierHash() => r'979a3d7405a2e5816c87f7ea0d7bbea1788cb088';
 
 /// Copied from Dart SDK
 class _SystemHash {

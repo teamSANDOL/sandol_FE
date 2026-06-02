@@ -1,13 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:handori/common/component/restaurant_location_label.dart';
+import 'package:handori/core/constants/app_colors.dart';
 import 'package:handori/common/layout/root_tab.dart';
 import 'package:handori/features/school_meal/domain/model/restaurant.dart';
 import 'package:handori/features/school_meal/presentation/model/restaurant_menu.dart';
 import 'package:handori/features/school_meal/presentation/provider/meal_list_notifier.dart';
 import 'package:handori/features/school_meal/presentation/provider/restaurant_list_notifier.dart';
+import 'package:handori/features/school_meal/presentation/provider/selected_restaurant_id_notifier.dart';
 
 // ── 색상 상수 ──────────────────────────────────────────────────
-const _kPrimary = Color(0xFF00C4F9);
+// 홈 화면 식당 칩과 동일한 메인 색상을 사용한다.
+const _kPrimary = AppColors.primary;
 const _kCardBorder = Color(0xFFEAEAEA);
 const _kCardBg = Color(0xFFF8F8F8);
 const _kGreen = Color(0xFF66BB6A);
@@ -59,7 +63,6 @@ class RestaurantDetailPage extends ConsumerStatefulWidget {
 }
 
 class _RestaurantDetailPageState extends ConsumerState<RestaurantDetailPage> {
-  int _selectedTabIndex = 0;
   int _selectedDateOffset = 0; // 0=오늘, 1=내일, ...
   // 확장된 시간대 인덱스
   final Set<int> _expandedSlots = {1, 2};
@@ -196,7 +199,12 @@ class _RestaurantDetailPageState extends ConsumerState<RestaurantDetailPage> {
     if (restaurants.isEmpty) {
       return const _EmptyView(message: '등록된 식당이 없습니다');
     }
-    if (_selectedTabIndex >= restaurants.length) _selectedTabIndex = 0;
+
+    // 선택 탭은 전역 provider(식당 ID)에서 파생한다. 홈 화면의 칩 선택이
+    // 그대로 진입 탭으로 반영되고, 여기서 탭을 바꾸면 홈 칩도 동기화된다.
+    final selectedId = ref.watch(selectedRestaurantIdProvider);
+    var selectedTabIndex = restaurants.indexWhere((r) => r.id == selectedId);
+    if (selectedTabIndex < 0) selectedTabIndex = 0;
 
     final mealsAsync = ref.watch(mealListNotifierProvider(date: _selectedDate));
 
@@ -213,13 +221,18 @@ class _RestaurantDetailPageState extends ConsumerState<RestaurantDetailPage> {
         // 식당 선택 탭 바
         _RestaurantTabBar(
           restaurants: restaurants,
-          selectedIndex: _selectedTabIndex,
-          onTabSelected: (i) => setState(() {
-            _selectedTabIndex = i;
-            _expandedSlots
-              ..clear()
-              ..addAll({1, 2});
-          }),
+          selectedIndex: selectedTabIndex,
+          onTabSelected: (i) {
+            // 전역 provider 갱신 → 홈 칩과 양방향 동기화.
+            ref
+                .read(selectedRestaurantIdProvider.notifier)
+                .select(restaurants[i].id);
+            setState(() {
+              _expandedSlots
+                ..clear()
+                ..addAll({1, 2});
+            });
+          },
         ),
         const SizedBox(height: 14),
 
@@ -227,7 +240,7 @@ class _RestaurantDetailPageState extends ConsumerState<RestaurantDetailPage> {
         mealsAsync.when(
           data: (meals) {
             final menus = buildRestaurantMenus(restaurants, meals);
-            final selected = menus[_selectedTabIndex];
+            final selected = menus[selectedTabIndex];
             return _buildMenuSection(selected);
           },
           loading: () => const Padding(
@@ -489,28 +502,12 @@ class _RestaurantHeaderCard extends StatelessWidget {
                                       letterSpacing: -0.3,
                                     ),
                                   ),
-                                  const SizedBox(height: 4),
-                                  Row(
-                                    children: [
-                                      const Icon(
-                                        Icons.location_on_outlined,
-                                        color: Colors.black38,
-                                        size: 13,
-                                      ),
-                                      const SizedBox(width: 3),
-                                      Expanded(
-                                        child: Text(
-                                          menu.location ?? '',
-                                          style: const TextStyle(
-                                            color: Colors.black45,
-                                            fontSize: 12,
-                                          ),
-                                          maxLines: 1,
-                                          overflow: TextOverflow.ellipsis,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
+                                  if (menu.location != null) ...[
+                                    const SizedBox(height: 4),
+                                    RestaurantLocationLabel(
+                                      location: menu.location!,
+                                    ),
+                                  ],
                                 ],
                               ),
                             ),
@@ -600,9 +597,9 @@ class _MealTimeCard extends StatelessWidget {
     switch (slot.label) {
       case '조식':
         return Icons.wb_sunny_outlined;
-      case '중식':
+      case '점심':
         return Icons.wb_sunny;
-      case '석식':
+      case '저녁':
         return Icons.brightness_3;
       default:
         return Icons.access_time_outlined;
