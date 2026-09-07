@@ -115,6 +115,7 @@ class _EmptyClassTimelineCardState
                     items: items,
                     maxItems: widget.maxItems,
                     dimmed: true,
+                    showWalk: sortMode == BuildingSort.distance,
                     onBuildingTap: widget.onBuildingTap,
                   ),
             error: (e, _) => _ErrorRow(
@@ -123,6 +124,7 @@ class _EmptyClassTimelineCardState
             data: (data) => _BuildingList(
               items: data,
               maxItems: widget.maxItems,
+              showWalk: sortMode == BuildingSort.distance,
               onBuildingTap: widget.onBuildingTap,
             ),
           ),
@@ -534,12 +536,16 @@ class _BuildingList extends StatelessWidget {
   final List<NearbyEmptyClass> items;
   final int maxItems;
   final bool dimmed;
+
+  /// 도보 시간은 내 위치 정렬일 때만 의미가 있어 그때만 보여준다.
+  final bool showWalk;
   final ValueChanged<String>? onBuildingTap;
 
   const _BuildingList({
     required this.items,
     required this.maxItems,
     this.dimmed = false,
+    this.showWalk = true,
     this.onBuildingTap,
   });
 
@@ -564,7 +570,11 @@ class _BuildingList extends StatelessWidget {
       child: Column(
         children: [
           for (var i = 0; i < withRooms.length; i++) ...[
-            _BuildingRow(item: withRooms[i], onBuildingTap: onBuildingTap),
+            _BuildingRow(
+              item: withRooms[i],
+              showWalk: showWalk,
+              onBuildingTap: onBuildingTap,
+            ),
             if (i != withRooms.length - 1)
               const Divider(
                   height: 10, thickness: 0.8, color: AppColors.cardBorder),
@@ -577,9 +587,14 @@ class _BuildingList extends StatelessWidget {
 
 class _BuildingRow extends StatelessWidget {
   final NearbyEmptyClass item;
+  final bool showWalk;
   final ValueChanged<String>? onBuildingTap;
 
-  const _BuildingRow({required this.item, this.onBuildingTap});
+  const _BuildingRow({
+    required this.item,
+    this.showWalk = true,
+    this.onBuildingTap,
+  });
 
   /// 건물당 미리 보여줄 호실 수. 나머지는 `+N`.
   static const int _previewRooms = 4;
@@ -587,7 +602,7 @@ class _BuildingRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final b = item.building;
-    final walk = item.walkMinutes;
+    final walk = showWalk ? item.walkMinutes : null;
     final preview = b.classList.take(_previewRooms).toList();
     final rest = b.classList.length - preview.length;
 

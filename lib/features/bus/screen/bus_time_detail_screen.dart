@@ -4,6 +4,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:handori/core/constants/app_colors.dart';
 
 import 'package:handori/common/component/app_top_bar.dart';
+import 'package:handori/common/component/refresh_icon_button.dart';
 import 'package:handori/core/constants/app_text_styles.dart';
 import 'package:handori/features/bus/data/data_source/shuttle_schedule_data.dart';
 import 'package:handori/features/bus/domain/model/shuttle_schedule.dart';
@@ -58,17 +59,16 @@ class BusTimeDetailScreen extends ConsumerStatefulWidget {
 
 class _BusTimeDetailScreenState extends ConsumerState<BusTimeDetailScreen> {
   int _selectedDestination = 0; // 0: 정왕역 방면, 1: 학교 방면
-  DateTime _lastUpdated = DateTime.now();
 
   // 출발·도착 스왑 — 기존 방면 토글을 스왑 버튼 하나로 대체했다.
   void _onSwapPressed() {
     setState(() => _selectedDestination = 1 - _selectedDestination);
   }
 
-  // 당겨서 새로고침 — 셔틀 정보를 다시 불러온다.
+  // 새로고침(당겨서 / 다음 버스 카드 버튼) — 기준 시각을 갱신하면
+  // 다음 버스·시간표·마지막 업데이트 표시가 함께 다시 계산된다.
   Future<void> _onRefresh() async {
-    ref.invalidate(nextShuttleProvider);
-    setState(() => _lastUpdated = DateTime.now());
+    ref.read(shuttleClockProvider.notifier).refresh();
     await Future<void>.delayed(const Duration(milliseconds: 500));
   }
 
@@ -91,7 +91,8 @@ class _BusTimeDetailScreenState extends ConsumerState<BusTimeDetailScreen> {
       ),
     );
 
-    final now = DateTime.now();
+    // 마지막 새로고침 시각 — 시간표의 "지나간 시각" 판정·푸터 표시에 사용.
+    final now = ref.watch(shuttleClockProvider);
     final timetable = ShuttleScheduleData.timetableFor(
       route: ShuttleRoute.route1,
       direction: direction,
@@ -100,9 +101,7 @@ class _BusTimeDetailScreenState extends ConsumerState<BusTimeDetailScreen> {
 
     return Scaffold(
       backgroundColor: _kBgSoft,
-      appBar: AppTopBar(
-        title: '버스조회',
-      ),
+      appBar: const AppTopBar(title: '버스조회'),
       body: SafeArea(
         bottom: false,
         child: RefreshIndicator(
@@ -119,7 +118,7 @@ class _BusTimeDetailScreenState extends ConsumerState<BusTimeDetailScreen> {
                 onSwap: _onSwapPressed,
               ),
               const SizedBox(height: 16),
-              _NextBusCard(next: nextShuttle),
+              _NextBusCard(next: nextShuttle, onRefresh: _onRefresh),
               const SizedBox(height: 24),
               _TimetableSectionHeader(
                 routeLabel: '$originLabel → $destinationLabel',
@@ -130,7 +129,7 @@ class _BusTimeDetailScreenState extends ConsumerState<BusTimeDetailScreen> {
                 nowMinutes: now.hour * 60 + now.minute,
               ),
               const SizedBox(height: 20),
-              _FooterNote(lastUpdated: _lastUpdated),
+              _FooterNote(lastUpdated: now),
             ],
           ),
         ),
@@ -293,7 +292,10 @@ class _DashedLinePainter extends CustomPainter {
 class _NextBusCard extends StatelessWidget {
   final NextShuttle next;
 
-  const _NextBusCard({required this.next});
+  /// 카드 우측 새로고침 버튼 — 도착 정보를 다시 불러온다.
+  final Future<void> Function() onRefresh;
+
+  const _NextBusCard({required this.next, required this.onRefresh});
 
   @override
   Widget build(BuildContext context) {
@@ -403,6 +405,12 @@ class _NextBusCard extends StatelessWidget {
                       ],
                     ],
                   ),
+                ),
+                const SizedBox(width: 8),
+                RefreshIconButton(
+                  onRefresh: onRefresh,
+                  size: 22,
+                  color: _kTextMuted,
                 ),
               ],
             ),

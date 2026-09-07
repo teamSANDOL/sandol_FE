@@ -6,7 +6,7 @@ part of 'next_shuttle_provider.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$nextShuttleHash() => r'bca93f53dfda8dacb92a6fa5262c9529a8cbe6a0';
+String _$nextShuttleHash() => r'd08f445c3793190b139b91f44a89ceee4d70687d';
 
 /// Copied from Dart SDK
 class _SystemHash {
@@ -29,34 +29,34 @@ class _SystemHash {
   }
 }
 
-/// (노선·방향)별 현재 시각 기준 다음 셔틀 정보.
+/// (노선·방향)별 [shuttleClockProvider] 기준 다음 셔틀 정보.
 ///
-/// `DateTime.now()`로 요일·시각을 판정해 하드코딩 시간표에서 다음 셔틀을 계산한다.
-/// 화면 진입 시점 기준 1회 계산이며, 갱신이 필요하면 `ref.invalidate`로 재계산한다.
+/// 기준 시각으로 요일·시각을 판정해 하드코딩 시간표에서 다음 셔틀을 계산한다.
+/// 갱신은 `ref.read(shuttleClockProvider.notifier).refresh()`로 한다.
 ///
 /// Copied from [nextShuttle].
 @ProviderFor(nextShuttle)
 const nextShuttleProvider = NextShuttleFamily();
 
-/// (노선·방향)별 현재 시각 기준 다음 셔틀 정보.
+/// (노선·방향)별 [shuttleClockProvider] 기준 다음 셔틀 정보.
 ///
-/// `DateTime.now()`로 요일·시각을 판정해 하드코딩 시간표에서 다음 셔틀을 계산한다.
-/// 화면 진입 시점 기준 1회 계산이며, 갱신이 필요하면 `ref.invalidate`로 재계산한다.
+/// 기준 시각으로 요일·시각을 판정해 하드코딩 시간표에서 다음 셔틀을 계산한다.
+/// 갱신은 `ref.read(shuttleClockProvider.notifier).refresh()`로 한다.
 ///
 /// Copied from [nextShuttle].
 class NextShuttleFamily extends Family<NextShuttle> {
-  /// (노선·방향)별 현재 시각 기준 다음 셔틀 정보.
+  /// (노선·방향)별 [shuttleClockProvider] 기준 다음 셔틀 정보.
   ///
-  /// `DateTime.now()`로 요일·시각을 판정해 하드코딩 시간표에서 다음 셔틀을 계산한다.
-  /// 화면 진입 시점 기준 1회 계산이며, 갱신이 필요하면 `ref.invalidate`로 재계산한다.
+  /// 기준 시각으로 요일·시각을 판정해 하드코딩 시간표에서 다음 셔틀을 계산한다.
+  /// 갱신은 `ref.read(shuttleClockProvider.notifier).refresh()`로 한다.
   ///
   /// Copied from [nextShuttle].
   const NextShuttleFamily();
 
-  /// (노선·방향)별 현재 시각 기준 다음 셔틀 정보.
+  /// (노선·방향)별 [shuttleClockProvider] 기준 다음 셔틀 정보.
   ///
-  /// `DateTime.now()`로 요일·시각을 판정해 하드코딩 시간표에서 다음 셔틀을 계산한다.
-  /// 화면 진입 시점 기준 1회 계산이며, 갱신이 필요하면 `ref.invalidate`로 재계산한다.
+  /// 기준 시각으로 요일·시각을 판정해 하드코딩 시간표에서 다음 셔틀을 계산한다.
+  /// 갱신은 `ref.read(shuttleClockProvider.notifier).refresh()`로 한다.
   ///
   /// Copied from [nextShuttle].
   NextShuttleProvider call({
@@ -88,17 +88,17 @@ class NextShuttleFamily extends Family<NextShuttle> {
   String? get name => r'nextShuttleProvider';
 }
 
-/// (노선·방향)별 현재 시각 기준 다음 셔틀 정보.
+/// (노선·방향)별 [shuttleClockProvider] 기준 다음 셔틀 정보.
 ///
-/// `DateTime.now()`로 요일·시각을 판정해 하드코딩 시간표에서 다음 셔틀을 계산한다.
-/// 화면 진입 시점 기준 1회 계산이며, 갱신이 필요하면 `ref.invalidate`로 재계산한다.
+/// 기준 시각으로 요일·시각을 판정해 하드코딩 시간표에서 다음 셔틀을 계산한다.
+/// 갱신은 `ref.read(shuttleClockProvider.notifier).refresh()`로 한다.
 ///
 /// Copied from [nextShuttle].
 class NextShuttleProvider extends AutoDisposeProvider<NextShuttle> {
-  /// (노선·방향)별 현재 시각 기준 다음 셔틀 정보.
+  /// (노선·방향)별 [shuttleClockProvider] 기준 다음 셔틀 정보.
   ///
-  /// `DateTime.now()`로 요일·시각을 판정해 하드코딩 시간표에서 다음 셔틀을 계산한다.
-  /// 화면 진입 시점 기준 1회 계산이며, 갱신이 필요하면 `ref.invalidate`로 재계산한다.
+  /// 기준 시각으로 요일·시각을 판정해 하드코딩 시간표에서 다음 셔틀을 계산한다.
+  /// 갱신은 `ref.read(shuttleClockProvider.notifier).refresh()`로 한다.
   ///
   /// Copied from [nextShuttle].
   NextShuttleProvider({
@@ -197,5 +197,24 @@ class _NextShuttleProviderElement
   ShuttleDirection get direction => (origin as NextShuttleProvider).direction;
 }
 
+String _$shuttleClockHash() => r'e60ba28449fdecb114b97624e5448a1563dce271';
+
+/// 셔틀 계산의 기준 시각(= 마지막 새로고침 시각).
+///
+/// 홈·버스 상세 화면이 공유하며, [ShuttleClock.refresh]를 호출하면
+/// 이 값을 watch하는 [nextShuttleProvider]가 모두 재계산된다.
+///
+/// Copied from [ShuttleClock].
+@ProviderFor(ShuttleClock)
+final shuttleClockProvider = NotifierProvider<ShuttleClock, DateTime>.internal(
+  ShuttleClock.new,
+  name: r'shuttleClockProvider',
+  debugGetCreateSourceHash:
+      const bool.fromEnvironment('dart.vm.product') ? null : _$shuttleClockHash,
+  dependencies: null,
+  allTransitiveDependencies: null,
+);
+
+typedef _$ShuttleClock = Notifier<DateTime>;
 // ignore_for_file: type=lint
 // ignore_for_file: subtype_of_sealed_class, invalid_use_of_internal_member, invalid_use_of_visible_for_testing_member, deprecated_member_use_from_same_package

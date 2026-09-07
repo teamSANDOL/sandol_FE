@@ -454,11 +454,28 @@ class _EmptyDetailScreenState extends ConsumerState<EmptyDetailScreen> {
       backgroundColor: Colors.white,
       extendBodyBehindAppBar: true,
       extendBody: true,
-      body: classesAsync.when(
-        error: (e, _) => Center(child: Text('오류: $e')),
-        loading: () =>
-            const Center(child: SandolLoadingIndicator()),
-        data: (items) => Stack(
+      // 구간을 바꿔 다시 불러올 때도 지도와 시트를 그대로 둔다.
+      // when() 으로 로딩 화면을 끼워 넣으면 Stack 이 통째로 다시 만들어져
+      // 시트가 접힌 위치로 돌아가고 지도도 초기화된다.
+      body: _buildBody(classesAsync, size, minFrac),
+    );
+  }
+
+  Widget _buildBody(
+      AsyncValue<List<EmptyClass>> classesAsync, Size size, double minFrac) {
+    final items = classesAsync.valueOrNull;
+    if (items == null) {
+      return classesAsync.hasError
+          ? Center(child: Text('오류: ${classesAsync.error}'))
+          : const Center(child: SandolLoadingIndicator());
+    }
+    final refreshing = classesAsync.isLoading;
+    return _buildStack(items, size, minFrac, refreshing: refreshing);
+  }
+
+  Widget _buildStack(List<EmptyClass> items, Size size, double minFrac,
+      {required bool refreshing}) {
+    return Stack(
           children: [
             Positioned.fill(
               child: NaverMap(
@@ -525,10 +542,57 @@ class _EmptyDetailScreenState extends ConsumerState<EmptyDetailScreen> {
                 child: const Icon(Icons.my_location_rounded, size: 24),
               ),
             ),
+            // 구간 변경으로 다시 불러오는 동안의 작은 표시
+            Positioned(
+              top: MediaQuery.of(context).padding.top + 12,
+              left: 0,
+              right: 0,
+              child: IgnorePointer(
+                child: AnimatedOpacity(
+                  duration: const Duration(milliseconds: 150),
+                  opacity: refreshing ? 1 : 0,
+                  child: Center(
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 12, vertical: 7),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(999),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withValues(alpha: 0.12),
+                            blurRadius: 10,
+                            offset: const Offset(0, 3),
+                          ),
+                        ],
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const SizedBox(
+                            width: 12,
+                            height: 12,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 1.6,
+                              color: AppColors.primary,
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          Text(
+                            '빈 강의실 갱신 중',
+                            style: AppTextStyles.caption04.copyWith(
+                              color: Colors.black87,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ),
           ],
-        ),
-      ),
-    );
+        );
   }
 
   Widget _buildTopBar() {

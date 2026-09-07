@@ -29,6 +29,9 @@ class AppTopBar extends StatelessWidget implements PreferredSizeWidget {
   final VoidCallback? onBack;
   final VoidCallback? onBell;
 
+  /// 새로고침 아이콘 탭 동작. null 이면 아이콘을 감춘다.
+  final VoidCallback? onRefresh;
+
   /// 유저 아이콘 탭 동작. null 이면 `/user` 로 push 한다.
   final VoidCallback? onUser;
 
@@ -42,6 +45,7 @@ class AppTopBar extends StatelessWidget implements PreferredSizeWidget {
     this.titleWidget,
     this.onBack,
     this.onBell,
+    this.onRefresh,
     this.onUser,
     this.showUser = true,
     this.bottom,
@@ -88,6 +92,13 @@ class AppTopBar extends StatelessWidget implements PreferredSizeWidget {
               ),
             ),
             // 바텀 네비게이션과 같은 Material 글리프 계열·크기로 맞춘다.
+            if (onRefresh != null)
+              _BarIconButton(
+                icon: Icons.refresh_rounded,
+                iconSize: 24,
+                tooltip: '새로고침',
+                onTap: onRefresh!,
+              ),
             if (onBell != null)
               _BarIconButton(
                 icon: Icons.notifications_none_rounded,

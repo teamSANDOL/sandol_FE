@@ -105,6 +105,27 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
+  testWidgets('도보 시간은 내 위치 정렬일 때만 보인다', (tester) async {
+    tester.view.physicalSize = const Size(390, 844);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+
+    await tester.pumpWidget(host([
+      NearbyEmptyClass(building: _b('E동', 3), distanceMeters: 120),
+    ]));
+    await tester.pumpAndSettle();
+    expect(find.text('도보 2분'), findsOneWidget);
+
+    await tester.tap(find.byType(SvgPicture));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('빈 강의실 많은 순'));
+    await tester.pumpAndSettle();
+    // 시트를 닫고 카드 확인
+    await tester.tapAt(const Offset(10, 10));
+    await tester.pumpAndSettle();
+    expect(find.text('도보 2분'), findsNothing);
+  });
+
   testWidgets('건물 행을 누르면 건물명을 넘긴다', (tester) async {
     String? tapped;
     await tester.pumpWidget(host(

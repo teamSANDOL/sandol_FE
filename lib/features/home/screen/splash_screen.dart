@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:handori/core/router/route_paths.dart';
 import 'package:handori/features/auth/presentation/provider/auth_provider.dart';
+import 'package:handori/shared/widget/sandol_loading_indicator.dart';
 
 class Splashscreen extends ConsumerStatefulWidget {
   const Splashscreen({super.key});
@@ -49,8 +50,8 @@ class _SplashscreenState extends ConsumerState<Splashscreen>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      ///배경 색
-      backgroundColor: const Color(0xFF4A90E2),
+      /// 배경 이미지(bg_splash.png)와 같은 밝은 톤 — 페이드인 중 색 튐 방지
+      backgroundColor: const Color(0xFFF6F6F6),
       body: Stack(
         fit: StackFit.expand,
         children: [
@@ -61,13 +62,13 @@ class _SplashscreenState extends ConsumerState<Splashscreen>
             child: ScaleTransition(
               scale: _scale,
               child: Image.asset(
-                'assets/img/splash.png',
+                'assets/img/bg_splash.png',
                 fit: BoxFit.cover,
               ),
             ),
           ),
 
-          // 하단 텍스트 로고
+          // 하단: 로딩 애니메이션 + 산돌이 로고
           SafeArea(
             child: Align(
               alignment: Alignment.bottomCenter,
@@ -75,7 +76,14 @@ class _SplashscreenState extends ConsumerState<Splashscreen>
                 padding: const EdgeInsets.only(bottom: 40),
                 child: FadeTransition(
                   opacity: _fadeIn,
-                  child: Image.asset('assets/img/sandol_text.png', width: 80),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const SandolLoadingIndicator(size: 56),
+                      const SizedBox(height: 48),
+                      Image.asset('assets/img/sandol_LG.png', width: 60),
+                    ],
+                  ),
                 ),
               ),
             ),
