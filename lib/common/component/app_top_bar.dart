@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:handori/core/constants/app_colors.dart';
 import 'package:handori/core/constants/app_text_styles.dart';
+import 'package:handori/core/router/route_paths.dart';
 
 /// 앱 전체 공통 상단 바.
 ///
@@ -8,7 +10,9 @@ import 'package:handori/core/constants/app_text_styles.dart';
 /// 공지 `AppBar`, 버스 `_Header`)를 하나로 통일한다.
 ///
 /// - [onBack]이 null이면 뒤로가기 버튼을 그리지 않는다(홈 탭).
-/// - [onBell] / [onUser]가 null이면 해당 액션 아이콘을 감춘다.
+/// - [onBell]이 null이면 알림 아이콘을 감춘다.
+/// - 유저 아이콘은 기본으로 표시되며 누르면 유저 상세(`/user`)로 이동한다.
+///   [onUser]로 동작을 바꾸거나 [showUser]=false 로 감출 수 있다(유저 상세 자신).
 /// - [bottom]으로 TabBar 등을 덧붙일 수 있다(공지 탭).
 class AppTopBar extends StatelessWidget implements PreferredSizeWidget {
   /// 툴바 높이. 화면 간 세로 리듬을 맞추기 위해 모든 탭이 공유한다.
@@ -24,7 +28,13 @@ class AppTopBar extends StatelessWidget implements PreferredSizeWidget {
   final Widget? titleWidget;
   final VoidCallback? onBack;
   final VoidCallback? onBell;
+
+  /// 유저 아이콘 탭 동작. null 이면 `/user` 로 push 한다.
   final VoidCallback? onUser;
+
+  /// 유저 아이콘 표시 여부. 유저 상세 화면처럼 자기 자신으로 가는 아이콘이
+  /// 무의미한 곳에서만 false 로 둔다.
+  final bool showUser;
   final PreferredSizeWidget? bottom;
 
   const AppTopBar({
@@ -33,6 +43,7 @@ class AppTopBar extends StatelessWidget implements PreferredSizeWidget {
     this.onBack,
     this.onBell,
     this.onUser,
+    this.showUser = true,
     this.bottom,
     super.key,
   });
@@ -84,12 +95,12 @@ class AppTopBar extends StatelessWidget implements PreferredSizeWidget {
                 tooltip: '알림',
                 onTap: onBell!,
               ),
-            if (onUser != null)
+            if (showUser)
               _BarIconButton(
                 icon: Icons.person_outline_rounded,
                 iconSize: 24,
                 tooltip: '내 정보',
-                onTap: onUser!,
+                onTap: onUser ?? () => context.push(RoutePaths.user),
               ),
           ],
         ),

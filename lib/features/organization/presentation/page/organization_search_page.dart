@@ -4,7 +4,7 @@ import 'package:handori/core/constants/app_text_styles.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:handori/features/organization/presentation/provider/organization_provider.dart';
-import 'package:handori/features/organization/presentation/widget/organization_node_card.dart';
+import 'package:handori/features/organization/presentation/widget/organization_search_result_card.dart';
 import 'package:handori/shared/widget/sandol_loading_indicator.dart';
 
 class OrganizationSearchPage extends ConsumerWidget {
@@ -14,9 +14,7 @@ class OrganizationSearchPage extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final searchAsync = ref.watch(
-      organizationSearchNotifierProvider(query),
-    );
+    final searchAsync = ref.watch(organizationSearchProvider(query));
 
     return Scaffold(
       backgroundColor: AppColors.background,
@@ -65,7 +63,8 @@ class OrganizationSearchPage extends ConsumerWidget {
             itemCount: results.length,
             separatorBuilder: (_, _) =>
                 const Divider(height: 1, color: AppColors.cardBorder),
-            itemBuilder: (_, i) => OrganizationNodeCard(node: results[i]),
+            itemBuilder: (_, i) =>
+                OrganizationSearchResultCard(result: results[i]),
           );
         },
       ),

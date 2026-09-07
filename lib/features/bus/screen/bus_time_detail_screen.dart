@@ -4,7 +4,6 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:handori/core/constants/app_colors.dart';
 
 import 'package:handori/common/component/app_top_bar.dart';
-import 'package:handori/common/component/coming_soon_snackbar.dart';
 import 'package:handori/core/constants/app_text_styles.dart';
 import 'package:handori/features/bus/data/data_source/shuttle_schedule_data.dart';
 import 'package:handori/features/bus/domain/model/shuttle_schedule.dart';
@@ -66,8 +65,6 @@ class _BusTimeDetailScreenState extends ConsumerState<BusTimeDetailScreen> {
     setState(() => _selectedDestination = 1 - _selectedDestination);
   }
 
-  void _onUserPressed() => showComingSoonSnackBar(context);
-
   // 당겨서 새로고침 — 셔틀 정보를 다시 불러온다.
   Future<void> _onRefresh() async {
     ref.invalidate(nextShuttleProvider);
@@ -105,7 +102,6 @@ class _BusTimeDetailScreenState extends ConsumerState<BusTimeDetailScreen> {
       backgroundColor: _kBgSoft,
       appBar: AppTopBar(
         title: '버스조회',
-        onUser: _onUserPressed,
       ),
       body: SafeArea(
         bottom: false,

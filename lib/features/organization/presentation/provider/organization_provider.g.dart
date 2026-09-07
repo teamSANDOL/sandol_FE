@@ -45,29 +45,8 @@ final organizationRepositoryProvider =
 // ignore: unused_element
 typedef OrganizationRepositoryRef =
     AutoDisposeProviderRef<OrganizationRepository>;
-String _$organizationTreeNotifierHash() =>
-    r'0b24a2aa1628237634c330b4dbd3e162e0a99950';
-
-/// See also [OrganizationTreeNotifier].
-@ProviderFor(OrganizationTreeNotifier)
-final organizationTreeNotifierProvider = AutoDisposeAsyncNotifierProvider<
-  OrganizationTreeNotifier,
-  OrganizationGroupNode
->.internal(
-  OrganizationTreeNotifier.new,
-  name: r'organizationTreeNotifierProvider',
-  debugGetCreateSourceHash:
-      const bool.fromEnvironment('dart.vm.product')
-          ? null
-          : _$organizationTreeNotifierHash,
-  dependencies: null,
-  allTransitiveDependencies: null,
-);
-
-typedef _$OrganizationTreeNotifier =
-    AutoDisposeAsyncNotifier<OrganizationGroupNode>;
-String _$organizationSearchNotifierHash() =>
-    r'9064a99603c042f01b0fdeb737d140dc7cc41b16';
+String _$organizationSearchHash() =>
+    r'be1d43a2c59a9993613a27e7e165234f1847667c';
 
 /// Copied from Dart SDK
 class _SystemHash {
@@ -90,31 +69,36 @@ class _SystemHash {
   }
 }
 
-abstract class _$OrganizationSearchNotifier
-    extends BuildlessAutoDisposeAsyncNotifier<List<OrganizationNode>> {
-  late final String query;
+/// 조직도 검색. 서버 검색 API가 완전일치만 지원하므로
+/// 트리 프로바이더의 데이터를 앱 안에서 부분일치로 필터링한다.
+///
+/// Copied from [organizationSearch].
+@ProviderFor(organizationSearch)
+const organizationSearchProvider = OrganizationSearchFamily();
 
-  FutureOr<List<OrganizationNode>> build(String query);
-}
+/// 조직도 검색. 서버 검색 API가 완전일치만 지원하므로
+/// 트리 프로바이더의 데이터를 앱 안에서 부분일치로 필터링한다.
+///
+/// Copied from [organizationSearch].
+class OrganizationSearchFamily
+    extends Family<AsyncValue<List<OrganizationSearchResult>>> {
+  /// 조직도 검색. 서버 검색 API가 완전일치만 지원하므로
+  /// 트리 프로바이더의 데이터를 앱 안에서 부분일치로 필터링한다.
+  ///
+  /// Copied from [organizationSearch].
+  const OrganizationSearchFamily();
 
-/// See also [OrganizationSearchNotifier].
-@ProviderFor(OrganizationSearchNotifier)
-const organizationSearchNotifierProvider = OrganizationSearchNotifierFamily();
-
-/// See also [OrganizationSearchNotifier].
-class OrganizationSearchNotifierFamily
-    extends Family<AsyncValue<List<OrganizationNode>>> {
-  /// See also [OrganizationSearchNotifier].
-  const OrganizationSearchNotifierFamily();
-
-  /// See also [OrganizationSearchNotifier].
-  OrganizationSearchNotifierProvider call(String query) {
-    return OrganizationSearchNotifierProvider(query);
+  /// 조직도 검색. 서버 검색 API가 완전일치만 지원하므로
+  /// 트리 프로바이더의 데이터를 앱 안에서 부분일치로 필터링한다.
+  ///
+  /// Copied from [organizationSearch].
+  OrganizationSearchProvider call(String query) {
+    return OrganizationSearchProvider(query);
   }
 
   @override
-  OrganizationSearchNotifierProvider getProviderOverride(
-    covariant OrganizationSearchNotifierProvider provider,
+  OrganizationSearchProvider getProviderOverride(
+    covariant OrganizationSearchProvider provider,
   ) {
     return call(provider.query);
   }
@@ -131,33 +115,35 @@ class OrganizationSearchNotifierFamily
       _allTransitiveDependencies;
 
   @override
-  String? get name => r'organizationSearchNotifierProvider';
+  String? get name => r'organizationSearchProvider';
 }
 
-/// See also [OrganizationSearchNotifier].
-class OrganizationSearchNotifierProvider
-    extends
-        AutoDisposeAsyncNotifierProviderImpl<
-          OrganizationSearchNotifier,
-          List<OrganizationNode>
-        > {
-  /// See also [OrganizationSearchNotifier].
-  OrganizationSearchNotifierProvider(String query)
+/// 조직도 검색. 서버 검색 API가 완전일치만 지원하므로
+/// 트리 프로바이더의 데이터를 앱 안에서 부분일치로 필터링한다.
+///
+/// Copied from [organizationSearch].
+class OrganizationSearchProvider
+    extends AutoDisposeFutureProvider<List<OrganizationSearchResult>> {
+  /// 조직도 검색. 서버 검색 API가 완전일치만 지원하므로
+  /// 트리 프로바이더의 데이터를 앱 안에서 부분일치로 필터링한다.
+  ///
+  /// Copied from [organizationSearch].
+  OrganizationSearchProvider(String query)
     : this._internal(
-        () => OrganizationSearchNotifier()..query = query,
-        from: organizationSearchNotifierProvider,
-        name: r'organizationSearchNotifierProvider',
+        (ref) => organizationSearch(ref as OrganizationSearchRef, query),
+        from: organizationSearchProvider,
+        name: r'organizationSearchProvider',
         debugGetCreateSourceHash:
             const bool.fromEnvironment('dart.vm.product')
                 ? null
-                : _$organizationSearchNotifierHash,
-        dependencies: OrganizationSearchNotifierFamily._dependencies,
+                : _$organizationSearchHash,
+        dependencies: OrganizationSearchFamily._dependencies,
         allTransitiveDependencies:
-            OrganizationSearchNotifierFamily._allTransitiveDependencies,
+            OrganizationSearchFamily._allTransitiveDependencies,
         query: query,
       );
 
-  OrganizationSearchNotifierProvider._internal(
+  OrganizationSearchProvider._internal(
     super._createNotifier, {
     required super.name,
     required super.dependencies,
@@ -170,18 +156,16 @@ class OrganizationSearchNotifierProvider
   final String query;
 
   @override
-  FutureOr<List<OrganizationNode>> runNotifierBuild(
-    covariant OrganizationSearchNotifier notifier,
+  Override overrideWith(
+    FutureOr<List<OrganizationSearchResult>> Function(
+      OrganizationSearchRef provider,
+    )
+    create,
   ) {
-    return notifier.build(query);
-  }
-
-  @override
-  Override overrideWith(OrganizationSearchNotifier Function() create) {
     return ProviderOverride(
       origin: this,
-      override: OrganizationSearchNotifierProvider._internal(
-        () => create()..query = query,
+      override: OrganizationSearchProvider._internal(
+        (ref) => create(ref as OrganizationSearchRef),
         from: from,
         name: null,
         dependencies: null,
@@ -193,17 +177,14 @@ class OrganizationSearchNotifierProvider
   }
 
   @override
-  AutoDisposeAsyncNotifierProviderElement<
-    OrganizationSearchNotifier,
-    List<OrganizationNode>
-  >
+  AutoDisposeFutureProviderElement<List<OrganizationSearchResult>>
   createElement() {
-    return _OrganizationSearchNotifierProviderElement(this);
+    return _OrganizationSearchProviderElement(this);
   }
 
   @override
   bool operator ==(Object other) {
-    return other is OrganizationSearchNotifierProvider && other.query == query;
+    return other is OrganizationSearchProvider && other.query == query;
   }
 
   @override
@@ -217,24 +198,41 @@ class OrganizationSearchNotifierProvider
 
 @Deprecated('Will be removed in 3.0. Use Ref instead')
 // ignore: unused_element
-mixin OrganizationSearchNotifierRef
-    on AutoDisposeAsyncNotifierProviderRef<List<OrganizationNode>> {
+mixin OrganizationSearchRef
+    on AutoDisposeFutureProviderRef<List<OrganizationSearchResult>> {
   /// The parameter `query` of this provider.
   String get query;
 }
 
-class _OrganizationSearchNotifierProviderElement
-    extends
-        AutoDisposeAsyncNotifierProviderElement<
-          OrganizationSearchNotifier,
-          List<OrganizationNode>
-        >
-    with OrganizationSearchNotifierRef {
-  _OrganizationSearchNotifierProviderElement(super.provider);
+class _OrganizationSearchProviderElement
+    extends AutoDisposeFutureProviderElement<List<OrganizationSearchResult>>
+    with OrganizationSearchRef {
+  _OrganizationSearchProviderElement(super.provider);
 
   @override
-  String get query => (origin as OrganizationSearchNotifierProvider).query;
+  String get query => (origin as OrganizationSearchProvider).query;
 }
 
+String _$organizationTreeNotifierHash() =>
+    r'0b24a2aa1628237634c330b4dbd3e162e0a99950';
+
+/// See also [OrganizationTreeNotifier].
+@ProviderFor(OrganizationTreeNotifier)
+final organizationTreeNotifierProvider = AutoDisposeAsyncNotifierProvider<
+  OrganizationTreeNotifier,
+  OrganizationGroupNode
+>.internal(
+  OrganizationTreeNotifier.new,
+  name: r'organizationTreeNotifierProvider',
+  debugGetCreateSourceHash:
+      const bool.fromEnvironment('dart.vm.product')
+          ? null
+          : _$organizationTreeNotifierHash,
+  dependencies: null,
+  allTransitiveDependencies: null,
+);
+
+typedef _$OrganizationTreeNotifier =
+    AutoDisposeAsyncNotifier<OrganizationGroupNode>;
 // ignore_for_file: type=lint
 // ignore_for_file: subtype_of_sealed_class, invalid_use_of_internal_member, invalid_use_of_visible_for_testing_member, deprecated_member_use_from_same_package

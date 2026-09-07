@@ -3,9 +3,10 @@ import 'package:handori/core/constants/app_colors.dart';
 import 'package:handori/core/constants/app_text_styles.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:handori/core/router/route_paths.dart';
+import 'package:handori/features/organization/domain/model/organization_search_result.dart';
 import 'package:handori/features/organization/presentation/provider/organization_provider.dart';
 import 'package:handori/features/organization/presentation/widget/organization_node_card.dart';
+import 'package:handori/features/organization/presentation/widget/organization_search_result_card.dart';
 import 'package:handori/shared/widget/sandol_loading_indicator.dart';
 
 class OrganizationTreePage extends ConsumerStatefulWidget {
@@ -82,12 +83,7 @@ class _OrganizationTreePageState extends ConsumerState<OrganizationTreePage> {
               ),
               textInputAction: TextInputAction.search,
               onChanged: (v) => setState(() => _query = v.trim()),
-              onSubmitted: (v) {
-                final q = v.trim();
-                if (q.isNotEmpty) {
-                  context.push(RoutePaths.organizationSearch, extra: q);
-                }
-              },
+              onSubmitted: (_) => FocusScope.of(context).unfocus(),
             ),
           ),
 
@@ -114,22 +110,66 @@ class _OrganizationTreePageState extends ConsumerState<OrganizationTreePage> {
                   ],
                 ),
               ),
-              data: (root) => RefreshIndicator(
-                color: AppColors.primary,
-                onRefresh: () =>
-                    ref.read(organizationTreeNotifierProvider.notifier).refresh(),
-                child: ListView(
-                  padding: const EdgeInsets.symmetric(
-                      horizontal: 12, vertical: 8),
-                  children: root.children
-                      .map((node) => OrganizationNodeCard(node: node))
-                      .toList(),
-                ),
-              ),
+              data: (root) {
+                if (_query.isNotEmpty) {
+                  return _SearchResultList(
+                    results: searchOrganizationTree(root, _query),
+                  );
+                }
+                return RefreshIndicator(
+                  color: AppColors.primary,
+                  onRefresh: () => ref
+                      .read(organizationTreeNotifierProvider.notifier)
+                      .refresh(),
+                  child: ListView(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 12, vertical: 8),
+                    children: root.children
+                        .map((node) => OrganizationNodeCard(node: node))
+                        .toList(),
+                  ),
+                );
+              },
             ),
           ),
         ],
       ),
+    );
+  }
+}
+
+/// 검색어 입력 중 트리 대신 표시되는 부분일치 결과 목록.
+class _SearchResultList extends StatelessWidget {
+  final List<OrganizationSearchResult> results;
+
+  const _SearchResultList({required this.results});
+
+  @override
+  Widget build(BuildContext context) {
+    if (results.isEmpty) {
+      return Center(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Icon(Icons.search_off, size: 48, color: Color(0xFFBDBDBD)),
+            const SizedBox(height: 12),
+            Text(
+              '검색 결과가 없습니다.',
+              style: AppTextStyles.body.copyWith(
+                color: const Color(0xFF9E9E9E),
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+    return ListView.separated(
+      keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      itemCount: results.length,
+      separatorBuilder: (_, _) =>
+          const Divider(height: 1, color: AppColors.cardBorder),
+      itemBuilder: (_, i) => OrganizationSearchResultCard(result: results[i]),
     );
   }
 }

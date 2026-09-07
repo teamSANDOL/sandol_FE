@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:handori/common/component/app_top_bar.dart';
-import 'package:handori/common/component/coming_soon_snackbar.dart';
 import 'package:handori/common/component/restaurant_location_label.dart';
 import 'package:handori/core/constants/app_colors.dart';
 import 'package:handori/core/constants/app_text_styles.dart';
@@ -91,7 +90,6 @@ class RestaurantDetailPage extends ConsumerWidget {
       backgroundColor: AppColors.background,
       appBar: AppTopBar(
         title: '학식조회',
-        onUser: () => showComingSoonSnackBar(context),
       ),
       body: SingleChildScrollView(
         child: restaurantsAsync.when(

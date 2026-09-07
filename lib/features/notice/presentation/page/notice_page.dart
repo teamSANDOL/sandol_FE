@@ -3,7 +3,6 @@ import 'package:handori/core/constants/app_colors.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:handori/common/component/app_top_bar.dart';
-import 'package:handori/common/component/coming_soon_snackbar.dart';
 import 'package:handori/core/constants/app_text_styles.dart';
 import 'package:handori/core/router/route_paths.dart';
 import 'package:handori/features/notice/domain/model/notice.dart';
@@ -43,7 +42,6 @@ class _NoticePageState extends ConsumerState<NoticePage>
       backgroundColor: AppColors.background,
       appBar: AppTopBar(
         title: '공지사항',
-        onUser: () => showComingSoonSnackBar(context),
         bottom: TabBar(
           controller: _tabController,
           labelColor: AppColors.primary,

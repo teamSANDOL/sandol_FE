@@ -4,6 +4,7 @@ import 'package:handori/core/network/static_info_dio_provider.dart';
 import 'package:handori/features/organization/data/data_source/organization_api.dart';
 import 'package:handori/features/organization/data/repository/organization_repository_impl.dart';
 import 'package:handori/features/organization/domain/model/organization_node.dart';
+import 'package:handori/features/organization/domain/model/organization_search_result.dart';
 import 'package:handori/features/organization/domain/repository/organization_repository.dart';
 
 part 'organization_provider.g.dart';
@@ -36,12 +37,14 @@ class OrganizationTreeNotifier extends _$OrganizationTreeNotifier {
   }
 }
 
+/// 조직도 검색. 서버 검색 API가 완전일치만 지원하므로
+/// 트리 프로바이더의 데이터를 앱 안에서 부분일치로 필터링한다.
 @riverpod
-class OrganizationSearchNotifier extends _$OrganizationSearchNotifier {
-  @override
-  Future<List<OrganizationNode>> build(String query) async {
-    if (query.trim().isEmpty) return [];
-    final repo = ref.watch(organizationRepositoryProvider);
-    return repo.searchByName(query);
-  }
+Future<List<OrganizationSearchResult>> organizationSearch(
+  Ref ref,
+  String query,
+) async {
+  if (query.trim().isEmpty) return const [];
+  final root = await ref.watch(organizationTreeNotifierProvider.future);
+  return searchOrganizationTree(root, query);
 }

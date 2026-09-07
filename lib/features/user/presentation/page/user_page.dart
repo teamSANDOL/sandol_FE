@@ -34,6 +34,7 @@ class _UserPageState extends ConsumerState<UserPage> {
       appBar: AppTopBar(
         title: '유저 상세',
         onBack: () => context.pop(),
+        showUser: false,
       ),
       body: ListView(
         padding: const EdgeInsets.fromLTRB(20, 8, 20, 24),

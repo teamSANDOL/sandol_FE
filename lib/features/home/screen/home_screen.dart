@@ -6,12 +6,11 @@ import 'package:handori/common/component/app_top_bar.dart';
 import 'package:handori/core/constants/app_text_styles.dart';
 import 'package:handori/core/router/route_paths.dart';
 import 'package:handori/features/home/model/banner_model.dart';
-import 'package:handori/features/empty_class/model/class_model.dart';
-import 'package:handori/features/empty_class/presentation/provider/empty_class_provider.dart';
 import 'package:handori/features/home/presentation/provider/home_static_provider.dart';
 import 'package:handori/features/home/component/banner_card_top.dart';
 import 'package:handori/features/bus/component/bus_time_card.dart';
 import 'package:handori/features/empty_class/component/empty_class_card.dart';
+import 'package:handori/features/empty_class/presentation/provider/empty_class_focus_provider.dart';
 import 'package:handori/features/school_meal/presentation/model/restaurant_menu.dart';
 import 'package:handori/features/school_meal/presentation/provider/meal_list_notifier.dart';
 import 'package:handori/features/school_meal/presentation/provider/restaurant_list_notifier.dart';
@@ -110,9 +109,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   Widget build(BuildContext context) {
     final List<Banners> banner = ref.watch(bannersProvider);
 
-    final Future<List<EmptyClass>> emptyClassesFuture =
-        ref.watch(emptyClassesProvider.future);
-
     const padding = SizedBox(height: 20);
 
     return Scaffold(
@@ -124,7 +120,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           height: 32,
           fit: BoxFit.contain,
         ),
-        onUser: () => context.push(RoutePaths.user),
       ),
       body: SingleChildScrollView(
         child: Padding(
@@ -156,25 +151,14 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                     ),
                     const SizedBox(height: 10),
 
-                    FutureBuilder<List<EmptyClass>>(
-                      future: emptyClassesFuture,
-                      builder: (context, snapshot) {
-                        if (snapshot.connectionState ==
-                            ConnectionState.waiting) {
-                          return const Center(
-                            child: SandolLoadingIndicator(),
-                          );
-                        }
-                        if (snapshot.hasError) {
-                          return Center(child: Text('오류: ${snapshot.error}'));
-                        }
-                        final data = snapshot.data ?? const <EmptyClass>[];
-                        return ClassStateCard(
-                          items: data,
-                          maxItems: 5,
-                          onTap: () => StatefulNavigationShell.of(context).goBranch(4),
-                          showHeader: false,
-                        );
+                    EmptyClassTimelineCard(
+                      maxItems: 3,
+                      onBuildingTap: (name) {
+                        // 상세 지도가 열리면 이 건물로 시트를 올린다.
+                        ref
+                            .read(emptyClassFocusControllerProvider.notifier)
+                            .request(name);
+                        StatefulNavigationShell.of(context).goBranch(4);
                       },
                     ),
 

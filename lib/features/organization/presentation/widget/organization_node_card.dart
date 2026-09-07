@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:handori/core/constants/app_colors.dart';
 import 'package:handori/core/constants/app_text_styles.dart';
 import 'package:handori/features/organization/domain/model/organization_node.dart';
+import 'package:handori/features/organization/presentation/util/contact_actions.dart';
 
 class OrganizationNodeCard extends StatelessWidget {
   final OrganizationNode node;
@@ -98,6 +99,9 @@ class _UnitTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final phone = node.phone;
+    final url = node.url;
+
     return Container(
       decoration: depth > 0
           ? BoxDecoration(
@@ -110,8 +114,8 @@ class _UnitTile extends StatelessWidget {
             )
           : null,
       child: ListTile(
-        contentPadding: EdgeInsets.only(
-          left: depth > 0 ? 8 : 8,
+        contentPadding: const EdgeInsets.only(
+          left: 8,
           right: 8,
           top: 2,
           bottom: 2,
@@ -125,56 +129,80 @@ class _UnitTile extends StatelessWidget {
           node.name,
           style: _getDepthTextStyle(depth),
         ),
-        subtitle: node.phone != null || node.url != null
+        subtitle: phone != null || url != null
             ? Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  if (node.phone != null)
-                    Row(
-                      children: [
-                        Icon(
-                          Icons.phone,
-                          size: 12,
-                          color: Colors.grey[500],
-                        ),
-                        const SizedBox(width: 4),
-                        Expanded(
-                          child: Text(
-                            node.phone!,
-                            style: AppTextStyles.caption04.copyWith(
-                              color: Colors.grey[600],
-                            ),
-                          ),
-                        ),
-                      ],
+                  if (phone != null)
+                    _ContactRow(
+                      icon: Icons.phone,
+                      text: ContactActions.formatPhone(phone),
+                      onTap: () => ContactActions.dial(context, phone),
+                      onLongPress: () => ContactActions.copy(
+                        context,
+                        ContactActions.formatPhone(phone),
+                        label: '전화번호',
+                      ),
                     ),
-                  if (node.url != null)
-                    Padding(
-                      padding: const EdgeInsets.only(top: 4),
-                      child: Row(
-                        children: [
-                          Icon(
-                            Icons.link,
-                            size: 12,
-                            color: Colors.grey[500],
-                          ),
-                          const SizedBox(width: 4),
-                          Expanded(
-                            child: Text(
-                              node.url!,
-                              style: AppTextStyles.caption04.copyWith(
-                                color: Colors.grey[600],
-                              ),
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                          ),
-                        ],
+                  if (url != null)
+                    _ContactRow(
+                      icon: Icons.link,
+                      text: url,
+                      onTap: () => ContactActions.openUrl(context, url),
+                      onLongPress: () => ContactActions.copy(
+                        context,
+                        url,
+                        label: '링크',
                       ),
                     ),
                 ],
               )
             : null,
+      ),
+    );
+  }
+}
+
+/// 탭 = 네이티브 액션(전화/링크), 길게 누름 = 복사.
+class _ContactRow extends StatelessWidget {
+  final IconData icon;
+  final String text;
+  final VoidCallback onTap;
+  final VoidCallback onLongPress;
+
+  const _ContactRow({
+    required this.icon,
+    required this.text,
+    required this.onTap,
+    required this.onLongPress,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      onTap: onTap,
+      onLongPress: onLongPress,
+      borderRadius: BorderRadius.circular(6),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 3, horizontal: 2),
+        child: Row(
+          children: [
+            Icon(icon, size: 12, color: AppColors.primary),
+            const SizedBox(width: 4),
+            Expanded(
+              child: Text(
+                text,
+                style: AppTextStyles.caption04.copyWith(
+                  color: AppColors.primary,
+                  decoration: TextDecoration.underline,
+                  decorationColor: AppColors.primary.withValues(alpha: 0.4),
+                ),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

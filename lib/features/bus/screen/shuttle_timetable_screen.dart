@@ -395,7 +395,8 @@ class _SegmentRowTile extends StatelessWidget {
     final isArrival = entry.type == ShuttleEntryType.arrivalBoarding;
     final title = isArrival ? '도착버스 탑승' : '수시운행';
     final start = entry.time.label;
-    final timeRange = '$start 이후';
+    final end = entry.endTime;
+    final timeRange = end == null ? '$start 이후' : '$start ~ ${end.label}';
 
     return Container(
       width: double.infinity,

@@ -10,6 +10,10 @@ import 'package:flutter_naver_map/flutter_naver_map.dart';
 import 'package:geolocator/geolocator.dart';
 
 import 'package:handori/features/empty_class/model/class_model.dart';
+import 'package:flutter_svg/flutter_svg.dart';
+import 'package:handori/features/empty_class/component/classroom_time_range_picker.dart';
+import 'package:handori/features/empty_class/presentation/provider/classroom_query_provider.dart';
+import 'package:handori/features/empty_class/presentation/provider/empty_class_focus_provider.dart';
 import 'package:handori/features/empty_class/presentation/provider/empty_class_provider.dart';
 
 import 'package:go_router/go_router.dart';
@@ -96,6 +100,8 @@ class _EmptyDetailScreenState extends ConsumerState<EmptyDetailScreen> {
 
     for (final e in data) {
       if (gen != _markerGen) return;
+      // 좌표 테이블에 없는 건물은 목록에만 나온다.
+      if (!e.hasLocation) continue;
       final name = e.className.replaceAll(':', '').trim();
       final selected = e.className == _selectedId;
       final key = '$name:${e.classCount}:${selected ? 1 : 0}';
@@ -106,7 +112,7 @@ class _EmptyDetailScreenState extends ConsumerState<EmptyDetailScreen> {
 
       final marker = NMarker(
         id: e.className,
-        position: NLatLng(e.latitude, e.longitude),
+        position: NLatLng(e.latitude!, e.longitude!),
         icon: iconData.icon,
         anchor: iconData.anchor,
         size: iconData.size,
@@ -139,10 +145,14 @@ class _EmptyDetailScreenState extends ConsumerState<EmptyDetailScreen> {
     setState(() => _selectedId = e.className);
     final data = ref.read(emptyClassesProvider).valueOrNull;
     if (data != null) _refreshMarkers(data);
+    if (!e.hasLocation) {
+      if (reveal) _revealCard(e.className);
+      return;
+    }
     try {
       _mapController?.updateCamera(
         NCameraUpdate.scrollAndZoomTo(
-          target: NLatLng(e.latitude, e.longitude),
+          target: NLatLng(e.latitude!, e.longitude!),
         )..setAnimation(
             animation: NCameraAnimation.easing,
             duration: const Duration(milliseconds: 300),
@@ -172,6 +182,26 @@ class _EmptyDetailScreenState extends ConsumerState<EmptyDetailScreen> {
         );
       }
     } catch (_) {}
+  }
+
+  /// 홈에서 넘어온 건물 요청이 있으면 그 건물을 선택하고 시트를 올린다.
+  /// 데이터·지도·시트가 모두 준비된 뒤에 호출돼야 하므로 여러 시점에서 시도한다.
+  void _consumeFocus(List<EmptyClass> items) {
+    final name = ref.read(emptyClassFocusControllerProvider);
+    if (name == null) return;
+    EmptyClass? target;
+    for (final e in items) {
+      if (e.className == name) {
+        target = e;
+        break;
+      }
+    }
+    if (target == null) return;
+    ref.read(emptyClassFocusControllerProvider.notifier).consume();
+    final t = target;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) _selectBuilding(t, reveal: true);
+    });
   }
 
   double _minFrac(double screenH) =>
@@ -409,7 +439,15 @@ class _EmptyDetailScreenState extends ConsumerState<EmptyDetailScreen> {
     // 데이터가 갱신되면 마커도 갱신 (최초 반영은 onMapReady에서)
     ref.listen(emptyClassesProvider, (_, next) {
       final data = next.valueOrNull;
-      if (data != null) _refreshMarkers(data);
+      if (data != null) {
+        _refreshMarkers(data);
+        _consumeFocus(data);
+      }
+    });
+    // 이미 열려 있는 상태에서 홈이 건물을 넘겨도 반응한다.
+    ref.listen(emptyClassFocusControllerProvider, (_, name) {
+      final data = classesAsync.valueOrNull;
+      if (name != null && data != null) _consumeFocus(data);
     });
 
     return Scaffold(
@@ -436,6 +474,7 @@ class _EmptyDetailScreenState extends ConsumerState<EmptyDetailScreen> {
                 onMapReady: (c) {
                   _mapController = c;
                   _refreshMarkers(items);
+                  _consumeFocus(items);
                 },
               ),
             ),
@@ -519,6 +558,7 @@ class _EmptyDetailScreenState extends ConsumerState<EmptyDetailScreen> {
     final totalBuildings = items.length;
     final totalRooms =
         items.fold<int>(0, (s, e) => s + (int.tryParse(e.classCount) ?? 0));
+    final query = ref.watch(classroomQueryControllerProvider);
 
     return DecoratedBox(
       decoration: BoxDecoration(
@@ -572,6 +612,38 @@ class _EmptyDetailScreenState extends ConsumerState<EmptyDetailScreen> {
                         _StatChip(
                             label: '총 $totalRooms개',
                             color: AppColors.primary),
+                      ],
+                    ),
+                    const SizedBox(height: 4),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: Text(
+                            '${query.dayName} ${query.timeLabel} 동안 비어 있는 강의실',
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: AppTextStyles.caption04.copyWith(
+                              color: AppColors.textSecondary,
+                            ),
+                          ),
+                        ),
+                        Tooltip(
+                          message: '시간 설정',
+                          child: InkWell(
+                            borderRadius: BorderRadius.circular(8),
+                            onTap: () => showClassroomTimeSheet(context),
+                            child: Padding(
+                              padding: const EdgeInsets.all(4),
+                              child: SvgPicture.asset(
+                                'assets/icon/emptyclass_setting.svg',
+                                width: 18,
+                                height: 18,
+                                colorFilter: const ColorFilter.mode(
+                                    AppColors.textSecondary, BlendMode.srcIn),
+                              ),
+                            ),
+                          ),
+                        ),
                       ],
                     ),
                   ],
