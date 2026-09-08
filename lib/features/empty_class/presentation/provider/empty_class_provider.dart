@@ -43,8 +43,12 @@ Future<List<EmptyClass>> emptyClasses(Ref ref) {
 /// 기기에 저장된 순서. 좌표가 없는 건물은 거리순에서 항상 뒤로 간다.
 @riverpod
 Future<List<NearbyEmptyClass>> nearbyEmptyClasses(Ref ref) async {
-  final classes = await ref.watch(emptyClassesProvider.future);
-  final position = await ref.watch(userLocationProvider.future);
+  // 두 요청을 먼저 모두 시작한다. 순서대로 await 하면 API 응답이 온 뒤에야
+  // 권한 요청·GPS(최대 8초)가 시작돼 첫 카드가 그만큼 늦어진다.
+  final classesFuture = ref.watch(emptyClassesProvider.future);
+  final positionFuture = ref.watch(userLocationProvider.future);
+  final classes = await classesFuture;
+  final position = await positionFuture;
   final settings = ref.watch(buildingSortControllerProvider).valueOrNull ??
       const BuildingSortSettings();
 

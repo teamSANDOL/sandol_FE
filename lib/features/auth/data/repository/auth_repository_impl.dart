@@ -49,9 +49,23 @@ class AuthRepositoryImpl implements AuthRepository {
   /// 나가 서버를 두드리는 일을 막는다.
   static const _retryBackoff = Duration(seconds: 15);
 
+  /// 기기 시계와 서버 시계의 차이를 이만큼 허용한다. 로컬 만료 판정은 이 값
+  /// 이상 지난 경우에만 서버에 묻지 않고 세션을 지운다.
+  static const _clockSkewTolerance = Duration(hours: 1);
+
   final _sessionController = StreamController<AuthSession?>.broadcast();
   Future<AuthSession?>? _inflightRefresh;
   DateTime? _retryNotBefore;
+
+  /// 세션 세대. 로그인·로그아웃·탈퇴마다 올라간다. 리프레시는 시작할 때의
+  /// 세대를 기억했다가 응답이 왔을 때 세대가 바뀌어 있으면 결과를 버린다.
+  /// 그러지 않으면 로그아웃 직후 늦게 도착한 리프레시 응답이 지운 토큰을
+  /// 다시 저장하고 화면을 로그인 상태로 되돌린다.
+  int _generation = 0;
+
+  /// Keycloak 직접 호출(폐기·로그아웃·계정 삭제)용. API 게이트웨이 Dio 와 달리
+  /// baseUrl·인증 인터셉터가 없다. 테스트에서 어댑터를 바꿔 끼울 수 있다.
+  final Dio _keycloakDio;
 
   AuthRepositoryImpl({
     required TokenStorage storage,
@@ -59,11 +73,18 @@ class AuthRepositoryImpl implements AuthRepository {
     required String clientId,
     required String redirectUri,
     FlutterAppAuth appAuth = const FlutterAppAuth(),
+    Dio? keycloakDio,
   })  : _storage = storage,
         _issuer = issuer,
         _clientId = clientId,
         _redirectUri = redirectUri,
-        _appAuth = appAuth;
+        _appAuth = appAuth,
+        _keycloakDio = keycloakDio ??
+            Dio(BaseOptions(
+              connectTimeout: const Duration(seconds: 10),
+              receiveTimeout: const Duration(seconds: 10),
+              contentType: Headers.formUrlEncodedContentType,
+            ));
 
   AuthorizationServiceConfiguration get _serviceConfiguration =>
       AuthorizationServiceConfiguration(
@@ -77,6 +98,7 @@ class AuthRepositoryImpl implements AuthRepository {
 
   @override
   Future<AuthSession> login({bool useKakao = false}) async {
+    _generation++;
     final response = await _appAuth.authorizeAndExchangeCode(
       AuthorizationTokenRequest(
         _clientId,
@@ -125,61 +147,79 @@ class AuthRepositoryImpl implements AuthRepository {
 
   @override
   Future<void> logout() async {
+    // 서버 호출 전에 세대를 올려, 진행 중이던 리프레시가 그 사이 끝나도
+    // 결과를 버리게 한다.
+    _generation++;
     final saved = await _storage.read();
     // 서버 세션 종료는 베스트 에포트: 실패해도 로컬 로그아웃은 진행한다.
     final refreshToken = saved?.refreshToken;
     if (refreshToken != null) {
-      final dio = Dio(BaseOptions(
-        connectTimeout: const Duration(seconds: 5),
-        receiveTimeout: const Duration(seconds: 5),
-        contentType: Headers.formUrlEncodedContentType,
-      ));
-      // 1) 리프레시(오프라인) 토큰 폐기 — 오프라인 세션까지 확실히 제거.
+      // 세션 종료(/logout)가 리프레시 토큰이 속한 사용자·오프라인 세션과 그 아래
+      // 클라이언트 세션을 모두 끝낸다. 먼저 폐기(/revoke)하면 같은 토큰으로
+      // 부르는 /logout 이 항상 invalid_grant 로 실패하므로, 순서는 종료 → 실패
+      // 시에만 폐기로 대체한다.
       try {
-        await dio.post(
-          '$_issuer/protocol/openid-connect/revoke',
-          data: {
-            'client_id': _clientId,
-            'token': refreshToken,
-            'token_type_hint': 'refresh_token',
-          },
-        );
-      } catch (e) {
-        debugPrint('Keycloak 토큰 폐기 실패(로컬 로그아웃은 진행): $e');
-      }
-      // 2) SSO 세션 종료.
-      try {
-        await dio.post(
+        await _keycloakDio.post(
           '$_issuer/protocol/openid-connect/logout',
           data: {'client_id': _clientId, 'refresh_token': refreshToken},
         );
       } catch (e) {
-        debugPrint('Keycloak 서버 로그아웃 실패(로컬 로그아웃은 진행): $e');
+        debugPrint('Keycloak 서버 로그아웃 실패, 토큰 폐기로 대체: $e');
+        await _revokeRefreshToken(refreshToken, reason: '로그아웃 대체');
       }
     }
     await _storage.clear();
+    // 서버 호출 중에 시작된 리프레시는 위에서 올린 세대를 이미 봤다. 비운 뒤
+    // 한 번 더 올려 그 리프레시의 결과도 버려지게 한다.
+    _generation++;
     _retryNotBefore = null;
+  }
+
+  /// 리프레시 토큰 폐기(베스트 에포트).
+  Future<void> _revokeRefreshToken(String refreshToken,
+      {required String reason}) async {
+    try {
+      await _keycloakDio.post(
+        '$_issuer/protocol/openid-connect/revoke',
+        data: {
+          'client_id': _clientId,
+          'token': refreshToken,
+          'token_type_hint': 'refresh_token',
+        },
+      );
+    } catch (e) {
+      debugPrint('Keycloak 토큰 폐기 실패($reason): $e');
+    }
   }
 
   @override
   Future<void> deleteAccount() async {
-    // 만료됐으면 리프레시된 유효 토큰으로 삭제를 요청한다.
+    // 사용자가 명시적으로 누른 동작이므로 일시 실패 백오프는 무시하고 지금
+    // 유효한 토큰을 확보한다. 만료된 토큰으로 보내면 401 로 "탈퇴 실패"가 뜬다.
+    _retryNotBefore = null;
     final session = await restoreSession();
+    _generation++;
     if (session == null) {
       // 이미 세션이 없으면 지울 계정 접근 권한도 없다 — 로컬만 정리.
       await _storage.clear();
+      _generation++;
       return;
+    }
+    if (!session.isAccessTokenValid()) {
+      throw StateError('로그인 세션을 갱신하지 못해 탈퇴를 진행할 수 없습니다. '
+          '네트워크를 확인한 뒤 다시 시도해 주세요.');
     }
     // Keycloak Account REST API. realm 에 'Delete Account' required action 이
     // 활성화되어 있고 사용자에게 account 클라이언트의 delete-account 롤이
     // 있어야 한다. 실패 시 예외를 그대로 올려 UI 에서 안내한다.
-    await Dio().delete(
+    await _keycloakDio.delete(
       '$_issuer/account',
       options: Options(
         headers: {'Authorization': 'Bearer ${session.accessToken}'},
       ),
     );
     await _storage.clear();
+    _generation++;
   }
 
   // ── 리프레시 ───────────────────────────────────────────────────────────
@@ -200,8 +240,11 @@ class AuthRepositoryImpl implements AuthRepository {
     if (saved.isAccessTokenValid()) return saved;
 
     final refreshToken = saved.refreshToken;
-    if (refreshToken == null || !saved.isRefreshTokenValid()) {
-      // 리프레시 토큰이 없거나 이미 만료됨 — 서버에 묻지 않고 바로 정리.
+    if (refreshToken == null ||
+        !saved.isRefreshTokenValid(leeway: -_clockSkewTolerance)) {
+      // 리프레시 토큰이 없거나 넉넉히 보아도 만료됨 — 서버에 묻지 않고 정리.
+      // 만료 시각은 서버 시계(JWT exp) 기준이라 기기 시계가 앞서 있으면 멀쩡한
+      // 토큰을 버릴 수 있다. 오차 허용치 안이면 서버에 물어 본다.
       debugPrint('리프레시 토큰 만료, 세션 제거');
       await _clearSession();
       return null;
@@ -214,6 +257,7 @@ class AuthRepositoryImpl implements AuthRepository {
       );
     }
 
+    final generation = _generation;
     try {
       final response = await _appAuth.token(
         TokenRequest(
@@ -224,6 +268,19 @@ class AuthRepositoryImpl implements AuthRepository {
           scopes: _scopes,
         ),
       );
+      if (generation != _generation) {
+        // 기다리는 동안 로그아웃·탈퇴·재로그인이 일어났다. 이 응답은 지난
+        // 세대의 것이므로 저장하지도 흘리지도 않는다. 서버가 새로 발급한
+        // 리프레시 토큰은 폐기해 둔다(로그아웃한 사용자의 세션이 남지 않게).
+        // 호출자에게는 "지금의 진실"(로그아웃이면 null, 재로그인이면 새 세션)을
+        // 돌려줘 늦게 온 결과가 화면 상태를 잘못 덮지 않게 한다.
+        debugPrint('세대가 바뀐 리프레시 응답 폐기');
+        final rotated = response.refreshToken;
+        if (rotated != null) {
+          await _revokeRefreshToken(rotated, reason: '늦게 도착한 리프레시');
+        }
+        return _storage.read();
+      }
       // Keycloak 은 리프레시 토큰을 회전시킬 수 있다. 새 값이 없으면 기존 유지.
       final newRefreshToken = response.refreshToken ?? refreshToken;
       final session = AuthSession(
@@ -242,6 +299,10 @@ class AuthRepositoryImpl implements AuthRepository {
       _sessionController.add(session);
       return session;
     } catch (e) {
+      if (generation != _generation) {
+        // 지난 세대의 실패. 현재 상태를 건드리지 않고 지금의 진실을 돌려준다.
+        return _storage.read();
+      }
       if (_isRefreshTokenRejected(e)) {
         // 서버가 리프레시 토큰을 거절(만료/폐기/세션 없음) → 로그아웃 상태.
         debugPrint('리프레시 토큰 거절됨, 세션 제거: $e');
@@ -260,23 +321,38 @@ class AuthRepositoryImpl implements AuthRepository {
     _sessionController.add(null);
   }
 
-  /// Keycloak 은 만료·폐기·재사용된 리프레시 토큰과 세션이 사라진 경우 모두
-  /// OAuth 에러 `invalid_grant` 로 응답한다. 그 외(네트워크, 5xx, 클라이언트
-  /// 설정 오류)는 토큰 자체의 문제가 아니므로 세션을 지우지 않는다.
+  /// 리프레시 토큰으로는 더 이상 세션을 이어갈 수 없다고 서버가 확정한 경우.
+  ///
+  /// Keycloak 은 만료·폐기·재사용된 리프레시 토큰과 세션이 사라진 경우를
+  /// `invalid_grant` 로 답한다. 스코프·클라이언트·권한 문제(`invalid_scope`,
+  /// `unauthorized_client`, `invalid_client`, `not_allowed`, `access_denied`)도
+  /// 다시 시도해서 풀리지 않으므로 같은 취급을 한다. 여기서 지우지 않으면
+  /// 화면은 로그인 상태인데 모든 요청이 익명으로 나가고 15초마다 토큰
+  /// 엔드포인트를 두드리는 "좀비 세션"이 된다. 네트워크·5xx 는 일시적이므로
+  /// 세션을 유지한다.
+  static const _permanentOAuthErrors = {
+    'invalid_grant',
+    'invalid_scope',
+    'unauthorized_client',
+    'invalid_client',
+    'not_allowed',
+    'access_denied',
+  };
+
   static bool _isRefreshTokenRejected(Object e) {
     if (e is FlutterAppAuthPlatformException) {
       final details = e.platformErrorDetails;
-      if (details.error == 'invalid_grant') return true;
+      if (_permanentOAuthErrors.contains(details.error)) return true;
       // 일부 플랫폼 경로는 error 필드 없이 메시지에만 코드가 실린다.
-      return _mentionsInvalidGrant(e.message) ||
-          _mentionsInvalidGrant(details.errorDebugDescription);
+      return _mentionsPermanentError(e.message) ||
+          _mentionsPermanentError(details.errorDebugDescription);
     }
-    if (e is PlatformException) return _mentionsInvalidGrant(e.message);
+    if (e is PlatformException) return _mentionsPermanentError(e.message);
     return false;
   }
 
-  static bool _mentionsInvalidGrant(String? text) =>
-      text != null && text.contains('invalid_grant');
+  static bool _mentionsPermanentError(String? text) =>
+      text != null && _permanentOAuthErrors.any(text.contains);
 
   // ── 토큰 파싱 ──────────────────────────────────────────────────────────
 

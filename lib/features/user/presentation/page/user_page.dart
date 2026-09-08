@@ -3,8 +3,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:handori/common/component/app_top_bar.dart';
 import 'package:handori/common/component/coming_soon_snackbar.dart';
+import 'package:handori/core/constants/api_constants.dart';
 import 'package:handori/core/constants/app_colors.dart';
 import 'package:handori/core/router/route_paths.dart';
+import 'package:handori/core/utils/external_link.dart';
 import 'package:handori/features/auth/presentation/provider/auth_provider.dart';
 import 'package:handori/shared/widget/sandol_loading_indicator.dart';
 
@@ -98,9 +100,10 @@ class _UserPageState extends ConsumerState<UserPage> {
             label: '기타',
             children: [
               _LinkRow(
-                icon: Icons.description_outlined,
-                label: '약관 및 정책',
-                onTap: () => showComingSoonSnackBar(context),
+                icon: Icons.privacy_tip_outlined,
+                label: '개인정보처리방침',
+                onTap: () =>
+                    openExternalLink(context, ApiConstants.privacyPolicyUrl),
               ),
               const _LinkRow(
                 icon: Icons.info_outline_rounded,
@@ -116,22 +119,26 @@ class _UserPageState extends ConsumerState<UserPage> {
               ),
             ],
           ),
-          const SizedBox(height: 24),
-          Center(
-            child: GestureDetector(
-              onTap: _confirmDeleteAccount,
-              child: const Text(
-                '회원 탈퇴',
-                style: TextStyle(
-                  fontSize: 13,
-                  fontWeight: FontWeight.w500,
-                  color: AppColors.textMuted,
-                  decoration: TextDecoration.underline,
-                  decorationColor: AppColors.textMuted,
+          // 비로그인(게스트)에게는 지울 계정이 없다. 보여주면 "탈퇴 완료"
+          // 안내만 뜨는 헛동작이 된다.
+          if (session != null) ...[
+            const SizedBox(height: 24),
+            Center(
+              child: GestureDetector(
+                onTap: _confirmDeleteAccount,
+                child: const Text(
+                  '회원 탈퇴',
+                  style: TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w500,
+                    color: AppColors.textMuted,
+                    decoration: TextDecoration.underline,
+                    decorationColor: AppColors.textMuted,
+                  ),
                 ),
               ),
             ),
-          ),
+          ],
         ],
       ),
     );

@@ -215,15 +215,29 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     ref.invalidate(restaurantListNotifierProvider);
     ref.invalidate(mealListNotifierProvider);
     ref.read(shuttleClockProvider.notifier).refresh();
-    ref.invalidate(userLocationProvider);
     ref.invalidate(emptyClassesProvider);
+    // 위치는 권한 확인(플랫폼 왕복)이 끝난 뒤 별도로 다시 잡는다. 인디케이터는
+    // API 응답까지만 기다리고, 위치 갱신(최대 8초)은 카드가 이전 정렬을 보여준
+    // 채 백그라운드로 따라온다.
+    final locationRetry = _refreshLocationIfGranted();
 
     Future<void> settle(Future<Object?> f) => f.then((_) {}, onError: (_) {});
     await Future.wait([
       settle(ref.read(restaurantListNotifierProvider.future)),
       settle(ref.read(mealListNotifierProvider().future)),
-      settle(ref.read(nearbyEmptyClassesProvider.future)),
+      settle(ref.read(emptyClassesProvider.future)),
+      settle(locationRetry),
     ]);
+  }
+
+  /// 위치 서비스가 켜져 있고 영구 거부가 아니면 위치를 다시 잡는다. 허용된
+  /// 사용자는 집에서 켠 뒤 학교에 와서 당겼을 때 거리순이 새 위치를 따라가야
+  /// 하므로 이미 위치가 있어도 다시 잡고, 영구 거부한 사용자에게는 당길 때마다
+  /// 권한 창을 띄우지 않는다.
+  Future<void> _refreshLocationIfGranted() async {
+    if (await canRetryLocation()) {
+      ref.invalidate(userLocationProvider);
+    }
   }
 
   /// 학식 섹션 — 식당 목록 + 오늘 최신 식사를 결합해 표시.

@@ -1,4 +1,8 @@
+import 'dart:async';
 import 'dart:convert';
+import 'dart:typed_data';
+
+import 'package:dio/dio.dart';
 
 // flutter_appauth 의 플랫폼 인터페이스를 직접 교체해 네이티브 채널 없이 테스트한다.
 // ignore: depend_on_referenced_packages
@@ -20,6 +24,40 @@ class _FakeAppAuthPlatform extends FlutterAppAuthPlatform {
     tokenCalls++;
     return onToken!(request);
   }
+}
+
+/// Keycloak 직접 호출(폐기·로그아웃)을 네트워크 없이 받아 주는 어댑터.
+class _FakeHttpAdapter implements HttpClientAdapter {
+  final List<String> paths = [];
+
+  /// 이 접미사로 끝나는 경로는 500 으로 응답한다.
+  final Set<String> failPaths = {};
+
+  /// 이 접미사로 끝나는 경로는 Completer 가 완료될 때까지 응답을 보류한다.
+  final Map<String, Completer<void>> holdPaths = {};
+
+  @override
+  Future<ResponseBody> fetch(
+    RequestOptions options,
+    Stream<Uint8List>? requestStream,
+    Future<void>? cancelFuture,
+  ) async {
+    paths.add(options.path);
+    for (final entry in holdPaths.entries) {
+      if (options.path.endsWith(entry.key)) await entry.value.future;
+    }
+    final fail = failPaths.any((p) => options.path.endsWith(p));
+    return ResponseBody.fromString(
+      fail ? '{"error":"server_error"}' : '{}',
+      fail ? 500 : 200,
+      headers: {
+        Headers.contentTypeHeader: ['application/json'],
+      },
+    );
+  }
+
+  @override
+  void close({bool force = false}) {}
 }
 
 String _jwt(Map<String, dynamic> payload) {
@@ -51,6 +89,7 @@ void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
   late _FakeAppAuthPlatform platform;
+  late _FakeHttpAdapter http;
   late TokenStorage storage;
   late AuthRepositoryImpl repo;
 
@@ -80,12 +119,109 @@ void main() {
     platform = _FakeAppAuthPlatform();
     FlutterAppAuthPlatform.instance = platform;
     storage = TokenStorage(const FlutterSecureStorage());
+    http = _FakeHttpAdapter();
     repo = AuthRepositoryImpl(
       storage: storage,
       issuer: 'https://example.test/realms/x',
       clientId: 'app',
       redirectUri: 'app://cb',
+      keycloakDio: Dio()..httpClientAdapter = http,
     );
+  });
+
+  test('로그아웃 중 늦게 도착한 리프레시 응답은 버리고 새 토큰을 폐기한다',
+      () async {
+    await storage.save(expiredSession());
+    final tokenGate = Completer<TokenResponse>();
+    platform.onToken = (_) => tokenGate.future;
+    final emitted = <AuthSession?>[];
+    final sub = repo.sessionChanges.listen(emitted.add);
+
+    // 1) 리프레시 시작 — 서버 응답을 기다리는 중
+    final refreshing = repo.restoreSession();
+    await Future<void>.delayed(Duration.zero);
+    expect(platform.tokenCalls, 1);
+
+    // 2) 그 사이 로그아웃
+    await repo.logout();
+    expect(await storage.read(), isNull);
+
+    // 3) 늦게 리프레시 응답 도착
+    tokenGate.complete(okResponse());
+    final result = await refreshing;
+    await Future<void>.delayed(Duration.zero);
+
+    expect(result, isNull, reason: '지난 세대의 응답은 세션으로 쓰지 않는다');
+    expect(await storage.read(), isNull, reason: '지운 토큰을 다시 저장하지 않는다');
+    expect(emitted, isEmpty, reason: '로그인 상태로 되돌리는 이벤트가 없다');
+    // 로그아웃은 /logout 1회로 끝나고(성공 시 /revoke 없음),
+    // 늦게 온 응답이 발급한 새 토큰만 /revoke 1회.
+    expect(http.paths.where((p) => p.endsWith('/logout')).length, 1);
+    expect(http.paths.where((p) => p.endsWith('/revoke')).length, 1);
+    await sub.cancel();
+  });
+
+  test('서버 로그아웃이 실패하면 토큰 폐기로 대체하고 로컬은 비운다', () async {
+    await storage.save(expiredSession());
+    http.failPaths.add('/logout');
+
+    await repo.logout();
+
+    expect(await storage.read(), isNull);
+    expect(http.paths.where((p) => p.endsWith('/logout')).length, 1);
+    expect(http.paths.where((p) => p.endsWith('/revoke')).length, 1);
+  });
+
+  test('로그아웃 서버 호출 중에 시작된 리프레시도 결과를 버린다', () async {
+    await storage.save(expiredSession());
+    final logoutGate = Completer<void>();
+    http.holdPaths['/logout'] = logoutGate;
+    final tokenGate = Completer<TokenResponse>();
+    platform.onToken = (_) => tokenGate.future;
+    final emitted = <AuthSession?>[];
+    final sub = repo.sessionChanges.listen(emitted.add);
+
+    // 1) 로그아웃 시작 — 서버 /logout 응답을 기다리는 중
+    final loggingOut = repo.logout();
+    await Future<void>.delayed(Duration.zero);
+
+    // 2) 그 사이 만료 토큰으로 API 요청이 나가 리프레시가 시작됨
+    final refreshing = repo.getValidAccessToken();
+    await Future<void>.delayed(Duration.zero);
+    expect(platform.tokenCalls, 1);
+
+    // 3) 로그아웃이 끝나고(저장소 비움) 나서 리프레시 응답 도착
+    logoutGate.complete();
+    await loggingOut;
+    tokenGate.complete(okResponse());
+    final token = await refreshing;
+    await Future<void>.delayed(Duration.zero);
+
+    expect(token, isNull);
+    expect(await storage.read(), isNull, reason: '지운 토큰을 다시 저장하지 않는다');
+    expect(emitted, isEmpty);
+    await sub.cancel();
+  });
+
+  test('로그아웃 중 리프레시가 실패로 끝나도 현재 상태를 건드리지 않는다',
+      () async {
+    await storage.save(expiredSession());
+    final tokenGate = Completer<TokenResponse>();
+    platform.onToken = (_) => tokenGate.future;
+    final emitted = <AuthSession?>[];
+    final sub = repo.sessionChanges.listen(emitted.add);
+
+    final refreshing = repo.restoreSession();
+    await Future<void>.delayed(Duration.zero);
+    await repo.logout();
+    tokenGate.completeError(_oauthError('invalid_grant'));
+    final result = await refreshing;
+    await Future<void>.delayed(Duration.zero);
+
+    expect(result, isNull);
+    // 세대가 달라 _clearSession 을 다시 타지 않으므로 null 을 또 흘리지 않는다.
+    expect(emitted, isEmpty);
+    await sub.cancel();
   });
 
   group('expiryFromJwt', () {
@@ -186,14 +322,36 @@ void main() {
     expect(platform.tokenCalls, 1);
   });
 
-  test('리프레시 토큰 만료가 지났으면 서버에 묻지 않고 바로 로그아웃', () async {
+  test('리프레시 토큰 만료가 시계 오차 허용치(1시간)보다 지났으면 서버에 묻지 않고 바로 로그아웃',
+      () async {
     await storage.save(expiredSession(
-      refreshExp: DateTime.now().subtract(const Duration(minutes: 1)),
+      refreshExp: DateTime.now().subtract(const Duration(hours: 2)),
     ));
     platform.onToken = (_) async => okResponse();
 
     expect(await repo.restoreSession(), isNull);
     expect(platform.tokenCalls, 0);
+    expect(await storage.read(), isNull);
+  });
+
+  test('리프레시 토큰 만료가 오차 허용치 안이면 기기 시계를 믿지 않고 서버에 묻는다',
+      () async {
+    // 기기 시계가 앞서 있으면 멀쩡한 토큰의 exp 가 "조금 지난 것"으로 보인다.
+    await storage.save(expiredSession(
+      refreshExp: DateTime.now().subtract(const Duration(minutes: 1)),
+    ));
+    platform.onToken = (_) async => okResponse();
+
+    expect((await repo.restoreSession())?.accessToken, 'new-access');
+    expect(platform.tokenCalls, 1);
+  });
+
+  test('invalid_scope 같은 영구 OAuth 오류도 세션을 지운다(좀비 세션 방지)',
+      () async {
+    await storage.save(expiredSession());
+    platform.onToken = (_) async => throw _oauthError('invalid_scope');
+
+    expect(await repo.restoreSession(), isNull);
     expect(await storage.read(), isNull);
   });
 }

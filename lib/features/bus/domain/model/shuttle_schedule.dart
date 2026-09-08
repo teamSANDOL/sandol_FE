@@ -55,6 +55,13 @@ class ShuttleTime {
   /// "10:05" 형태 라벨.
   String get label =>
       '${hour.toString().padLeft(2, '0')}:${minute.toString().padLeft(2, '0')}';
+
+  @override
+  bool operator ==(Object other) =>
+      other is ShuttleTime && other.hour == hour && other.minute == minute;
+
+  @override
+  int get hashCode => Object.hash(hour, minute);
 }
 
 /// 시간표 한 항목. [type]에 따라 [time]/[endTime]/[boardingNote]의 의미가 달라진다.
@@ -101,10 +108,13 @@ class ShuttleEntry {
   bool get isSegment => type != ShuttleEntryType.fixed;
 
   /// [nowMinutes]가 이 구간 항목 내부인지 여부. 구간이 아니면 false.
+  ///
+  /// 종료 시각은 포함하지 않는다(반열린구간). 17:00~18:00 수시운행 뒤에
+  /// 18:00 정시편이 있을 때 18:00 정각에 정시편이 보여야 한다.
   bool covers(int nowMinutes) {
     final end = endTime;
     if (end == null) return false;
-    return nowMinutes >= time.minutesOfDay && nowMinutes <= end.minutesOfDay;
+    return nowMinutes >= time.minutesOfDay && nowMinutes < end.minutesOfDay;
   }
 }
 
@@ -184,4 +194,19 @@ class NextShuttle {
       status == ShuttleStatus.upcoming &&
       remainMinutes != null &&
       remainMinutes! > countdownLimitMinutes;
+
+  // 값 동등성: 시계가 분마다 갱신돼도 결과가 같으면 provider 가 위젯을
+  // 다시 그리지 않게 한다(예: 수시운행 중, 15분 밖 대기).
+  @override
+  bool operator ==(Object other) =>
+      other is NextShuttle &&
+      other.status == status &&
+      other.remainMinutes == remainMinutes &&
+      other.departureTime == departureTime &&
+      other.statusLabel == statusLabel &&
+      other.subText == subText;
+
+  @override
+  int get hashCode =>
+      Object.hash(status, remainMinutes, departureTime, statusLabel, subText);
 }

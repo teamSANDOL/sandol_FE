@@ -1,5 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
+import 'package:handori/core/utils/date_formatter.dart';
+import 'package:handori/core/utils/korea_time.dart';
 import 'package:handori/core/network/meal_dio_provider.dart';
 import 'package:handori/features/school_meal/data/data_source/meal_api.dart';
 import 'package:handori/features/school_meal/data/repository/meal_repository_impl.dart';
@@ -60,20 +62,11 @@ class MealListNotifier extends _$MealListNotifier {
   }
 
   /// "YYYY-MM-DD" 문자열의 다음 날짜를 같은 형식으로 반환한다.
-  static String _nextDay(String date) {
-    final next = DateTime.parse(date).add(const Duration(days: 1));
-    final m = next.month.toString().padLeft(2, '0');
-    final d = next.day.toString().padLeft(2, '0');
-    return '${next.year}-$m-$d';
-  }
+  static String _nextDay(String date) =>
+      DateFormatter.isoDate(DateTime.parse(date).add(const Duration(days: 1)));
 
-  /// 오늘 날짜를 "YYYY-MM-DD" 형식으로 반환한다(호출부 date 형식과 동일).
-  static String _today() {
-    final now = DateTime.now();
-    final m = now.month.toString().padLeft(2, '0');
-    final d = now.day.toString().padLeft(2, '0');
-    return '${now.year}-$m-$d';
-  }
+  /// 오늘(KST) 날짜를 "YYYY-MM-DD" 형식으로 반환한다(호출부 date 형식과 동일).
+  static String _today() => DateFormatter.isoDate(KoreaTime.now());
 
   Future<void> refresh() async {
     state = const AsyncLoading();

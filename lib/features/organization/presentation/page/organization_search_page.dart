@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:handori/features/organization/presentation/provider/organization_provider.dart';
 import 'package:handori/features/organization/presentation/widget/organization_search_result_card.dart';
+import 'package:handori/shared/widget/error_retry_view.dart';
 import 'package:handori/shared/widget/sandol_loading_indicator.dart';
 
 class OrganizationSearchPage extends ConsumerWidget {
@@ -35,7 +36,10 @@ class OrganizationSearchPage extends ConsumerWidget {
         loading: () => const Center(
           child: SandolLoadingIndicator(),
         ),
-        error: (e, _) => Center(child: Text('검색 실패: $e')),
+        error: (_, _) => ErrorRetryView(
+          title: '검색 결과를 불러오지 못했어요',
+          onRetry: () => ref.invalidate(organizationSearchProvider(query)),
+        ),
         data: (results) {
           if (results.isEmpty) {
             return Center(

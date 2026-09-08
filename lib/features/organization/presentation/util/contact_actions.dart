@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:handori/core/utils/external_link.dart';
 
 /// 조직도 연락처(전화 / 링크 / 이메일) 공용 액션.
 ///
@@ -60,14 +61,8 @@ class ContactActions {
     }
   }
 
-  static Future<void> openUrl(BuildContext context, String url) async {
-    final uri = Uri.tryParse(url.trim());
-    final ok = uri != null &&
-        await _launch(uri, mode: LaunchMode.externalApplication);
-    if (!ok && context.mounted) {
-      _toast(context, '링크를 열 수 없습니다');
-    }
-  }
+  static Future<void> openUrl(BuildContext context, String url) =>
+      openExternalLink(context, url.trim());
 
   static Future<bool> _launch(
     Uri uri, {

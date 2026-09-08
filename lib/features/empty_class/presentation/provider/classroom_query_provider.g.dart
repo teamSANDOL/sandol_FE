@@ -7,7 +7,7 @@ part of 'classroom_query_provider.dart';
 // **************************************************************************
 
 String _$classroomQueryControllerHash() =>
-    r'7798f6c3f23827e8d2f0be2f5dcb239e6bc335d2';
+    r'cf3dc681020a4facb0eaa0eadcbb0272830e105f';
 
 /// 홈 카드와 상세 지도가 함께 보는 조회 구간.
 /// keepAlive 라 앱이 살아 있는 동안 사용자가 고른 구간과 축 기준 시각을 유지한다.

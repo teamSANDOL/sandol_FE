@@ -20,4 +20,13 @@ abstract class ApiConstants {
   /// Android(build.gradle.kts appAuthRedirectScheme)와
   /// iOS(Info.plist CFBundleURLTypes)에도 동일하게 등록되어 있다.
   static const String authRedirectUri = 'kr.sandori.handori://oauthredirect';
+
+  // ── 정책 문서 (Google Play 필수) ───────────────────────────────────────
+  /// 개인정보처리방침. Play Console 의 정책 URL 과 동일해야 하며, 원본은
+  /// 저장소 docs/privacy-policy.html 이다.
+  static const String privacyPolicyUrl = 'https://sandori.kr/privacy';
+
+  /// 계정 삭제 요청 페이지(웹). 앱 내 탈퇴와 별개로 Play 정책이 요구한다.
+  /// 원본은 docs/account-deletion.html.
+  static const String accountDeletionUrl = 'https://sandori.kr/account-deletion';
 }

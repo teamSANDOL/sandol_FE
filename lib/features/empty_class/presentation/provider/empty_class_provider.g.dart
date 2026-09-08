@@ -63,7 +63,7 @@ final emptyClassesProvider =
 // ignore: unused_element
 typedef EmptyClassesRef = AutoDisposeFutureProviderRef<List<EmptyClass>>;
 String _$nearbyEmptyClassesHash() =>
-    r'a426cd077f426bed1b72e991a4cf4f386e9c9cd4';
+    r'c4ee5a229e260d2431c880ae5c46002bfc012314';
 
 /// 내 위치 정렬은 거리순(위치를 모르면 빈 강의실 많은 순), 내 순서 정렬은
 /// 기기에 저장된 순서. 좌표가 없는 건물은 거리순에서 항상 뒤로 간다.

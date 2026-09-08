@@ -35,6 +35,10 @@ class AuthNotifier extends _$AuthNotifier {
     // API 인터셉터가 백그라운드에서 리프레시하다 세션을 갱신/폐기하면
     // 화면 상태도 같이 따라간다 (로그인 표시인데 토큰이 없는 불일치 방지).
     final subscription = repository.sessionChanges.listen((session) {
+      // 로그인 브라우저가 열려 있는 동안(AsyncLoading) 백그라운드 리프레시
+      // 결과가 버튼을 다시 살리지 않게 한다. 로그인이 끝나면 그쪽이 상태를
+      // 확정한다.
+      if (state.isLoading) return;
       state = AsyncData(session);
     });
     ref.onDispose(subscription.cancel);
@@ -45,7 +49,12 @@ class AuthNotifier extends _$AuthNotifier {
   /// 액세스 토큰이 만료됐으면 지금 갱신하고, 리프레시 토큰까지 만료됐으면
   /// 비로그인 상태로 전환한다. 로그인 진행 중이면 건드리지 않는다.
   Future<void> refreshIfNeeded() async {
-    if (state.isLoading || state.valueOrNull == null) return;
+    if (state.isLoading) return;
+    // 비로그인 상태여도 다시 읽는다. 시작 시 보안 저장소가 잠겨 있어(첫 잠금
+    // 해제 전 실행 등) 세션을 못 읽었다면 복귀 시점에 되살아난다. 게스트에게는
+    // 저장소 읽기 한 번의 비용이다.
+    // 기다리는 동안 로그아웃·재로그인이 끝났어도 저장소가 세대 검사로
+    // "지금의 진실"을 돌려주므로 그대로 반영해도 안전하다.
     final session = await ref.read(authRepositoryProvider).restoreSession();
     if (state.isLoading) return;
     state = AsyncData(session);

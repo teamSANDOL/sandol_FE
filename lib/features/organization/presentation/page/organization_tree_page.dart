@@ -7,6 +7,7 @@ import 'package:handori/features/organization/domain/model/organization_search_r
 import 'package:handori/features/organization/presentation/provider/organization_provider.dart';
 import 'package:handori/features/organization/presentation/widget/organization_node_card.dart';
 import 'package:handori/features/organization/presentation/widget/organization_search_result_card.dart';
+import 'package:handori/shared/widget/error_retry_view.dart';
 import 'package:handori/shared/widget/sandol_loading_indicator.dart';
 
 class OrganizationTreePage extends ConsumerStatefulWidget {
@@ -93,22 +94,11 @@ class _OrganizationTreePageState extends ConsumerState<OrganizationTreePage> {
               loading: () => const Center(
                 child: SandolLoadingIndicator(),
               ),
-              error: (e, _) => Center(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    const Icon(Icons.error_outline,
-                        color: Colors.red, size: 40),
-                    const SizedBox(height: 8),
-                    Text('불러오기 실패: $e'),
-                    const SizedBox(height: 12),
-                    ElevatedButton(
-                      onPressed: () =>
-                          ref.read(organizationTreeNotifierProvider.notifier).refresh(),
-                      child: const Text('재시도'),
-                    ),
-                  ],
-                ),
+              error: (_, _) => ErrorRetryView(
+                title: '조직도를 불러오지 못했어요',
+                onRetry: () => ref
+                    .read(organizationTreeNotifierProvider.notifier)
+                    .refresh(),
               ),
               data: (root) {
                 if (_query.isNotEmpty) {

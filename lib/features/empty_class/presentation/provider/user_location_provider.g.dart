@@ -6,7 +6,7 @@ part of 'user_location_provider.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$userLocationHash() => r'812a5bb2519a86c3a14e355a77086db44b956f4e';
+String _$userLocationHash() => r'4e2796cab4603425a4a5b44dfc12122afbae1752';
 
 /// 현재 위치. 권한이 없거나 못 얻으면 null (에러로 취급하지 않는다).
 ///

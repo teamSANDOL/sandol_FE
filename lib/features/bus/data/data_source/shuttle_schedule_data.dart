@@ -1,3 +1,4 @@
+import 'package:handori/features/bus/data/data_source/korean_public_holidays.dart';
 import 'package:handori/features/bus/domain/model/shuttle_schedule.dart';
 
 /// 셔틀버스 시간표 원본(하드코딩) 데이터 소스.
@@ -93,9 +94,13 @@ class ShuttleScheduleData {
       .map((hhmm) => ShuttleEntry.fixed(ShuttleTime.fromHhmm(hhmm)))
       .toList(growable: false);
 
-  /// 날짜 → 요일 구분. 토요일은 [ShuttleDayType.saturday],
-  /// 일요일은 [ShuttleDayType.holiday]로 본다(공휴일 별도 판정은 미지원).
+  /// 날짜 → 요일 구분. 공휴일(대체공휴일 포함)과 일요일은
+  /// [ShuttleDayType.holiday], 토요일은 [ShuttleDayType.saturday].
+  /// 공휴일 목록에 없는 연도는 요일만으로 판정한다.
   static ShuttleDayType dayTypeOf(DateTime date) {
+    // 목록 밖 연도는 요일만으로 판정한다. 목록이 만료되기 전에 알 수 있도록
+    // shuttle_day_type_test 가 "지금 + 180일"이 목록 안인지 검사한다.
+    if (KoreanPublicHolidays.isHoliday(date)) return ShuttleDayType.holiday;
     switch (date.weekday) {
       case DateTime.saturday:
         return ShuttleDayType.saturday;

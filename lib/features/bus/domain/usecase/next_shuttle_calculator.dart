@@ -27,14 +27,20 @@ class NextShuttleCalculator {
     }
 
     // 2) 시작 시각이 현재 이후인 가장 이른 항목을 탐색.
+    //    아직 시작하지 않은 구간(예: 06:00에 본 08:40~10:00 수시운행)은
+    //    "수시운행 중"이 아니라 그 시작 시각까지의 대기로 안내한다.
     for (final entry in entries) {
       if (entry.time.minutesOfDay < nowMinutes) continue;
-      if (entry.isSegment) return _segment(entry);
+      if (entry.isSegment && entry.time.minutesOfDay == nowMinutes) {
+        return _segment(entry);
+      }
       return NextShuttle(
         status: ShuttleStatus.upcoming,
         remainMinutes: entry.time.minutesOfDay - nowMinutes,
         departureTime: entry.time,
-        subText: '${entry.time.label} 출발',
+        subText: entry.isSegment
+            ? '${entry.time.label}부터 ${_segmentName(entry)}'
+            : '${entry.time.label} 출발',
       );
     }
 
@@ -46,6 +52,9 @@ class NextShuttleCalculator {
     );
   }
 
+  static String _segmentName(ShuttleEntry entry) =>
+      entry.type == ShuttleEntryType.flexible ? '수시운행' : '도착버스 탑승';
+
   /// 구간 항목(수시운행·도착버스 탑승) → 상태 변환.
   static NextShuttle _segment(ShuttleEntry entry) {
     final start = entry.time;
@@ -54,7 +63,7 @@ class NextShuttleCalculator {
       return NextShuttle(
         status: ShuttleStatus.flexible,
         statusLabel: '수시운행',
-        subText: end == null ? null : '${start.label}~${end.label} 수시 운행',
+        subText: end == null ? null : '${start.label}~${end.label} 수시운행',
       );
     }
     // arrivalBoarding

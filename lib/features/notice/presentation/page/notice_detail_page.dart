@@ -25,11 +25,17 @@ class _NoticeDetailPageState extends State<NoticeDetailPage> {
       ..setJavaScriptMode(JavaScriptMode.unrestricted)
       ..setNavigationDelegate(
         NavigationDelegate(
-          onPageStarted: (_) => setState(() => _isLoading = true),
-          onPageFinished: (_) => setState(() => _isLoading = false),
+          // 로드가 끝나기 전에 뒤로 가면 dispose 된 뒤 콜백이 온다.
+          onPageStarted: (_) => _setLoading(true),
+          onPageFinished: (_) => _setLoading(false),
         ),
       )
       ..loadRequest(Uri.parse(widget.notice.url));
+  }
+
+  void _setLoading(bool value) {
+    if (!mounted || _isLoading == value) return;
+    setState(() => _isLoading = value);
   }
 
   @override

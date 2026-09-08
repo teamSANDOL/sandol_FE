@@ -1,4 +1,4 @@
-package com.example.handori
+package kr.sandori.handori
 
 import io.flutter.embedding.android.FlutterActivity
 

@@ -13,9 +13,11 @@ const Color _kBgSoft = AppColors.background;
 const Color _kBorderSoft = AppColors.divider;
 const Color _kTextPrimary = AppColors.textPrimary;
 const Color _kTextMuted = AppColors.textMuted;
+/// 시(hour) 열 배경 — 분 열과 구분되도록 옅은 파랑.
+const Color _kHourColBg = AppColors.primaryLight;
 
 const double _kCardRadius = 16.0;
-const double _kHourColWidth = 60.0;
+const double _kHourColWidth = 64.0;
 
 /// 셔틀버스 전체 시간표 화면.
 ///
@@ -308,32 +310,35 @@ class _TableHeaderRow extends StatelessWidget {
       color: _kTextMuted,
       letterSpacing: 0.4,
     );
-    return Container(
-      color: _kBgSoft,
-      child: IntrinsicHeight(
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Container(
-              width: _kHourColWidth,
-              alignment: Alignment.center,
-              padding: const EdgeInsets.symmetric(vertical: 10),
-              decoration: const BoxDecoration(
-                border: Border(right: BorderSide(color: _kBorderSoft)),
-              ),
-              child: Text('시', style: style),
+    return IntrinsicHeight(
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Container(
+            width: _kHourColWidth,
+            alignment: Alignment.center,
+            padding: const EdgeInsets.symmetric(vertical: 10),
+            decoration: const BoxDecoration(
+              color: _kHourColBg,
+              border: Border(right: BorderSide(color: _kBorderSoft)),
             ),
-            Padding(
+            child: Text('시', style: style),
+          ),
+          Expanded(
+            child: Container(
+              color: _kBgSoft,
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
               child: Text('분', style: style),
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
 }
 
+/// 시간대 행 — 왼쪽은 "9시"처럼 단위를 붙인 시 라벨(옅은 파란 열),
+/// 오른쪽은 분 단위 출발 시각을 칩으로 나열해 시·분이 한눈에 구분되게 한다.
 class _HourRowTile extends StatelessWidget {
   final _HourRow row;
 
@@ -341,45 +346,78 @@ class _HourRowTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // 분 단위 출발 시각을 점(·)으로 구분해 한 줄로.
-    final minutesText = row.minutes
-        .map((m) => m.toString().padLeft(2, '0'))
-        .join('  ·  ');
-
     return IntrinsicHeight(
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          // 시(hour) 열.
+          // 시(hour) 열 — 숫자 뒤에 '시'를 붙이고 열 배경을 달리해 분과 구분.
           Container(
             width: _kHourColWidth,
             alignment: Alignment.center,
             decoration: const BoxDecoration(
+              color: _kHourColBg,
               border: Border(right: BorderSide(color: _kBorderSoft)),
             ),
-            child: Text(
-              row.hour.toString().padLeft(2, '0'),
-              style: AppTextStyles.caption01.copyWith(
-                color: _kPrimary,
-                letterSpacing: -0.3,
+            child: Text.rich(
+              TextSpan(
+                text: '${row.hour}',
+                style: AppTextStyles.number02.copyWith(
+                  fontSize: 17,
+                  color: _kPrimary,
+                  letterSpacing: -0.3,
+                ),
+                children: [
+                  TextSpan(
+                    text: '시',
+                    style: AppTextStyles.caption04.copyWith(
+                      color: _kPrimary,
+                      letterSpacing: -0.2,
+                    ),
+                  ),
+                ],
               ),
             ),
           ),
-          // 분 열.
+          // 분 열 — 출발 분을 칩으로 나열.
           Expanded(
             child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-              child: Text(
-                minutesText,
-                style: AppTextStyles.caption01.copyWith(
-                  color: _kTextPrimary,
-                  letterSpacing: 0.2,
-                  height: 1.5,
-                ),
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+              child: Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children: [
+                  for (final m in row.minutes) _MinuteChip(minute: m),
+                ],
               ),
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+/// 출발 분(minute) 칩 — "05" "25" "45"처럼 두 자리 숫자를 알약으로 감싼다.
+class _MinuteChip extends StatelessWidget {
+  final int minute;
+
+  const _MinuteChip({required this.minute});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+      decoration: BoxDecoration(
+        color: _kBgSoft,
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: _kBorderSoft),
+      ),
+      child: Text(
+        minute.toString().padLeft(2, '0'),
+        style: AppTextStyles.number02.copyWith(
+          fontSize: 14,
+          color: _kTextPrimary,
+        ),
       ),
     );
   }

@@ -8,7 +8,8 @@ class NoticeItemResponse {
   final int id;
   final String url;
   final String title;
-  final String html;
+  // 서버 응답의 `html`(항목당 100~280KB 원문)은 받지 않는다. 앱은 [url]을
+  // WebView 로 열고, json_serializable 은 선언하지 않은 키를 무시한다.
   final String author;
   final String createAt; // 서버 필드명 그대로 사용 (createAt)
 
@@ -16,7 +17,6 @@ class NoticeItemResponse {
     required this.id,
     required this.url,
     required this.title,
-    required this.html,
     required this.author,
     required this.createAt,
   });
@@ -29,7 +29,6 @@ class NoticeItemResponse {
         id: id,
         url: url,
         title: title,
-        html: html,
         author: author,
         createdAt: createAt,
       );

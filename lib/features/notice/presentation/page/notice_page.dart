@@ -11,6 +11,7 @@ import 'package:handori/features/notice/presentation/provider/notice_provider.da
 import 'package:handori/features/notice/presentation/widget/notice_card.dart';
 import 'package:handori/features/notice/presentation/widget/shuttle_card.dart';
 import 'package:handori/shared/model/pagination_state.dart';
+import 'package:handori/shared/widget/error_retry_view.dart';
 import 'package:handori/shared/widget/sandol_loading_indicator.dart';
 
 class NoticePage extends ConsumerStatefulWidget {
@@ -112,8 +113,8 @@ class _NoticeListTabState extends ConsumerState<_NoticeListTab> {
     return state.when(
       data: (data) => _buildList(data),
       loading: () => const Center(child: SandolLoadingIndicator()),
-      error: (e, _) => _ErrorView(
-        message: '공지사항을 불러올 수 없습니다.',
+      error: (e, _) => ErrorRetryView(
+            title: '공지사항을 불러올 수 없습니다.',
         onRetry: () => ref
             .invalidate(noticeListNotifierProvider(isDormitory: widget.isDormitory)),
       ),
@@ -253,8 +254,8 @@ class _ShuttleListTabState extends ConsumerState<_ShuttleListTab> {
     return state.when(
       data: (data) => _buildList(data),
       loading: () => const Center(child: SandolLoadingIndicator()),
-      error: (e, _) => _ErrorView(
-        message: '셔틀 정보를 불러올 수 없습니다.',
+      error: (e, _) => ErrorRetryView(
+            title: '셔틀 정보를 불러올 수 없습니다.',
         onRetry: () => ref.invalidate(shuttleListNotifierProvider),
       ),
     );
@@ -286,32 +287,3 @@ class _ShuttleListTabState extends ConsumerState<_ShuttleListTab> {
 
 // ── 공통 에러 뷰 ──────────────────────────────────────────────────────────────
 
-class _ErrorView extends StatelessWidget {
-  final String message;
-  final VoidCallback onRetry;
-
-  const _ErrorView({required this.message, required this.onRetry});
-
-  @override
-  Widget build(BuildContext context) {
-    return Center(
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          const Icon(Icons.error_outline, size: 48, color: Colors.grey),
-          const SizedBox(height: 12),
-          Text(message, style: Theme.of(context).textTheme.bodyMedium),
-          const SizedBox(height: 16),
-          ElevatedButton(
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.primary,
-              foregroundColor: Colors.white,
-            ),
-            onPressed: onRetry,
-            child: const Text('다시 시도'),
-          ),
-        ],
-      ),
-    );
-  }
-}

@@ -18,6 +18,7 @@ import 'package:handori/features/empty_class/presentation/provider/empty_class_p
 
 import 'package:go_router/go_router.dart';
 import 'package:handori/common/layout/root_shell.dart';
+import 'package:handori/shared/widget/error_retry_view.dart';
 import 'package:handori/shared/widget/sandol_loading_indicator.dart';
 
 class EmptyDetailScreen extends ConsumerStatefulWidget {
@@ -40,6 +41,9 @@ class _EmptyDetailScreenState extends ConsumerState<EmptyDetailScreen> {
 
   Set<NMarker> _markers = {};
   String? _selectedId;
+  /// 마커 아이콘 캐시. 항목은 플러그인이 만든 임시 파일 경로와 앵커·크기뿐이라
+  /// 메모리는 수십 바이트 단위다. 화면과 함께 사라지므로 상한을 두지 않는다
+  /// (상한을 두면 재진입 시 3배 스케일 래스터화를 다시 하게 된다).
   final Map<String, ({NOverlayImage icon, NPoint anchor, Size size})>
       _iconCache = {};
   int _markerGen = 0;
@@ -57,6 +61,7 @@ class _EmptyDetailScreenState extends ConsumerState<EmptyDetailScreen> {
 
   @override
   void dispose() {
+    _iconCache.clear();
     _sheetCtrl.dispose();
     super.dispose();
   }
@@ -466,7 +471,10 @@ class _EmptyDetailScreenState extends ConsumerState<EmptyDetailScreen> {
     final items = classesAsync.valueOrNull;
     if (items == null) {
       return classesAsync.hasError
-          ? Center(child: Text('오류: ${classesAsync.error}'))
+          ? ErrorRetryView(
+              title: '빈 강의실 정보를 불러오지 못했어요',
+              onRetry: () => ref.invalidate(emptyClassesProvider),
+            )
           : const Center(child: SandolLoadingIndicator());
     }
     final refreshing = classesAsync.isLoading;
@@ -967,3 +975,4 @@ class _RoomChip extends StatelessWidget {
     );
   }
 }
+

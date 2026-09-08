@@ -1,4 +1,5 @@
 import 'package:riverpod_annotation/riverpod_annotation.dart';
+import 'package:handori/core/utils/korea_time.dart';
 import 'package:handori/features/empty_class/domain/model/classroom_query.dart';
 
 part 'classroom_query_provider.g.dart';
@@ -8,7 +9,7 @@ part 'classroom_query_provider.g.dart';
 @Riverpod(keepAlive: true)
 class ClassroomQueryController extends _$ClassroomQueryController {
   @override
-  ClassroomQuery build() => ClassroomQuery.defaultFor(DateTime.now());
+  ClassroomQuery build() => ClassroomQuery.defaultFor(KoreaTime.now());
 
   /// 축의 디텐트 인덱스로 구간을 고른다. 같은 값이면 아무것도 하지 않는다.
   void setRangeByTick(int startIndex, int endIndex) {
@@ -31,12 +32,12 @@ class ClassroomQueryController extends _$ClassroomQueryController {
     state = state.copyWith(weekday: weekday);
   }
 
-  void resetToNow() => state = ClassroomQuery.defaultFor(DateTime.now());
+  void resetToNow() => state = ClassroomQuery.defaultFor(KoreaTime.now());
 
   /// 화면에 들어올 때 한 번 호출. 앵커가 10분 이상 오래됐을 때만 축을 다시
   /// 맞추므로 홈을 오갈 때마다 API 를 다시 부르지 않는다.
   void syncToNow() {
-    final now = DateTime.now();
+    final now = KoreaTime.now();
     if (state.weekday != now.weekday) {
       state = ClassroomQuery.defaultFor(now);
       return;

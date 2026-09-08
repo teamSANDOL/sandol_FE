@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:handori/core/constants/api_constants.dart';
 import 'package:handori/core/router/route_paths.dart';
+import 'package:handori/core/utils/external_link.dart';
 
 class Signinscreen extends StatefulWidget {
   const Signinscreen({super.key});
@@ -227,7 +229,7 @@ class _AgreeCheckBoxes extends StatefulWidget {
 class _AgreeCheckBoxesState extends State<_AgreeCheckBoxes> {
   final List<_AgreeItem> _items = [
     _AgreeItem('이용 약관 동의(필수)'),
-    _AgreeItem('개인정보 수집 동의(필수)'),
+    _AgreeItem('개인정보 수집 동의(필수)', url: ApiConstants.privacyPolicyUrl),
     _AgreeItem('개인정보 수집 동의(선택)'),
     _AgreeItem('혜택/알림 정보 수신 동의(선택)'),
   ];
@@ -248,7 +250,18 @@ class _AgreeCheckBoxesState extends State<_AgreeCheckBoxes> {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                Text(item.title, style: mediumText),
+                // 정책 문서가 있는 항목은 제목을 눌러 원문을 볼 수 있다.
+                item.url == null
+                    ? Text(item.title, style: mediumText)
+                    : GestureDetector(
+                        onTap: () => openExternalLink(context, item.url!),
+                        child: Text(
+                          item.title,
+                          style: mediumText?.copyWith(
+                            decoration: TextDecoration.underline,
+                          ),
+                        ),
+                      ),
                 Checkbox(
                   value: item.checked,
                   onChanged: (bool? value) {
@@ -268,9 +281,12 @@ class _AgreeCheckBoxesState extends State<_AgreeCheckBoxes> {
 
 class _AgreeItem {
   final String title;
+
+  /// 눌렀을 때 열 정책 문서 URL. 없으면 단순 라벨.
+  final String? url;
   bool checked = false;
 
-  _AgreeItem(this.title);
+  _AgreeItem(this.title, {this.url});
 }
 
 /// 하단 위젯

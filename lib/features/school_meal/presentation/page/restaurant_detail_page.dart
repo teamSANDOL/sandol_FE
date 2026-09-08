@@ -1,3 +1,4 @@
+import 'package:handori/core/utils/korea_time.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:handori/common/component/app_top_bar.dart';
@@ -11,6 +12,7 @@ import 'package:handori/features/school_meal/presentation/provider/meal_list_not
 import 'package:handori/features/school_meal/presentation/provider/restaurant_list_notifier.dart';
 import 'package:handori/features/school_meal/presentation/provider/selected_restaurant_id_notifier.dart';
 import 'package:handori/features/school_meal/presentation/widget/restaurant_chip.dart';
+import 'package:handori/shared/widget/error_retry_view.dart';
 import 'package:handori/shared/widget/sandol_loading_indicator.dart';
 
 // ── 색상 상수 ──────────────────────────────────────────────────
@@ -42,7 +44,7 @@ _MealStatus _computeStatus(String timeRange) {
   if (s.length != 2 || e.length != 2) return _MealStatus.unknown;
   final start = (int.tryParse(s[0]) ?? 0) * 60 + (int.tryParse(s[1]) ?? 0);
   final end = (int.tryParse(e[0]) ?? 0) * 60 + (int.tryParse(e[1]) ?? 0);
-  final now = TimeOfDay.now();
+  final now = KoreaTime.now();
   final nowMin = now.hour * 60 + now.minute;
   if (nowMin < start) return _MealStatus.preparing;
   if (nowMin <= end) return _MealStatus.operating;
@@ -60,9 +62,6 @@ String _formatPrice(int price) {
   return buf.toString();
 }
 
-String _dateString(DateTime d) =>
-    '${d.year}-${d.month.toString().padLeft(2, '0')}-${d.day.toString().padLeft(2, '0')}';
-
 const _kWeekdays = ['월', '화', '수', '목', '금', '토', '일'];
 
 /// "9월 2일 수요일" 형식
@@ -79,8 +78,6 @@ String _prettyRange(String timeRange) {
 // ──────────────────────────────────────────────────────────────
 class RestaurantDetailPage extends ConsumerWidget {
   const RestaurantDetailPage({super.key});
-
-  String get _today => _dateString(DateTime.now());
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -100,8 +97,8 @@ class RestaurantDetailPage extends ConsumerWidget {
               child: SandolLoadingIndicator(),
             ),
           ),
-          error: (e, _) => _ErrorView(
-            message: '식당 정보를 불러올 수 없습니다.',
+          error: (e, _) => ErrorRetryView(
+            title: '식당 정보를 불러올 수 없습니다.',
             onRetry: () => ref.invalidate(restaurantListNotifierProvider),
           ),
         ),
@@ -125,7 +122,7 @@ class RestaurantDetailPage extends ConsumerWidget {
     var selectedTabIndex = restaurants.indexWhere((r) => r.id == selectedId);
     if (selectedTabIndex < 0) selectedTabIndex = 0;
 
-    final mealsAsync = ref.watch(mealListNotifierProvider(date: _today));
+    final mealsAsync = ref.watch(mealListNotifierProvider());
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -156,10 +153,10 @@ class RestaurantDetailPage extends ConsumerWidget {
             padding: EdgeInsets.only(top: 40, bottom: 40),
             child: Center(child: SandolLoadingIndicator()),
           ),
-          error: (e, _) => _ErrorView(
-            message: '식단 정보를 불러올 수 없습니다.',
+          error: (e, _) => ErrorRetryView(
+            title: '식단 정보를 불러올 수 없습니다.',
             onRetry: () => ref.invalidate(
-              mealListNotifierProvider(date: _today),
+              mealListNotifierProvider(),
             ),
           ),
         ),
@@ -230,7 +227,7 @@ class _MenuSection extends StatelessWidget {
           Row(
             children: [
               Text(
-                _koreanDate(DateTime.now()),
+                _koreanDate(KoreaTime.now()),
                 style: AppTextStyles.caption03.copyWith(
                   color: AppColors.textMuted,
                 ),
@@ -514,36 +511,3 @@ class _EmptyView extends StatelessWidget {
   }
 }
 
-/// 공통 에러 뷰 (재시도 버튼 포함)
-class _ErrorView extends StatelessWidget {
-  final String message;
-  final VoidCallback onRetry;
-
-  const _ErrorView({required this.message, required this.onRetry});
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 60),
-      child: Center(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Icon(Icons.error_outline, size: 48, color: Colors.grey),
-            const SizedBox(height: 12),
-            Text(message, style: Theme.of(context).textTheme.bodyMedium),
-            const SizedBox(height: 16),
-            ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.primary,
-                foregroundColor: Colors.white,
-              ),
-              onPressed: onRetry,
-              child: const Text('다시 시도'),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}

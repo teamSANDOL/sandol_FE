@@ -1,3 +1,4 @@
+import 'package:handori/core/utils/korea_time.dart';
 import 'package:handori/features/school_meal/domain/model/meal.dart';
 import 'package:handori/features/school_meal/domain/model/meal_type.dart';
 import 'package:handori/features/school_meal/domain/model/restaurant.dart';
@@ -81,7 +82,7 @@ MenuSlot? findCurrentOrNextSlot(List<MenuSlot> slots) {
   final withMenu = slots.where((s) => s.menu.isNotEmpty).toList();
   if (withMenu.isEmpty) return null;
 
-  final now = DateTime.now();
+  final now = KoreaTime.now();
   final nowMinutes = now.hour * 60 + now.minute;
 
   MenuSlot? nextSlot;

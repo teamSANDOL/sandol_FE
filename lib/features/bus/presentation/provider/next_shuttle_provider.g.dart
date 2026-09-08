@@ -197,12 +197,13 @@ class _NextShuttleProviderElement
   ShuttleDirection get direction => (origin as NextShuttleProvider).direction;
 }
 
-String _$shuttleClockHash() => r'e60ba28449fdecb114b97624e5448a1563dce271';
+String _$shuttleClockHash() => r'a8f6b0c7df02cab8a24d6bd09e2c028468ebd726';
 
-/// 셔틀 계산의 기준 시각(= 마지막 새로고침 시각).
+/// 셔틀 계산의 기준 시각(KST).
 ///
-/// 홈·버스 상세 화면이 공유하며, [ShuttleClock.refresh]를 호출하면
-/// 이 값을 watch하는 [nextShuttleProvider]가 모두 재계산된다.
+/// 홈·버스 상세 화면이 공유한다. 분이 바뀔 때마다 자동으로 갱신되므로
+/// "N분 후 출발"이 화면을 켜둔 채로도 흘러간다. 당겨서 새로고침이나
+/// 백그라운드 복귀처럼 즉시 맞춰야 할 때는 [refresh]를 부른다.
 ///
 /// Copied from [ShuttleClock].
 @ProviderFor(ShuttleClock)
