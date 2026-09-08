@@ -68,6 +68,26 @@ class _SplashscreenState extends ConsumerState<Splashscreen>
             ),
           ),
 
+          // 중앙 캐릭터 — 배경(bg_splash.png)은 캐릭터가 지워진 상태이고,
+          // 투명 PNG 캐릭터를 옛 캐릭터 자리(화면 정중앙)에 올린다.
+          FadeTransition(
+            opacity: _fadeIn,
+            child: ScaleTransition(
+              scale: _scale,
+              child: Align(
+                alignment: Alignment.center,
+                child: FractionallySizedBox(
+                  widthFactor: 0.72,
+                  child: Image.asset(
+                    'assets/img/sandol_kkk.png',
+                    fit: BoxFit.contain,
+                    filterQuality: FilterQuality.medium,
+                  ),
+                ),
+              ),
+            ),
+          ),
+
           // 하단: 로딩 애니메이션 + 산돌이 로고
           SafeArea(
             child: Align(

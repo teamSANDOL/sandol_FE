@@ -122,6 +122,7 @@ const _kLocationFallback = <String, String>{
   'E동': 'E동 1층',
   '세미콘': '경기도 시흥시 정왕동 1269-13',
   '미가': '경기도 시흥시 산기대학로 236',
+  '다솔': '경기도 시흥시 산기대학로 322',
 };
 
 String? _fallbackLocationOf(String name) {

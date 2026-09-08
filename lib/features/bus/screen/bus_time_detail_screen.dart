@@ -451,10 +451,15 @@ class _TimetableSectionHeader extends StatelessWidget {
   }
 }
 
+/// 전체 시간표 카드.
+///
+/// 시(hour)별 한 줄에 출발 분을 정렬된 숫자 그리드로 나열한다. 색 강조는
+/// "다음 출발" 한 곳에만 주고, 지나간 시각은 흐리게, 수시운행·도착버스 구간은
+/// 회색 띠로 눌러서 시선이 분산되지 않게 한다.
 class _TimetableCard extends StatelessWidget {
   final ShuttleTimetable? timetable;
 
-  /// 자정 기준 현재 경과 분 — 지나간 출발 시각 칩을 흐리게 표시한다.
+  /// 자정 기준 현재 경과 분 — 지나간 시각 흐림 처리·다음 출발 강조에 사용.
   final int nowMinutes;
 
   const _TimetableCard({required this.timetable, required this.nowMinutes});
@@ -462,10 +467,8 @@ class _TimetableCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final entries = timetable?.entries ?? const <ShuttleEntry>[];
-    final fixed = entries.where((e) => !e.isSegment).toList(growable: false);
-    final segments = entries.where((e) => e.isSegment).toList(growable: false);
 
-    if (fixed.isEmpty && segments.isEmpty) {
+    if (entries.isEmpty) {
       return Container(
         padding: const EdgeInsets.symmetric(vertical: 36, horizontal: 20),
         decoration: BoxDecoration(
@@ -481,27 +484,70 @@ class _TimetableCard extends StatelessWidget {
       );
     }
 
-    // 정시 출발을 시(hour) 단위로 묶는다. entries는 오름차순 전제.
-    final byHour = <int, List<ShuttleTime>>{};
-    for (final entry in fixed) {
-      byHour.putIfAbsent(entry.time.hour, () => []).add(entry.time);
-    }
+    // 강조 대상 하나만 고른다: 지금 진행 중인 구간이 있으면 그 구간, 없으면
+    // 현재 시각 이후 첫 정시 출발.
+    final activeSegment = entries.cast<ShuttleEntry?>().firstWhere(
+          (e) => e!.isSegment && e.covers(nowMinutes),
+          orElse: () => null,
+        );
+    final int? nextFixedMinutes = activeSegment != null
+        ? null
+        : entries
+            .cast<ShuttleEntry?>()
+            .firstWhere(
+              (e) => !e!.isSegment && e.time.minutesOfDay >= nowMinutes,
+              orElse: () => null,
+            )
+            ?.time
+            .minutesOfDay;
 
-    final rows = <Widget>[];
-    for (final hour in byHour.keys) {
+    // entries(오름차순)를 순서대로 훑으며 연속된 정시 출발은 시(hour) 단위로
+    // 묶고, 수시운행·도착버스 구간은 시간 흐름상 제자리에 끼워 넣는다.
+    final rows = <Widget>[const _TableHeader()];
+    int? currentHour;
+    var currentTimes = <ShuttleTime>[];
+
+    void flushHour() {
+      if (currentHour == null) return;
       rows.add(
         _HourRow(
-          hour: hour,
-          times: byHour[hour]!,
+          hour: currentHour!,
+          times: currentTimes,
           nowMinutes: nowMinutes,
-          showTopBorder: rows.isNotEmpty,
+          nextMinutes: nextFixedMinutes,
         ),
       );
+      currentHour = null;
+      currentTimes = <ShuttleTime>[];
     }
-    for (final segment in segments) {
-      rows.add(
-        _SegmentRow(segment: segment, showTopBorder: rows.isNotEmpty),
-      );
+
+    for (final entry in entries) {
+      if (entry.isSegment) {
+        flushHour();
+        rows.add(
+          _SegmentRow(
+            segment: entry,
+            nowMinutes: nowMinutes,
+            isActive: identical(entry, activeSegment),
+          ),
+        );
+        continue;
+      }
+      if (currentHour != entry.time.hour) {
+        flushHour();
+        currentHour = entry.time.hour;
+      }
+      currentTimes.add(entry.time);
+    }
+    flushHour();
+
+    // 행 사이에만 구분선을 넣는다(마지막 행 아래는 카드 테두리가 담당).
+    final children = <Widget>[];
+    for (var i = 0; i < rows.length; i++) {
+      if (i > 0) {
+        children.add(const Divider(height: 1, thickness: 1, color: _kBorder));
+      }
+      children.add(rows[i]);
     }
 
     return Container(
@@ -511,68 +557,87 @@ class _TimetableCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(_kCardRadius),
         border: Border.all(color: _kBorder),
       ),
-      child: Column(children: rows),
+      child: Column(children: children),
     );
   }
 }
 
+// 표 레이아웃 공통값.
+const double _kHourColWidth = 44.0;
+const double _kMinuteCellWidth = 36.0;
+const double _kRowVPad = 12.0;
+
+/// 표 머리글 — "시 / 분" 열 이름과 범례.
+class _TableHeader extends StatelessWidget {
+  const _TableHeader();
+
+  @override
+  Widget build(BuildContext context) {
+    final style = AppTextStyles.caption04.copyWith(
+      color: _kTextMuted,
+      letterSpacing: 0.2,
+    );
+    return Container(
+      padding: const EdgeInsets.fromLTRB(16, 10, 16, 10),
+      color: _kBgSoft,
+      child: Row(
+        children: [
+          SizedBox(width: _kHourColWidth, child: Text('시', style: style)),
+          Text('출발 분', style: style),
+          const Spacer(),
+          Container(
+            width: 6,
+            height: 6,
+            decoration: const BoxDecoration(
+              color: _kPrimary,
+              shape: BoxShape.circle,
+            ),
+          ),
+          const SizedBox(width: 5),
+          Text('다음 출발', style: style),
+        ],
+      ),
+    );
+  }
+}
+
+/// 한 시간대(예: 09시) 행 — 시 라벨 + 분 그리드.
 class _HourRow extends StatelessWidget {
   final int hour;
   final List<ShuttleTime> times;
   final int nowMinutes;
-  final bool showTopBorder;
+
+  /// 강조할 다음 출발 시각(자정 기준 분). 이 행에 없으면 무시된다.
+  final int? nextMinutes;
 
   const _HourRow({
     required this.hour,
     required this.times,
     required this.nowMinutes,
-    required this.showTopBorder,
+    required this.nextMinutes,
   });
 
   @override
   Widget build(BuildContext context) {
+    // 행 전체가 지나갔으면 시 라벨도 함께 눌러준다.
+    final rowPast = times.last.minutesOfDay < nowMinutes;
+
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-      decoration: BoxDecoration(
-        border: showTopBorder
-            ? const Border(top: BorderSide(color: _kBorder))
-            : null,
-      ),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: _kRowVPad),
       child: Row(
-        crossAxisAlignment: CrossAxisAlignment.center,
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          SizedBox(
-            width: 34,
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.baseline,
-              textBaseline: TextBaseline.alphabetic,
-              children: [
-                Text(
-                  hour.toString().padLeft(2, '0'),
-                  style: AppTextStyles.caption02.copyWith(
-                    color: _kTextPrimary,
-                    fontWeight: FontWeight.w700,
-                    letterSpacing: -0.3,
-                  ),
-                ),
-                const SizedBox(width: 2),
-                Text(
-                  '시',
-                  style: AppTextStyles.caption04.copyWith(color: _kTextMuted),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(width: 14),
+          _HourLabel(hour: hour, muted: rowPast),
           Expanded(
             child: Wrap(
-              spacing: 6,
+              spacing: 0,
               runSpacing: 6,
               children: [
                 for (final time in times)
-                  _MinuteChip(
+                  _MinuteCell(
                     time: time,
                     isPast: time.minutesOfDay < nowMinutes,
+                    isNext: time.minutesOfDay == nextMinutes,
                   ),
               ],
             ),
@@ -583,93 +648,171 @@ class _HourRow extends StatelessWidget {
   }
 }
 
-/// 출발 분(minute) 칩.
-///
-/// 시안에는 칩 색이 파랑·초록·보라로 섞여 있지만, 구현에서는 색 차이 없이
-/// 단일 색상(primary 계열)으로 통일한다. 지나간 시각은 흐리게 처리.
-class _MinuteChip extends StatelessWidget {
-  final ShuttleTime time;
-  final bool isPast;
+/// 행 왼쪽의 시(hour) 라벨 — 시간별 행과 구간 행이 같은 열 폭을 공유한다.
+class _HourLabel extends StatelessWidget {
+  final int hour;
+  final bool muted;
 
-  const _MinuteChip({required this.time, required this.isPast});
+  const _HourLabel({required this.hour, this.muted = false});
 
   @override
   Widget build(BuildContext context) {
-    return Opacity(
-      opacity: isPast ? 0.35 : 1.0,
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-        decoration: BoxDecoration(
-          color: _kPrimaryTint,
-          borderRadius: BorderRadius.circular(8),
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Container(
-              width: 6,
-              height: 6,
-              decoration: const BoxDecoration(
-                color: _kPrimary,
-                shape: BoxShape.circle,
-              ),
-            ),
-            const SizedBox(width: 4),
-            Text(
-              time.minute.toString().padLeft(2, '0'),
-              style: AppTextStyles.caption02.copyWith(color: _kPrimary),
-            ),
-          ],
+    return SizedBox(
+      width: _kHourColWidth,
+      // 분 셀과 세로 중심을 맞추기 위한 미세 여백.
+      child: Padding(
+        padding: const EdgeInsets.only(top: 3),
+        child: Text(
+          hour.toString().padLeft(2, '0'),
+          style: AppTextStyles.number02.copyWith(
+            fontSize: 15,
+            color: muted ? _kTextMuted.withValues(alpha: 0.6) : _kTextPrimary,
+            letterSpacing: -0.3,
+          ),
         ),
       ),
     );
   }
 }
 
-/// 구간 항목(수시운행·도착버스 탑승) 안내 행 — 칩 대신 문장으로 표시.
+/// 출발 분(minute) 셀.
+///
+/// 고정 폭으로 그리드처럼 정렬되는 숫자. 지나간 시각은 흐리게, 다음 출발
+/// 하나만 채워진 파란 알약으로 강조한다.
+class _MinuteCell extends StatelessWidget {
+  final ShuttleTime time;
+  final bool isPast;
+  final bool isNext;
+
+  const _MinuteCell({
+    required this.time,
+    required this.isPast,
+    required this.isNext,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final text = time.minute.toString().padLeft(2, '0');
+
+    if (isNext) {
+      return SizedBox(
+        width: _kMinuteCellWidth,
+        child: Align(
+          alignment: Alignment.centerLeft,
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
+            decoration: BoxDecoration(
+              color: _kPrimary,
+              borderRadius: BorderRadius.circular(7),
+            ),
+            child: Text(
+              text,
+              style: AppTextStyles.number02.copyWith(
+                fontSize: 14,
+                color: Colors.white,
+              ),
+            ),
+          ),
+        ),
+      );
+    }
+
+    return SizedBox(
+      width: _kMinuteCellWidth,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 3),
+        child: Text(
+          text,
+          style: AppTextStyles.number02.copyWith(
+            fontSize: 14,
+            fontWeight: isPast ? FontWeight.w400 : FontWeight.w500,
+            color: isPast ? _kTextMuted.withValues(alpha: 0.55) : _kTextPrimary,
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// 구간 항목(수시운행·도착버스 탑승) 행.
+///
+/// 시 열에는 구간 시작 시각의 시(hour)를 두고, 오른쪽엔 시간 범위 없이
+/// 종류(수시 운행 / 도착버스 탑승)만 회색 라벨로 적는다. 지금 진행 중인
+/// 구간이면 파란 글자로 한 번만 강조하고, 끝난 구간은 흐리게 표시한다.
 class _SegmentRow extends StatelessWidget {
   final ShuttleEntry segment;
-  final bool showTopBorder;
+  final int nowMinutes;
+  final bool isActive;
 
-  const _SegmentRow({required this.segment, required this.showTopBorder});
+  const _SegmentRow({
+    required this.segment,
+    required this.nowMinutes,
+    required this.isActive,
+  });
 
   @override
   Widget build(BuildContext context) {
     final end = segment.endTime;
-    final label = segment.type == ShuttleEntryType.arrivalBoarding
-        ? '도착버스 탑승'
-        : '수시 운행';
-    final range =
-        end == null ? segment.time.label : '${segment.time.label} ~ ${end.label}';
+    final isArrival = segment.type == ShuttleEntryType.arrivalBoarding;
+    final label = isArrival ? '도착버스 탑승' : '수시 운행';
     final note = segment.boardingNote;
+    final isPast = !isActive && (end ?? segment.time).minutesOfDay < nowMinutes;
+
+    final Color fg = isActive
+        ? _kPrimary
+        : isPast
+            ? _kTextMuted.withValues(alpha: 0.55)
+            : _kTextStrong;
 
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-      decoration: BoxDecoration(
-        border: showTopBorder
-            ? const Border(top: BorderSide(color: _kBorder))
-            : null,
-      ),
-      child: Column(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: _kRowVPad),
+      color: _kBgSoft,
+      child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            '$range · $label',
-            style: AppTextStyles.caption02.copyWith(
-              color: _kTextStrong,
-              letterSpacing: -0.3,
+          _HourLabel(hour: segment.time.hour, muted: isPast),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 3),
+                  child: Row(
+                    children: [
+                      Icon(
+                        isArrival
+                            ? Icons.directions_bus_filled_rounded
+                            : Icons.schedule_rounded,
+                        size: 15,
+                        color: fg,
+                      ),
+                      const SizedBox(width: 6),
+                      Text(
+                        label,
+                        style: AppTextStyles.caption02.copyWith(
+                          color: fg,
+                          letterSpacing: -0.2,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                if (note != null && note.isNotEmpty) ...[
+                  const SizedBox(height: 2),
+                  Text(
+                    note,
+                    style: AppTextStyles.caption04.copyWith(
+                      color: isPast
+                          ? _kTextMuted.withValues(alpha: 0.55)
+                          : _kTextMuted,
+                      fontWeight: FontWeight.w400,
+                      height: 1.4,
+                    ),
+                  ),
+                ],
+              ],
             ),
           ),
-          if (note != null && note.isNotEmpty) ...[
-            const SizedBox(height: 4),
-            Text(
-              note,
-              style: AppTextStyles.caption04.copyWith(
-                color: _kTextMuted,
-                fontWeight: FontWeight.w400,
-              ),
-            ),
-          ],
         ],
       ),
     );
