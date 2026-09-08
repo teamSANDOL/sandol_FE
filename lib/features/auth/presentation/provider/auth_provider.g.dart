@@ -24,7 +24,7 @@ final authRepositoryProvider = Provider<AuthRepository>.internal(
 @Deprecated('Will be removed in 3.0. Use Ref instead')
 // ignore: unused_element
 typedef AuthRepositoryRef = ProviderRef<AuthRepository>;
-String _$authNotifierHash() => r'b399615dc18e1ed54006cfcb51fa10d5b2b55132';
+String _$authNotifierHash() => r'a2220ae41b1b7abb6a1aff9cf9f67589b112d9c1';
 
 /// See also [AuthNotifier].
 @ProviderFor(AuthNotifier)

@@ -6,6 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:handori/core/constants/app_colors.dart';
 import 'package:handori/core/router/app_router.dart';
+import 'package:handori/features/auth/presentation/provider/auth_provider.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -30,8 +31,34 @@ Future<void> main() async {
   runApp(const ProviderScope(child: MyApp()));
 }
 
-class MyApp extends StatelessWidget {
+class MyApp extends ConsumerStatefulWidget {
   const MyApp({super.key});
+
+  @override
+  ConsumerState<MyApp> createState() => _MyAppState();
+}
+
+class _MyAppState extends ConsumerState<MyApp> with WidgetsBindingObserver {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  /// 백그라운드에 오래 있다 돌아오면 액세스 토큰이 만료돼 있기 쉽다.
+  /// 첫 API 요청이 리프레시를 기다리지 않도록 복귀 시점에 미리 갱신한다.
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      ref.read(authNotifierProvider.notifier).refreshIfNeeded();
+    }
+  }
 
   @override
   Widget build(BuildContext context) {

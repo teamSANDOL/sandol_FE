@@ -30,8 +30,26 @@ AuthRepository authRepository(Ref ref) {
 @Riverpod(keepAlive: true)
 class AuthNotifier extends _$AuthNotifier {
   @override
-  Future<AuthSession?> build() =>
-      ref.watch(authRepositoryProvider).restoreSession();
+  Future<AuthSession?> build() {
+    final repository = ref.watch(authRepositoryProvider);
+    // API 인터셉터가 백그라운드에서 리프레시하다 세션을 갱신/폐기하면
+    // 화면 상태도 같이 따라간다 (로그인 표시인데 토큰이 없는 불일치 방지).
+    final subscription = repository.sessionChanges.listen((session) {
+      state = AsyncData(session);
+    });
+    ref.onDispose(subscription.cancel);
+    return repository.restoreSession();
+  }
+
+  /// 앱이 포그라운드로 돌아오는 등 세션을 미리 점검할 시점에 호출한다.
+  /// 액세스 토큰이 만료됐으면 지금 갱신하고, 리프레시 토큰까지 만료됐으면
+  /// 비로그인 상태로 전환한다. 로그인 진행 중이면 건드리지 않는다.
+  Future<void> refreshIfNeeded() async {
+    if (state.isLoading || state.valueOrNull == null) return;
+    final session = await ref.read(authRepositoryProvider).restoreSession();
+    if (state.isLoading) return;
+    state = AsyncData(session);
+  }
 
   /// 로그인 성공 시 true. 사용자가 브라우저를 닫는 등 취소하면 이전 상태를
   /// 유지하고 false, 그 외 실패는 AsyncError 상태로 두고 false 를 반환한다.

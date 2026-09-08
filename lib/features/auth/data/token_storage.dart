@@ -8,6 +8,7 @@ class TokenStorage {
   static const _kRefreshToken = 'auth_refresh_token';
   static const _kIdToken = 'auth_id_token';
   static const _kExpiresAt = 'auth_access_expires_at';
+  static const _kRefreshExpiresAt = 'auth_refresh_expires_at';
   static const _kUsername = 'auth_username';
   static const _kEmail = 'auth_email';
 
@@ -24,13 +25,12 @@ class TokenStorage {
       _loaded = true;
       return null;
     }
-    final expiresAtRaw = await _storage.read(key: _kExpiresAt);
     _cached = AuthSession(
       accessToken: accessToken,
       refreshToken: await _storage.read(key: _kRefreshToken),
       idToken: await _storage.read(key: _kIdToken),
-      accessTokenExpiresAt:
-          expiresAtRaw == null ? null : DateTime.tryParse(expiresAtRaw),
+      accessTokenExpiresAt: await _readDateTime(_kExpiresAt),
+      refreshTokenExpiresAt: await _readDateTime(_kRefreshExpiresAt),
       username: await _storage.read(key: _kUsername),
       email: await _storage.read(key: _kEmail),
     );
@@ -46,6 +46,10 @@ class TokenStorage {
       _kExpiresAt,
       session.accessTokenExpiresAt?.toIso8601String(),
     );
+    await _writeOrDelete(
+      _kRefreshExpiresAt,
+      session.refreshTokenExpiresAt?.toIso8601String(),
+    );
     await _writeOrDelete(_kUsername, session.username);
     await _writeOrDelete(_kEmail, session.email);
     _cached = session;
@@ -58,6 +62,7 @@ class TokenStorage {
       _kRefreshToken,
       _kIdToken,
       _kExpiresAt,
+      _kRefreshExpiresAt,
       _kUsername,
       _kEmail,
     ]) {
@@ -65,6 +70,11 @@ class TokenStorage {
     }
     _cached = null;
     _loaded = true;
+  }
+
+  Future<DateTime?> _readDateTime(String key) async {
+    final raw = await _storage.read(key: key);
+    return raw == null ? null : DateTime.tryParse(raw);
   }
 
   Future<void> _writeOrDelete(String key, String? value) => value == null

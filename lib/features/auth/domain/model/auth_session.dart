@@ -8,6 +8,10 @@ class AuthSession {
   final String? refreshToken;
   final String? idToken;
   final DateTime? accessTokenExpiresAt;
+
+  /// 리프레시 토큰 만료 시각. Keycloak 리프레시 토큰은 JWT 라 `exp` 를
+  /// 읽을 수 있다. 오프라인 토큰처럼 만료가 없으면 null.
+  final DateTime? refreshTokenExpiresAt;
   final String? username;
   final String? email;
 
@@ -16,6 +20,7 @@ class AuthSession {
     this.refreshToken,
     this.idToken,
     this.accessTokenExpiresAt,
+    this.refreshTokenExpiresAt,
     this.username,
     this.email,
   });
@@ -30,8 +35,22 @@ class AuthSession {
 
   /// 액세스 토큰이 아직 유효한지. 만료 정보가 없으면 유효한 것으로 본다.
   /// [leeway] 만큼 여유를 두어 경계 시점의 401을 예방한다.
-  bool isAccessTokenValid({Duration leeway = const Duration(seconds: 30)}) {
-    final expiresAt = accessTokenExpiresAt;
+  bool isAccessTokenValid({Duration leeway = const Duration(seconds: 30)}) =>
+      _isValid(accessTokenExpiresAt, leeway);
+
+  /// 리프레시 토큰이 아직 유효한지. 만료 정보가 없으면(오프라인 토큰 등)
+  /// 유효한 것으로 보고 서버 판단에 맡긴다.
+  bool isRefreshTokenValid({Duration leeway = Duration.zero}) =>
+      refreshToken != null && _isValid(refreshTokenExpiresAt, leeway);
+
+  /// 리프레시 토큰 만료까지 남은 시간. 만료 정보가 없으면 null.
+  Duration? get refreshTokenTimeLeft {
+    final expiresAt = refreshTokenExpiresAt;
+    if (expiresAt == null) return null;
+    return expiresAt.difference(DateTime.now());
+  }
+
+  static bool _isValid(DateTime? expiresAt, Duration leeway) {
     if (expiresAt == null) return true;
     return DateTime.now().add(leeway).isBefore(expiresAt);
   }
