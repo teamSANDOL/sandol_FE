@@ -1,3 +1,4 @@
+import 'package:handori/core/design_system/sandol_assets.dart';
 import 'package:handori/core/utils/korea_time.dart';
 import 'package:handori/features/school_meal/domain/model/meal.dart';
 import 'package:handori/features/school_meal/domain/model/meal_type.dart';
@@ -35,7 +36,10 @@ class RestaurantMenu {
   /// 위치 표기. API(`location.building`)가 있으면 그대로 쓰고, 없으면 식당명
   /// 기준 하드코딩 폴백을 사용한다.
   String? get location =>
-      restaurant.locationLabel ?? _fallbackLocationOf(restaurant.name);
+      restaurant.locationLabel ?? _lookupByName(_kLocationFallback, name);
+
+  /// 홈 카드 머리 사진. API에 사진이 없어 식당명으로 앱 에셋을 찾는다.
+  String? get photoAsset => _lookupByName(_kPhoto, name);
 }
 
 /// 현재 시각이 어느 식사 시간대에 속하는지 기준으로 노출 우선순위를 정한다.
@@ -94,9 +98,11 @@ MenuSlot? findCurrentOrNextSlot(List<MenuSlot> slots) {
     final endParts = parts[1].trim().split(':');
     if (startParts.length != 2 || endParts.length != 2) continue;
 
-    final startMinutes = (int.tryParse(startParts[0]) ?? 0) * 60 +
+    final startMinutes =
+        (int.tryParse(startParts[0]) ?? 0) * 60 +
         (int.tryParse(startParts[1]) ?? 0);
-    final endMinutes = (int.tryParse(endParts[0]) ?? 0) * 60 +
+    final endMinutes =
+        (int.tryParse(endParts[0]) ?? 0) * 60 +
         (int.tryParse(endParts[1]) ?? 0);
 
     // 지금 운영 중인 시간대를 최우선 노출한다.
@@ -126,8 +132,16 @@ const _kLocationFallback = <String, String>{
   '다솔': '경기도 시흥시 산기대학로 322',
 };
 
-String? _fallbackLocationOf(String name) {
-  for (final entry in _kLocationFallback.entries) {
+/// 식당명 부분 일치 → 사진 에셋. 사진이 있는 식당만 있다(E동은 아직 없음).
+const _kPhoto = <String, String>{
+  '가가': SandolAssets.mealGaga,
+  '세미콘': SandolAssets.mealSemicon,
+  '미가': SandolAssets.mealMiga,
+  '다솔': SandolAssets.mealDasol,
+};
+
+String? _lookupByName(Map<String, String> table, String name) {
+  for (final entry in table.entries) {
     if (name.contains(entry.key)) return entry.value;
   }
   return null;
@@ -177,11 +191,11 @@ List<RestaurantMenu> buildRestaurantMenus(
     }
 
     TimeRange? timeOf(MealType type) => switch (type) {
-          MealType.breakfast => restaurant.breakfastTime,
-          MealType.brunch => restaurant.brunchTime,
-          MealType.lunch => restaurant.lunchTime,
-          MealType.dinner => restaurant.dinnerTime,
-        };
+      MealType.breakfast => restaurant.breakfastTime,
+      MealType.brunch => restaurant.brunchTime,
+      MealType.lunch => restaurant.lunchTime,
+      MealType.dinner => restaurant.dinnerTime,
+    };
 
     final slots = <MenuSlot>[];
     for (final type in order) {

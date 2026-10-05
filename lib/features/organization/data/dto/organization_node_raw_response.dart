@@ -31,10 +31,8 @@ class OrganizationNodeRawResponse {
     if (type == 'unit') {
       return OrganizationUnitNode(name: name, phone: phone, url: url);
     }
-    final children = subunits.values
-        .map(_parseChild)
-        .cast<OrganizationNode>()
-        .toList();
+    final children =
+        subunits.values.map(_parseChild).cast<OrganizationNode>().toList();
     return OrganizationGroupNode(name: name, children: children);
   }
 

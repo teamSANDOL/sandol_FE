@@ -28,7 +28,8 @@ List<OrganizationSearchResult> searchOrganizationTree(
 
   void visit(OrganizationNode node, List<String> path) {
     final nameHit = _normalize(node.name).contains(q);
-    final phoneHit = digitQuery != null &&
+    final phoneHit =
+        digitQuery != null &&
         node is OrganizationUnitNode &&
         node.phone != null &&
         node.phone!.replaceAll(RegExp(r'\D'), '').contains(digitQuery);

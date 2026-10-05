@@ -16,8 +16,7 @@ class ShuttleScheduleData {
 
   /// 도착버스 탑승 시간대(17:00 이후) 승차 위치 안내.
   /// 정해진 시간표 없이 정왕역에 도착한 버스를 그대로 탑승한다.
-  static const String _arrivalBoardingNote =
-      '파리바게뜨 건너편 하차장소(버스정류장)에서 도착 버스 탑승';
+  static const String _arrivalBoardingNote = '파리바게뜨 건너편 하차장소(버스정류장)에서 도착 버스 탑승';
 
   // ── 노선1: 정왕역 → 학교 (등교) · 평일 ───────────────────────────────────
   // 2026-2학기(9.1 ~ 12.22) 기준.
@@ -74,7 +73,12 @@ class ShuttleScheduleData {
 
   // 토요일: 정왕역 → 본교 → 제2캠퍼스.
   static final List<ShuttleEntry> _route2ToCampusSaturday = _fixed([
-    845, 850, 900, 905, 910, 915,
+    845,
+    850,
+    900,
+    905,
+    910,
+    915,
   ]);
 
   // ── 노선2: 제2캠퍼스 → 본교 ─────────────────────────────────────────────
@@ -86,7 +90,13 @@ class ShuttleScheduleData {
 
   // 토요일: 제2캠퍼스 → 본교 → 정왕역.
   static final List<ShuttleEntry> _route2FromCampusSaturday = _fixed([
-    1630, 1645, 1925, 1928, 1930, 1935, 1945,
+    1630,
+    1645,
+    1925,
+    1928,
+    1930,
+    1935,
+    1945,
   ]);
 
   /// HHMM 정수 리스트를 정시 출발 [ShuttleEntry] 리스트로 변환.

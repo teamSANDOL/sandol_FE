@@ -86,11 +86,11 @@ class ShuttleEntry {
 
   /// 정시 출발 항목.
   const ShuttleEntry.fixed(ShuttleTime time)
-      : this._(type: ShuttleEntryType.fixed, time: time);
+    : this._(type: ShuttleEntryType.fixed, time: time);
 
   /// 수시운행 구간 [start]~[end].
   const ShuttleEntry.flexible(ShuttleTime start, ShuttleTime end)
-      : this._(type: ShuttleEntryType.flexible, time: start, endTime: end);
+    : this._(type: ShuttleEntryType.flexible, time: start, endTime: end);
 
   /// 도착버스 탑승 구간 [start]~[end], 승차 위치 [boardingNote].
   const ShuttleEntry.arrivalBoarding(
@@ -98,11 +98,11 @@ class ShuttleEntry {
     ShuttleTime end, {
     required String boardingNote,
   }) : this._(
-          type: ShuttleEntryType.arrivalBoarding,
-          time: start,
-          endTime: end,
-          boardingNote: boardingNote,
-        );
+         type: ShuttleEntryType.arrivalBoarding,
+         time: start,
+         endTime: end,
+         boardingNote: boardingNote,
+       );
 
   /// 구간 항목 여부(flexible·arrivalBoarding).
   bool get isSegment => type != ShuttleEntryType.fixed;
@@ -194,6 +194,21 @@ class NextShuttle {
       status == ShuttleStatus.upcoming &&
       remainMinutes != null &&
       remainMinutes! > countdownLimitMinutes;
+
+  /// 운행 중(출발 예정 · 수시운행 · 도착버스 탑승)인가. 운행 종료 · 미운행은
+  /// 강조색 대신 비활성 색으로 보여준다.
+  bool get isActive =>
+      status != ShuttleStatus.closed && status != ShuttleStatus.notOperating;
+
+  /// 카드 머리글 한 줄. 홈 카드와 셔틀 화면이 같은 문구를 쓴다.
+  String get headline {
+    final remain = remainMinutes;
+    if (showsMinutes && remain != null && remain > 0) return '$remain분 후 출발';
+    // 15분보다 멀면 분 숫자를 신뢰할 수 없어 안내하지 않는다.
+    if (isBeyondCountdown) return '도착정보없음';
+    if (status == ShuttleStatus.upcoming) return '곧 도착';
+    return statusLabel ?? '운행 정보 없음';
+  }
 
   // 값 동등성: 시계가 분마다 갱신돼도 결과가 같으면 provider 가 위젯을
   // 다시 그리지 않게 한다(예: 수시운행 중, 15분 밖 대기).

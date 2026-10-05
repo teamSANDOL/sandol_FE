@@ -1,7 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:handori/core/constants/app_colors.dart';
-import 'package:handori/core/constants/app_text_styles.dart';
+import 'package:flutter_svg/flutter_svg.dart';
+import 'package:handori/core/design_system/sandol_assets.dart';
+import 'package:handori/core/design_system/sandol_tokens.dart';
 
+/// 하단 네비 (Figma 2086:23).
+///
+/// 항목 순서는 [RootShell]의 브랜치 인덱스·라우터 브랜치 순서와 같아야 한다.
 class AppBottomNav extends StatelessWidget {
   final int currentIndex;
   final ValueChanged<int> onTap;
@@ -11,78 +15,105 @@ class AppBottomNav extends StatelessWidget {
     super.key,
   });
 
-  // 컬러 톤 (원하는 색으로 조정)
-  static const _active = AppColors.primary;
-  static const _inactive = AppColors.textMuted;
+  static const double _height = 70;
 
-  // 아이콘을 라벨 쪽으로 살짝 내리는 상단 여백
-  static const _iconTopPadding = 6.0;
-
-  BottomNavigationBarItem _item(IconData icon, IconData activeIcon, String label) {
-    return BottomNavigationBarItem(
-      icon: Padding(
-        padding: const EdgeInsets.only(top: _iconTopPadding),
-        child: Icon(icon),
-      ),
-      activeIcon: Padding(
-        padding: const EdgeInsets.only(top: _iconTopPadding),
-        child: Icon(activeIcon),
-      ),
-      label: label,
-    );
-  }
+  /// [activeIcon]이 없으면 [icon]을 primary로 칠해 선택 상태를 나타낸다.
+  static const _items = [
+    (
+      label: '홈',
+      icon: SandolAssets.navHome,
+      activeIcon: SandolAssets.navHomeActive,
+    ),
+    (label: '학식', icon: SandolAssets.navMeal, activeIcon: null),
+    (label: '셔틀버스', icon: SandolAssets.navBus, activeIcon: null),
+    (label: '공지사항', icon: SandolAssets.navNotice, activeIcon: null),
+    (label: '빈 강의실', icon: SandolAssets.navEmptyClass, activeIcon: null),
+  ];
 
   @override
   Widget build(BuildContext context) {
-    return Container(
+    return DecoratedBox(
       decoration: const BoxDecoration(
-        boxShadow: [
-          BoxShadow(
-            color: Color(0x1F000000),
-            blurRadius: 12,
-            offset: Offset(0, -4),
-          ),
-        ],
+        color: SandolColors.background,
+        borderRadius: SandolMetrics.radiusTop,
       ),
-      child: ClipRRect(
-        borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
-        child: BottomNavigationBar(
-          type: BottomNavigationBarType.fixed,
-          backgroundColor: Colors.white,
-          elevation: 0,
-          currentIndex: currentIndex,
-          onTap: onTap,
-          iconSize: 28,
-          selectedItemColor: _active,
-          unselectedItemColor: _inactive,
-          showUnselectedLabels: true,
-          // 5탭 한글 라벨('버스시간표')이 좁은 화면에서 잘리지 않도록
-          // 선택/비선택 크기를 caption04(12)로 통일하고 굵기로만 구분한다.
-          selectedFontSize: 12,
-          unselectedFontSize: 12,
-          selectedLabelStyle: AppTextStyles.caption04.copyWith(
-            fontWeight: FontWeight.w700,
+      child: SafeArea(
+        top: false,
+        child: SizedBox(
+          height: _height,
+          child: Row(
+            children: [
+              for (var i = 0; i < _items.length; i++)
+                Expanded(
+                  child: _NavItem(
+                    label: _items[i].label,
+                    icon: _items[i].icon,
+                    activeIcon: _items[i].activeIcon,
+                    selected: i == currentIndex,
+                    onTap: () => onTap(i),
+                  ),
+                ),
+            ],
           ),
-          unselectedLabelStyle: AppTextStyles.caption04,
-          items: [
-            _item(
-              Icons.directions_bus_outlined,
-              Icons.directions_bus_rounded,
-              '버스시간표',
-            ),
-            _item(Icons.restaurant_outlined, Icons.restaurant_rounded, '학식'),
-            _item(Icons.home_outlined, Icons.home_rounded, '홈'),
-            _item(
-              Icons.notifications_none_rounded,
-              Icons.notifications_rounded,
-              '공지사항',
-            ),
-            _item(
-              Icons.meeting_room_outlined,
-              Icons.meeting_room_rounded,
-              '빈 강의실',
-            ),
-          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _NavItem extends StatelessWidget {
+  const _NavItem({
+    required this.label,
+    required this.icon,
+    required this.activeIcon,
+    required this.selected,
+    required this.onTap,
+  });
+
+  /// 아이콘마다 높이가 달라(18.8~24) 이 칸 안에 가운데 맞춰 라벨 줄을 맞춘다.
+  static const double _iconBox = 24;
+
+  final String label;
+  final String icon;
+  final String? activeIcon;
+  final bool selected;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final glyph = switch ((selected, activeIcon)) {
+      (true, final String active) => SvgPicture.asset(active),
+      (true, null) => SvgPicture.asset(
+        icon,
+        colorFilter: const ColorFilter.mode(
+          SandolColors.primary,
+          BlendMode.srcIn,
+        ),
+      ),
+      _ => SvgPicture.asset(icon),
+    };
+
+    return Semantics(
+      selected: selected,
+      button: true,
+      child: InkResponse(
+        onTap: onTap,
+        child: Padding(
+          padding: const EdgeInsets.only(top: 13),
+          child: Column(
+            children: [
+              SizedBox(height: _iconBox, child: Center(child: glyph)),
+              const SizedBox(height: SandolSpacing.xs),
+              Text(
+                label,
+                maxLines: 1,
+                style:
+                    selected
+                        ? SandolTypography.caption.strong.accent
+                        : SandolTypography.caption,
+              ),
+            ],
+          ),
         ),
       ),
     );

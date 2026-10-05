@@ -21,10 +21,8 @@ class OrganizationGroupResponse {
   Map<String, dynamic> toJson() => _$OrganizationGroupResponseToJson(this);
 
   OrganizationGroupNode toDomain() {
-    final children = subunits.values
-        .map(parseNode)
-        .toList()
-        .cast<OrganizationNode>();
+    final children =
+        subunits.values.map(parseNode).toList().cast<OrganizationNode>();
     return OrganizationGroupNode(name: name, children: children);
   }
 

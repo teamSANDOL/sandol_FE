@@ -23,23 +23,19 @@ class OrganizationSearchPage extends ConsumerWidget {
         backgroundColor: Colors.white,
         foregroundColor: Colors.black,
         elevation: 0.5,
-        title: Text(
-          '"$query" 검색 결과',
-          style: AppTextStyles.title03,
-        ),
+        title: Text('"$query" 검색 결과', style: AppTextStyles.title03),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           onPressed: () => context.pop(),
         ),
       ),
       body: searchAsync.when(
-        loading: () => const Center(
-          child: SandolLoadingIndicator(),
-        ),
-        error: (_, _) => ErrorRetryView(
-          title: '검색 결과를 불러오지 못했어요',
-          onRetry: () => ref.invalidate(organizationSearchProvider(query)),
-        ),
+        loading: () => const Center(child: SandolLoadingIndicator()),
+        error:
+            (_, _) => ErrorRetryView(
+              title: '검색 결과를 불러오지 못했어요',
+              onRetry: () => ref.invalidate(organizationSearchProvider(query)),
+            ),
         data: (results) {
           if (results.isEmpty) {
             return Center(
@@ -65,10 +61,10 @@ class OrganizationSearchPage extends ConsumerWidget {
           return ListView.separated(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
             itemCount: results.length,
-            separatorBuilder: (_, _) =>
-                const Divider(height: 1, color: AppColors.cardBorder),
-            itemBuilder: (_, i) =>
-                OrganizationSearchResultCard(result: results[i]),
+            separatorBuilder:
+                (_, _) => const Divider(height: 1, color: AppColors.cardBorder),
+            itemBuilder:
+                (_, i) => OrganizationSearchResultCard(result: results[i]),
           );
         },
       ),

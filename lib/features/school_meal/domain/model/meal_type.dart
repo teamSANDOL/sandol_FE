@@ -10,9 +10,9 @@ enum MealType {
 
   /// UI 표기용 한글 라벨
   String get label => switch (this) {
-        MealType.breakfast => '조식',
-        MealType.brunch => '브런치',
-        MealType.lunch => '점심',
-        MealType.dinner => '저녁',
-      };
+    MealType.breakfast => '조식',
+    MealType.brunch => '브런치',
+    MealType.lunch => '점심',
+    MealType.dinner => '저녁',
+  };
 }

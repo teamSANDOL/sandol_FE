@@ -59,4 +59,31 @@ void main() {
     final r = NextShuttleCalculator.calculate(null, at(9, 0));
     expect(r.status, ShuttleStatus.notOperating);
   });
+
+  group('upcoming', () {
+    List<String> labels(DateTime now, {int count = 3}) =>
+        NextShuttleCalculator.upcoming(
+          timetable,
+          now,
+          count: count,
+        ).map((e) => e.time.label).toList();
+
+    test('진행 중인 구간부터 이후 항목을 순서대로', () {
+      expect(labels(at(17, 30)), ['17:00', '18:00']);
+    });
+
+    test('지금 출발하는 정시편은 포함하고 지난 항목은 뺀다', () {
+      expect(labels(at(12, 30)), ['12:30', '17:00', '18:00']);
+      expect(labels(at(12, 31)), ['17:00', '18:00']);
+    });
+
+    test('개수를 넘기지 않는다', () {
+      expect(labels(at(6, 0), count: 2), ['08:40', '12:30']);
+    });
+
+    test('막차 이후나 미운행이면 빈 목록', () {
+      expect(labels(at(18, 1)), isEmpty);
+      expect(NextShuttleCalculator.upcoming(null, at(9, 0)), isEmpty);
+    });
+  });
 }

@@ -29,12 +29,12 @@ class MealResponse {
   Map<String, dynamic> toJson() => _$MealResponseToJson(this);
 
   Meal toDomain() => Meal(
-        id: id,
-        menu: menu,
-        mealType: mealType,
-        registeredAt: registeredAt,
-        restaurantId: restaurantId,
-        restaurantName: restaurantName,
-        updatedAt: updatedAt,
-      );
+    id: id,
+    menu: menu,
+    mealType: mealType,
+    registeredAt: registeredAt,
+    restaurantId: restaurantId,
+    restaurantName: restaurantName,
+    updatedAt: updatedAt,
+  );
 }

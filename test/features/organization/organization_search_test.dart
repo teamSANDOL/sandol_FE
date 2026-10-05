@@ -4,19 +4,29 @@ import 'package:handori/features/organization/domain/model/organization_search_r
 import 'package:handori/features/organization/presentation/util/contact_actions.dart';
 
 void main() {
-  final root = OrganizationGroupNode(name: 'Root', children: [
-    OrganizationUnitNode(name: '대표연락처', phone: '03180411000'),
-    OrganizationGroupNode(name: '총장실', children: [
-      OrganizationUnitNode(name: '감사실', phone: '03180411092'),
-      OrganizationUnitNode(name: '비서실', phone: '03180410141'),
-    ]),
-    OrganizationGroupNode(name: '대학본부', children: [
-      OrganizationGroupNode(name: '교무처', children: [
-        OrganizationUnitNode(name: '교무팀', phone: '03180410013'),
-      ]),
-    ]),
-    OrganizationUnitNode(name: '컴퓨터공학부', phone: '03180410510'),
-  ]);
+  final root = OrganizationGroupNode(
+    name: 'Root',
+    children: [
+      OrganizationUnitNode(name: '대표연락처', phone: '03180411000'),
+      OrganizationGroupNode(
+        name: '총장실',
+        children: [
+          OrganizationUnitNode(name: '감사실', phone: '03180411092'),
+          OrganizationUnitNode(name: '비서실', phone: '03180410141'),
+        ],
+      ),
+      OrganizationGroupNode(
+        name: '대학본부',
+        children: [
+          OrganizationGroupNode(
+            name: '교무처',
+            children: [OrganizationUnitNode(name: '교무팀', phone: '03180410013')],
+          ),
+        ],
+      ),
+      OrganizationUnitNode(name: '컴퓨터공학부', phone: '03180410510'),
+    ],
+  );
 
   group('searchOrganizationTree', () {
     test('부분일치로 유닛을 찾고 상위 경로를 돌려준다', () {

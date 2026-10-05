@@ -11,8 +11,14 @@ import 'package:handori/common/component/app_bottom_nav.dart';
 /// 탭 인덱스는 GoRouter가 관리한다. 화면에서 탭을 옮길 때는
 /// `StatefulNavigationShell.of(context).goBranch(n)`을 쓴다.
 class RootShell extends StatelessWidget {
-  /// 홈 탭 인덱스. 시스템 뒤로가기의 귀착점이다.
-  static const homeBranch = 2;
+  // 브랜치 인덱스. 라우터 브랜치 순서 · [AppBottomNav] 항목 순서와 같다.
+
+  /// 홈 탭. 시스템 뒤로가기의 귀착점이다.
+  static const homeBranch = 0;
+  static const mealBranch = 1;
+  static const busBranch = 2;
+  static const noticeBranch = 3;
+  static const emptyClassBranch = 4;
 
   final StatefulNavigationShell navigationShell;
 

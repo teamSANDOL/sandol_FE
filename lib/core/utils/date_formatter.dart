@@ -7,6 +7,14 @@ abstract class DateFormatter {
     return '${d.year}-$m-$day';
   }
 
+  /// ISO 8601 문자열 → "yyyy. MM. dd." (예: "2026. 03. 17.") — 공지 시안 표기.
+  /// 파싱 실패 시 원본 문자열 반환
+  static String dotted(String raw) {
+    final plain = format(raw);
+    if (plain == raw) return raw;
+    return '${plain.replaceAll('.', '. ')}.';
+  }
+
   /// ISO 8601 문자열 → "yyyy.MM.dd" (예: "2026.03.17")
   /// 파싱 실패 시 원본 문자열 반환
   static String format(String raw) {

@@ -29,9 +29,10 @@ class BuildingSortController extends _$BuildingSortController {
         (m) => m.name == modeName,
         orElse: () => BuildingSort.distance,
       );
-      final order = orderJson == null
-          ? const <String>[]
-          : (jsonDecode(orderJson) as List).cast<String>();
+      final order =
+          orderJson == null
+              ? const <String>[]
+              : (jsonDecode(orderJson) as List).cast<String>();
       return BuildingSortSettings(mode: mode, customOrder: order);
     } catch (_) {
       return const BuildingSortSettings();

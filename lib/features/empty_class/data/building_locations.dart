@@ -14,11 +14,31 @@ const String _defaultIcon = 'assets/img/emptyclass_filled.png';
 
 const Map<String, BuildingLocation> buildingLocations = {
   'A동': BuildingLocation(37.340429, 126.732890, 'assets/img/tino6.png'),
-  'B동': BuildingLocation(37.340353, 126.733302, 'assets/img/tukorea_Materials.png'),
-  'C동': BuildingLocation(37.340009, 126.733987, 'assets/img/tukorea_Energy.png'),
-  'D동': BuildingLocation(37.339689, 126.734144, 'assets/img/tukorea_Electronic.png'),
-  'E동': BuildingLocation(37.339713, 126.735044, 'assets/img/tukorea_computer.png'),
-  'G동': BuildingLocation(37.340264, 126.734741, 'assets/img/tukorea_Mechanical.png'),
+  'B동': BuildingLocation(
+    37.340353,
+    126.733302,
+    'assets/img/tukorea_Materials.png',
+  ),
+  'C동': BuildingLocation(
+    37.340009,
+    126.733987,
+    'assets/img/tukorea_Energy.png',
+  ),
+  'D동': BuildingLocation(
+    37.339689,
+    126.734144,
+    'assets/img/tukorea_Electronic.png',
+  ),
+  'E동': BuildingLocation(
+    37.339713,
+    126.735044,
+    'assets/img/tukorea_computer.png',
+  ),
+  'G동': BuildingLocation(
+    37.340264,
+    126.734741,
+    'assets/img/tukorea_Mechanical.png',
+  ),
   'P동': BuildingLocation(37.339414, 126.735535, _defaultIcon),
   // 제2기숙사(TIP)
   'TIP': BuildingLocation(37.341316, 126.732924, _defaultIcon),

@@ -1,12 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:handori/core/constants/app_colors.dart';
-import 'package:handori/core/constants/app_text_styles.dart';
+import 'package:handori/common/component/sandol_card.dart';
+import 'package:handori/common/component/sandol_chip.dart';
+import 'package:handori/core/design_system/sandol_tokens.dart';
 import 'package:handori/features/school_meal/presentation/model/restaurant_menu.dart';
 import 'package:handori/features/school_meal/presentation/provider/selected_restaurant_id_notifier.dart';
-import 'package:handori/features/school_meal/presentation/widget/restaurant_chip.dart';
-
-const _kPrimary = AppColors.primary;
 
 /// 스와이프 판정 최소 가로 속도(px/s). 이보다 느린 드래그는 무시한다.
 const _kSwipeVelocity = 200.0;
@@ -86,30 +84,30 @@ class _HomeMealSectionState extends ConsumerState<HomeMealSection> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // 식당 선택 칩 (상세 페이지 탭 바와 동일한 RestaurantChip 재사용)
-        // ListView는 화면 밖 칩을 빌드하지 않아 ensureVisible이 불가능하므로,
-        // 칩 개수가 적은 홈에서는 전부 빌드하는 Row 스크롤을 쓴다.
+        // 식당 선택 칩. ListView는 화면 밖 칩을 빌드하지 않아 ensureVisible이
+        // 불가능하므로, 칩 개수가 적은 홈에서는 전부 빌드하는 Row 스크롤을 쓴다.
         SizedBox(
-          height: 46,
+          height: SandolChip.height,
           child: SingleChildScrollView(
             scrollDirection: Axis.horizontal,
+            // 섹션은 화면 여백 안에 있지만 칩 줄은 화면 끝까지 흘러간다.
+            clipBehavior: Clip.none,
             child: Row(
+              spacing: 12,
               children: [
-                for (var i = 0; i < menus.length; i++) ...[
-                  if (i > 0) const SizedBox(width: 8),
-                  RestaurantChip(
+                for (var i = 0; i < menus.length; i++)
+                  SandolChip(
                     key: _chipKey(menus[i].restaurant.id),
                     label: menus[i].name,
-                    isSelected: i == selected,
+                    selected: i == selected,
                     onTap: () => _select(selected, i),
                   ),
-                ],
               ],
             ),
           ),
         ),
 
-        const SizedBox(height: 10),
+        const SizedBox(height: SandolSpacing.sm),
 
         // 선택된 식당 메뉴 카드 — 좌우 스와이프로 식당 전환
         GestureDetector(
@@ -138,8 +136,7 @@ class _HomeMealSectionState extends ConsumerState<HomeMealSection> {
               switchOutCurve: Curves.easeIn,
               transitionBuilder: (child, animation) {
                 // 새로 들어오는 카드는 스와이프 방향에서, 나가는 카드는 반대쪽으로.
-                final incoming =
-                    child.key == ValueKey(menu.restaurant.id);
+                final incoming = child.key == ValueKey(menu.restaurant.id);
                 final begin = Offset(
                   (incoming ? 0.25 : -0.25) * _slideDirection,
                   0,
@@ -147,19 +144,22 @@ class _HomeMealSectionState extends ConsumerState<HomeMealSection> {
                 return FadeTransition(
                   opacity: animation,
                   child: SlideTransition(
-                    position: Tween<Offset>(begin: begin, end: Offset.zero)
-                        .animate(animation),
+                    position: Tween<Offset>(
+                      begin: begin,
+                      end: Offset.zero,
+                    ).animate(animation),
                     child: child,
                   ),
                 );
               },
-              layoutBuilder: (currentChild, previousChildren) => Stack(
-                alignment: Alignment.topCenter,
-                children: [
-                  ...previousChildren,
-                  if (currentChild != null) currentChild,
-                ],
-              ),
+              layoutBuilder:
+                  (currentChild, previousChildren) => Stack(
+                    alignment: Alignment.topCenter,
+                    children: [
+                      ...previousChildren,
+                      if (currentChild != null) currentChild,
+                    ],
+                  ),
               child: _MealMenuCard(
                 key: ValueKey(menu.restaurant.id),
                 menu: menu,
@@ -172,88 +172,69 @@ class _HomeMealSectionState extends ConsumerState<HomeMealSection> {
   }
 }
 
-/// 선택된 식당의 현재(또는 다음) 끼니 메뉴 카드
+/// 선택된 식당의 현재(또는 다음) 끼니 메뉴 카드 (Figma 2153:237).
+/// 사진이 있는 식당만 머리 사진을 얹는다.
 class _MealMenuCard extends StatelessWidget {
   final RestaurantMenu menu;
 
   const _MealMenuCard({required this.menu, super.key});
 
+  static const double _photoHeight = 125;
+
   @override
   Widget build(BuildContext context) {
     final slot = findCurrentOrNextSlot(menu.slots);
     final price = slot?.price;
+    final photo = menu.photoAsset;
+    final items = slot?.menu ?? const <String>[];
 
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.fromLTRB(16, 14, 16, 14),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: AppColors.primaryBorder.withValues(alpha: 0.7),
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.04),
-            blurRadius: 8,
-            offset: const Offset(0, 3),
-          ),
-        ],
-      ),
+    return SandolCard(
+      // field(20%)를 배경 위에 합성한 불투명 값. 반투명이면 그림자가 비친다.
+      color: SandolColors.primarySoft,
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        spacing: SandolSpacing.xs,
         children: [
-          // 식당명 + 가격
-          Row(
-            children: [
-              Text(
-                menu.name,
-                style: AppTextStyles.caption01.copyWith(
-                  color: Colors.black87,
-                ),
+          if (photo != null)
+            Image.asset(photo, height: _photoHeight, fit: BoxFit.cover),
+          ColoredBox(
+            color: SandolColors.background,
+            child: Padding(
+              padding: const EdgeInsets.symmetric(
+                horizontal: SandolMetrics.cardInset,
+                vertical: SandolSpacing.md,
               ),
-              const Spacer(),
-              if (price != null)
-                Text(
-                  '${price ~/ 1000},${(price % 1000).toString().padLeft(3, '0')}원',
-                  style: AppTextStyles.number02.copyWith(
-                    color: _kPrimary,
+              child: Column(
+                spacing: SandolSpacing.sm,
+                children: [
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          menu.name,
+                          style: SandolTypography.caption.strong,
+                        ),
+                      ),
+                      if (price != null)
+                        Text(
+                          '${price ~/ 1000},${(price % 1000).toString().padLeft(3, '0')}원',
+                          style: SandolTypography.caption.strong,
+                        ),
+                    ],
                   ),
-                ),
-            ],
-          ),
-
-          const SizedBox(height: 10),
-
-          // 메뉴 아이템 칩
-          if (slot != null && slot.menu.isNotEmpty)
-            Wrap(
-              spacing: 6,
-              runSpacing: 6,
-              children: slot.menu.map((item) {
-                return Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFF5F5F5),
-                    borderRadius: BorderRadius.circular(999),
-                  ),
-                  child: Text(
-                    item,
-                    style: AppTextStyles.caption04.copyWith(
-                      color: Colors.black87,
-                    ),
-                  ),
-                );
-              }).toList(),
-            )
-          else
-            Text(
-              '오늘은 운영하지 않아요',
-              style: AppTextStyles.caption03.copyWith(
-                color: Colors.black45,
+                  if (items.isEmpty)
+                    Text('오늘은 운영하지 않아요', style: SandolTypography.caption.muted)
+                  else
+                    for (final item in items)
+                      Text(
+                        item,
+                        style: SandolTypography.caption,
+                        textAlign: TextAlign.center,
+                      ),
+                ],
               ),
             ),
+          ),
         ],
       ),
     );

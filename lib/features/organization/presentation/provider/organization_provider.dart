@@ -48,3 +48,30 @@ Future<List<OrganizationSearchResult>> organizationSearch(
   final root = await ref.watch(organizationTreeNotifierProvider.future);
   return searchOrganizationTree(root, query);
 }
+
+/// 홈 카드에 고정해 둔 부서. 이 순서대로 보여준다.
+/// 교무처는 전화번호가 없는 그룹이라 대표 번호를 가진 교무팀을 쓴다.
+const kPinnedOrganizationUnits = ['입학관리팀', '홍보소통팀', '교무팀'];
+
+/// [kPinnedOrganizationUnits] 중 트리에 있고 전화번호가 있는 부서.
+@riverpod
+Future<List<OrganizationUnitNode>> pinnedOrganizationUnits(Ref ref) async {
+  final root = await ref.watch(organizationTreeNotifierProvider.future);
+  final byName = <String, OrganizationUnitNode>{};
+  void visit(OrganizationNode node) {
+    switch (node) {
+      case OrganizationUnitNode(phone: final String _):
+        byName.putIfAbsent(node.name, () => node);
+      case OrganizationUnitNode():
+        break;
+      case OrganizationGroupNode(:final children):
+        children.forEach(visit);
+    }
+  }
+
+  visit(root);
+  return [
+    for (final name in kPinnedOrganizationUnits)
+      if (byName[name] case final unit?) unit,
+  ];
+}

@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_naver_map/flutter_naver_map.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:handori/core/constants/app_colors.dart';
+import 'package:handori/core/constants/app_radius.dart';
 import 'package:handori/core/error/app_error_handler.dart';
 import 'package:handori/core/router/app_router.dart';
 import 'package:handori/features/auth/presentation/provider/auth_provider.dart';
@@ -86,10 +88,53 @@ class _MyAppState extends ConsumerState<MyApp> with WidgetsBindingObserver {
   @override
   Widget build(BuildContext context) {
     return MaterialApp.router(
+      localizationsDelegates: GlobalMaterialLocalizations.delegates,
+      supportedLocales: const [Locale('ko'), Locale('en')],
       debugShowCheckedModeBanner: false,
       routerConfig: appRouter,
+      // 화면 색이 AppColors 상수로 고정돼 있어 다크 테마를 지원하지 않는다.
+      // 기기가 다크 모드여도 라이트로 고정해 기본 다크 테마가 섞이지 않게 한다.
+      themeMode: ThemeMode.light,
       theme: ThemeData(
         scaffoldBackgroundColor: AppColors.background,
+        // 모든 컴포넌트의 모서리를 AppRadius 하나로 통일한다.
+        // shape를 지정하지 않은 Material 버튼은 M3 기본값(완전 원형)이 되므로
+        // 테마에서 12로 고정한다. IconButton은 원형 리플이 관례라 제외.
+        elevatedButtonTheme: ElevatedButtonThemeData(
+          style: ElevatedButton.styleFrom(
+            shape: const RoundedRectangleBorder(borderRadius: AppRadius.all),
+          ),
+        ),
+        filledButtonTheme: FilledButtonThemeData(
+          style: FilledButton.styleFrom(
+            shape: const RoundedRectangleBorder(borderRadius: AppRadius.all),
+          ),
+        ),
+        outlinedButtonTheme: OutlinedButtonThemeData(
+          style: OutlinedButton.styleFrom(
+            shape: const RoundedRectangleBorder(borderRadius: AppRadius.all),
+          ),
+        ),
+        textButtonTheme: TextButtonThemeData(
+          style: TextButton.styleFrom(
+            shape: const RoundedRectangleBorder(borderRadius: AppRadius.all),
+          ),
+        ),
+        floatingActionButtonTheme: const FloatingActionButtonThemeData(
+          shape: RoundedRectangleBorder(borderRadius: AppRadius.all),
+        ),
+        cardTheme: const CardThemeData(
+          shape: RoundedRectangleBorder(borderRadius: AppRadius.all),
+        ),
+        dialogTheme: const DialogThemeData(
+          shape: RoundedRectangleBorder(borderRadius: AppRadius.all),
+        ),
+        bottomSheetTheme: const BottomSheetThemeData(
+          shape: RoundedRectangleBorder(borderRadius: AppRadius.top),
+        ),
+        inputDecorationTheme: const InputDecorationTheme(
+          border: OutlineInputBorder(borderRadius: AppRadius.all),
+        ),
         fontFamily: 'Pretendard',
         textTheme: const TextTheme(
           displayLarge: TextStyle(fontWeight: FontWeight.w700, fontSize: 30),

@@ -26,10 +26,10 @@ class NoticeItemResponse {
   Map<String, dynamic> toJson() => _$NoticeItemResponseToJson(this);
 
   Notice toDomain() => Notice(
-        id: id,
-        url: url,
-        title: title,
-        author: author,
-        createdAt: createAt,
-      );
+    id: id,
+    url: url,
+    title: title,
+    author: author,
+    createdAt: createAt,
+  );
 }

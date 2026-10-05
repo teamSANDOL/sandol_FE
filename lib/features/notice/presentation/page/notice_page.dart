@@ -1,9 +1,13 @@
 import 'package:flutter/material.dart';
-import 'package:handori/core/constants/app_colors.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:go_router/go_router.dart';
 import 'package:handori/common/component/app_top_bar.dart';
-import 'package:handori/core/constants/app_text_styles.dart';
+import 'package:handori/common/component/sandol_bottom_glow.dart';
+import 'package:handori/common/component/sandol_card.dart';
+import 'package:handori/common/layout/root_shell.dart';
+import 'package:handori/core/design_system/sandol_assets.dart';
+import 'package:handori/core/design_system/sandol_tokens.dart';
 import 'package:handori/core/router/route_paths.dart';
 import 'package:handori/features/notice/domain/model/notice.dart';
 import 'package:handori/features/notice/domain/model/shuttle.dart';
@@ -14,6 +18,10 @@ import 'package:handori/shared/model/pagination_state.dart';
 import 'package:handori/shared/widget/error_retry_view.dart';
 import 'package:handori/shared/widget/sandol_loading_indicator.dart';
 
+/// 공지사항 탭 (Figma 2158:944).
+///
+/// 상단 바와 탭이 아래 모서리가 둥근 한 판 안에 들어가고, 목록은 primary
+/// 테두리 카드 하나에 담긴다. 셔틀 탭은 시안이 아직 없어 기존 카드를 쓴다.
 class NoticePage extends ConsumerStatefulWidget {
   const NoticePage({super.key});
 
@@ -40,52 +48,96 @@ class _NoticePageState extends ConsumerState<NoticePage>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: SandolColors.background,
       appBar: AppTopBar(
         title: '공지사항',
+        titleWidget: const Text('공지사항', style: SandolTypography.title),
+        backIcon: SvgPicture.asset(SandolAssets.backArrow),
+        onBack:
+            () => StatefulNavigationShell.of(
+              context,
+            ).goBranch(RootShell.homeBranch),
+        backgroundColor: SandolColors.background,
+        // 뒤로가기 버튼(44) 안의 아이콘(24)이 본문 여백(33)에 맞게
+        horizontalPadding: SandolMetrics.pageGutter - 10,
+        shape: const RoundedRectangleBorder(
+          borderRadius: SandolMetrics.radiusBottom,
+          side: BorderSide(color: SandolColors.border),
+        ),
         bottom: TabBar(
           controller: _tabController,
-          labelColor: AppColors.primary,
-          unselectedLabelColor: Colors.grey,
-          indicatorColor: AppColors.primary,
-          tabs: const [
-            Tab(text: '일반 공지'),
-            Tab(text: '기숙사'),
-            Tab(text: '셔틀'),
-          ],
+          labelStyle: SandolTypography.body,
+          unselectedLabelStyle: SandolTypography.body,
+          labelColor: SandolColors.text,
+          unselectedLabelColor: SandolColors.text,
+          dividerColor: Colors.transparent,
+          indicatorSize: TabBarIndicatorSize.label,
+          indicator: const UnderlineTabIndicator(
+            borderSide: BorderSide(width: 4, color: SandolColors.primary),
+            borderRadius: BorderRadius.vertical(top: Radius.circular(4)),
+            insets: EdgeInsets.symmetric(horizontal: SandolSpacing.sm),
+          ),
+          tabs: const [Tab(text: '일반 공지'), Tab(text: '기숙사'), Tab(text: '셔틀')],
         ),
       ),
-      body: TabBarView(
-        controller: _tabController,
+      body: Stack(
         children: [
-          _NoticeListTab(isDormitory: false),
-          _NoticeListTab(isDormitory: true),
-          const _ShuttleListTab(),
+          const SandolBottomGlow(),
+          TabBarView(
+            controller: _tabController,
+            children: const [
+              _NoticeListTab(isDormitory: false),
+              _NoticeListTab(isDormitory: true),
+              _ShuttleListTab(),
+            ],
+          ),
         ],
       ),
     );
   }
 }
 
+/// 목록 끝 300px 안에 들어오면 다음 페이지를 요청하는 스크롤 컨트롤러.
+ScrollController _pagingController(VoidCallback loadNextPage) {
+  late final ScrollController controller;
+  controller =
+      ScrollController()..addListener(() {
+        if (controller.position.maxScrollExtent - controller.offset <= 300) {
+          loadNextPage();
+        }
+      });
+  return controller;
+}
+
+/// 목록 맨 아래의 '더 불러오는 중' 표시
+class _LoadingMore extends StatelessWidget {
+  const _LoadingMore();
+
+  @override
+  Widget build(BuildContext context) => const Padding(
+    padding: EdgeInsets.all(SandolSpacing.md),
+    child: Center(child: SandolLoadingIndicator()),
+  );
+}
+
 // ── 일반 / 기숙사 공지 탭 ──────────────────────────────────────────────────────
 
 class _NoticeListTab extends ConsumerStatefulWidget {
-  final bool isDormitory;
-
   const _NoticeListTab({required this.isDormitory});
+
+  final bool isDormitory;
 
   @override
   ConsumerState<_NoticeListTab> createState() => _NoticeListTabState();
 }
 
 class _NoticeListTabState extends ConsumerState<_NoticeListTab> {
-  late final ScrollController _scrollController;
+  late final ScrollController _scrollController = _pagingController(
+    () => ref.read(_provider.notifier).loadNextPage(),
+  );
 
-  @override
-  void initState() {
-    super.initState();
-    _scrollController = ScrollController()..addListener(_onScroll);
-  }
+  NoticeListNotifierProvider get _provider =>
+      noticeListNotifierProvider(isDormitory: widget.isDormitory);
 
   @override
   void dispose() {
@@ -93,124 +145,70 @@ class _NoticeListTabState extends ConsumerState<_NoticeListTab> {
     super.dispose();
   }
 
-  void _onScroll() {
-    final maxScroll = _scrollController.position.maxScrollExtent;
-    final current = _scrollController.offset;
-    if (maxScroll - current <= 300) {
-      ref
-          .read(noticeListNotifierProvider(isDormitory: widget.isDormitory)
-              .notifier)
-          .loadNextPage();
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
-    final state = ref.watch(
-      noticeListNotifierProvider(isDormitory: widget.isDormitory),
-    );
-
-    return state.when(
-      data: (data) => _buildList(data),
-      loading: () => const Center(child: SandolLoadingIndicator()),
-      error: (e, _) => ErrorRetryView(
-            title: '공지사항을 불러올 수 없습니다.',
-        onRetry: () => ref
-            .invalidate(noticeListNotifierProvider(isDormitory: widget.isDormitory)),
-      ),
-    );
+    return ref
+        .watch(_provider)
+        .when(
+          data: _buildList,
+          loading: () => const Center(child: SandolLoadingIndicator()),
+          error:
+              (e, _) => ErrorRetryView(
+                title: '공지사항을 불러올 수 없습니다.',
+                onRetry: () => ref.invalidate(_provider),
+              ),
+        );
   }
 
   Widget _buildList(PaginationState<Notice> data) {
     return RefreshIndicator(
-      color: AppColors.primary,
-      onRefresh: () => ref
-          .read(noticeListNotifierProvider(isDormitory: widget.isDormitory)
-              .notifier)
-          .refresh(),
-      child: data.items.isEmpty
-          ? ListView(
-              physics: const AlwaysScrollableScrollPhysics(),
-              children: [
-                const SizedBox(height: 200),
-                Center(
-                  child: Text(
-                    '공지사항이 없습니다.',
-                    style: AppTextStyles.caption03.copyWith(
-                      color: AppColors.textSecondary,
-                    ),
-                  ),
-                ),
-              ],
+      color: SandolColors.primary,
+      backgroundColor: SandolColors.background,
+      onRefresh: () => ref.read(_provider.notifier).refresh(),
+      child: ListView(
+        controller: _scrollController,
+        physics: const AlwaysScrollableScrollPhysics(),
+        padding: const EdgeInsets.fromLTRB(
+          SandolMetrics.pageGutter,
+          7,
+          SandolMetrics.pageGutter,
+          SandolSpacing.xl,
+        ),
+        children: [
+          Text('총 ${data.totalCount}건', style: SandolTypography.caption),
+          const SizedBox(height: SandolSpacing.xs),
+          if (data.items.isEmpty)
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 60),
+              child: Text(
+                '공지사항이 없습니다.',
+                textAlign: TextAlign.center,
+                style: SandolTypography.caption.muted,
+              ),
             )
-          : CustomScrollView(
-              controller: _scrollController,
-              physics: const AlwaysScrollableScrollPhysics(),
-              slivers: [
-                SliverPadding(
-                  padding: const EdgeInsets.fromLTRB(24, 16, 24, 8),
-                  sliver: SliverToBoxAdapter(
-                    child: Text.rich(
-                      TextSpan(
-                        style: AppTextStyles.caption03.copyWith(
-                          height: 20 / 14,
-                          color: AppColors.textSecondary,
-                        ),
-                        children: [
-                          const TextSpan(text: '총 '),
-                          TextSpan(
-                            text: '${data.totalCount}',
-                            style:
-                                const TextStyle(color: AppColors.primary),
-                          ),
-                          const TextSpan(text: '건'),
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
-                SliverPadding(
-                  padding: const EdgeInsets.fromLTRB(20, 0, 20, 24),
-                  sliver: DecoratedSliver(
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(24),
-                      border: Border.all(color: const Color(0xFFE9ECEF)),
-                      boxShadow: const [
-                        BoxShadow(
-                          color: Color(0x0D000000),
-                          blurRadius: 2,
-                          offset: Offset(0, 1),
-                        ),
-                      ],
-                    ),
-                    sliver: SliverList.builder(
-                      itemCount:
-                          data.items.length + (data.isLoadingMore ? 1 : 0),
-                      itemBuilder: (context, index) {
-                        if (index == data.items.length) {
-                          return const Padding(
-                            padding: EdgeInsets.all(16),
-                            child: Center(
-                              child: SandolLoadingIndicator(),
-                            ),
-                          );
-                        }
-                        return NoticeCard(
-                          notice: data.items[index],
-                          showDivider: index < data.items.length - 1 ||
-                              data.isLoadingMore,
-                          onTap: () => context.push(
+          else
+            SandolCard(
+              borderColor: SandolColors.primary,
+              padding: const EdgeInsets.fromLTRB(19, 18, 20, 18),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                spacing: SandolSpacing.lg,
+                children: [
+                  for (final notice in data.items)
+                    NoticeCard(
+                      notice: notice,
+                      onTap:
+                          () => context.push(
                             RoutePaths.noticeDetail,
-                            extra: data.items[index],
+                            extra: notice,
                           ),
-                        );
-                      },
                     ),
-                  ),
-                ),
-              ],
+                  if (data.isLoadingMore) const _LoadingMore(),
+                ],
+              ),
             ),
+        ],
+      ),
     );
   }
 }
@@ -225,13 +223,9 @@ class _ShuttleListTab extends ConsumerStatefulWidget {
 }
 
 class _ShuttleListTabState extends ConsumerState<_ShuttleListTab> {
-  late final ScrollController _scrollController;
-
-  @override
-  void initState() {
-    super.initState();
-    _scrollController = ScrollController()..addListener(_onScroll);
-  }
+  late final ScrollController _scrollController = _pagingController(
+    () => ref.read(shuttleListNotifierProvider.notifier).loadNextPage(),
+  );
 
   @override
   void dispose() {
@@ -239,51 +233,37 @@ class _ShuttleListTabState extends ConsumerState<_ShuttleListTab> {
     super.dispose();
   }
 
-  void _onScroll() {
-    final maxScroll = _scrollController.position.maxScrollExtent;
-    final current = _scrollController.offset;
-    if (maxScroll - current <= 300) {
-      ref.read(shuttleListNotifierProvider.notifier).loadNextPage();
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
-    final state = ref.watch(shuttleListNotifierProvider);
-
-    return state.when(
-      data: (data) => _buildList(data),
-      loading: () => const Center(child: SandolLoadingIndicator()),
-      error: (e, _) => ErrorRetryView(
-            title: '셔틀 정보를 불러올 수 없습니다.',
-        onRetry: () => ref.invalidate(shuttleListNotifierProvider),
-      ),
-    );
+    return ref
+        .watch(shuttleListNotifierProvider)
+        .when(
+          data: _buildList,
+          loading: () => const Center(child: SandolLoadingIndicator()),
+          error:
+              (e, _) => ErrorRetryView(
+                title: '셔틀 정보를 불러올 수 없습니다.',
+                onRetry: () => ref.invalidate(shuttleListNotifierProvider),
+              ),
+        );
   }
 
   Widget _buildList(PaginationState<Shuttle> data) {
     return RefreshIndicator(
-      color: AppColors.primary,
-      onRefresh: () =>
-          ref.read(shuttleListNotifierProvider.notifier).refresh(),
+      color: SandolColors.primary,
+      backgroundColor: SandolColors.background,
+      onRefresh: () => ref.read(shuttleListNotifierProvider.notifier).refresh(),
       child: ListView.builder(
         controller: _scrollController,
+        physics: const AlwaysScrollableScrollPhysics(),
+        padding: const EdgeInsets.symmetric(vertical: SandolSpacing.sm),
         itemCount: data.items.length + (data.isLoadingMore ? 1 : 0),
-        itemBuilder: (context, index) {
-          if (index == data.items.length) {
-            return const Padding(
-              padding: EdgeInsets.all(16),
-              child: Center(
-                child: SandolLoadingIndicator(),
-              ),
-            );
-          }
-          return ShuttleCard(shuttle: data.items[index]);
-        },
+        itemBuilder:
+            (context, index) =>
+                index == data.items.length
+                    ? const _LoadingMore()
+                    : ShuttleCard(shuttle: data.items[index]),
       ),
     );
   }
 }
-
-// ── 공통 에러 뷰 ──────────────────────────────────────────────────────────────
-

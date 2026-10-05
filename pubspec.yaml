@@ -30,6 +30,8 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+  flutter_localizations:
+    sdk: flutter
 
   # ── UI ──────────────────────────────────────────────────────────────────────
   cupertino_icons: ^1.0.8          # iOS 스타일 아이콘
@@ -105,10 +107,15 @@ flutter_launcher_icons:
 flutter:
   uses-material-design: true
   assets:
+    - assets/design_system/auth/
+    - assets/design_system/home/
+    - assets/design_system/bus/
+    - assets/design_system/empty_class/
+    - assets/design_system/organization/
+    - assets/design_system/my/
     - assets/img/
     - assets/icon/emptyclass_setting.svg
-    - assets/icons/bus/
-    - assets/icons/meal/
+    - assets/design_system/meal/
     - assets/lottie/
     - .env
 

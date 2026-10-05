@@ -3,6 +3,7 @@ import 'package:handori/core/constants/app_colors.dart';
 import 'package:handori/core/utils/date_formatter.dart';
 import 'package:handori/features/notice/domain/model/shuttle.dart';
 import 'package:handori/shared/widget/full_screen_image_viewer.dart';
+import 'package:handori/core/constants/app_radius.dart';
 
 class ShuttleCard extends StatelessWidget {
   final Shuttle shuttle;
@@ -21,7 +22,7 @@ class ShuttleCard extends StatelessWidget {
           end: Alignment.bottomRight,
           colors: [Color(0xFFE8F8FE), Color(0xFFF5FDFF)],
         ),
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(AppRadius.value),
         boxShadow: [
           BoxShadow(
             color: AppColors.primary.withOpacity(0.08),
@@ -35,23 +36,27 @@ class ShuttleCard extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           GestureDetector(
-            onTap: () => Navigator.of(context).push(
-              MaterialPageRoute(
-                builder: (_) =>
-                    FullScreenImageViewer(imageUrl: shuttle.imageUrl),
-              ),
-            ),
+            onTap:
+                () => Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder:
+                        (_) =>
+                            FullScreenImageViewer(imageUrl: shuttle.imageUrl),
+                  ),
+                ),
             child: ClipRRect(
-              borderRadius:
-                  const BorderRadius.vertical(top: Radius.circular(16)),
+              borderRadius: const BorderRadius.vertical(
+                top: Radius.circular(AppRadius.value),
+              ),
               child: Image.network(
                 shuttle.imageUrl,
                 width: double.infinity,
                 fit: BoxFit.cover,
-                errorBuilder: (_, __, ___) => const SizedBox(
-                  height: 160,
-                  child: Center(child: Icon(Icons.broken_image, size: 40)),
-                ),
+                errorBuilder:
+                    (_, __, ___) => const SizedBox(
+                      height: 160,
+                      child: Center(child: Icon(Icons.broken_image, size: 40)),
+                    ),
               ),
             ),
           ),
@@ -59,8 +64,11 @@ class ShuttleCard extends StatelessWidget {
             padding: const EdgeInsets.all(12),
             child: Row(
               children: [
-                const Icon(Icons.directions_bus_rounded,
-                    size: 16, color: AppColors.primary),
+                const Icon(
+                  Icons.directions_bus_rounded,
+                  size: 16,
+                  color: AppColors.primary,
+                ),
                 const SizedBox(width: 6),
                 Expanded(
                   child: Text(

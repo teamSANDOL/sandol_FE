@@ -10,21 +10,21 @@ class HeaderText extends StatelessWidget {
     this.onTextButtonPressed,
     this.titleImagePath,
     super.key,
-});
+  });
 
   @override
   Widget build(BuildContext context) {
     return Row(
       children: [
-        if(titleImagePath != null)
-        Image.asset(titleImagePath!, width: 30,height: 30,),
+        if (titleImagePath != null)
+          Image.asset(titleImagePath!, width: 30, height: 30),
         Expanded(
           child: Text(
             title,
             style: AppTextStyles.title01.copyWith(color: Colors.black87),
           ),
         ),
-          if(onTextButtonPressed != null)
+        if (onTextButtonPressed != null)
           TextButton(
             onPressed: onTextButtonPressed,
             child: Text(

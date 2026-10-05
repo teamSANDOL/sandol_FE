@@ -23,7 +23,7 @@ class PaginatedNoticeResponse {
   Map<String, dynamic> toJson() => _$PaginatedNoticeResponseToJson(this);
 
   ({List<Notice> items, int total}) toDomain() => (
-        items: items.map((e) => e.toDomain()).toList(),
-        total: total,
-      );
+    items: items.map((e) => e.toDomain()).toList(),
+    total: total,
+  );
 }

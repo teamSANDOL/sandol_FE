@@ -38,9 +38,10 @@ class NextShuttleCalculator {
         status: ShuttleStatus.upcoming,
         remainMinutes: entry.time.minutesOfDay - nowMinutes,
         departureTime: entry.time,
-        subText: entry.isSegment
-            ? '${entry.time.label}부터 ${_segmentName(entry)}'
-            : '${entry.time.label} 출발',
+        subText:
+            entry.isSegment
+                ? '${entry.time.label}부터 ${segmentName(entry)}'
+                : '${entry.time.label} 출발',
       );
     }
 
@@ -52,7 +53,23 @@ class NextShuttleCalculator {
     );
   }
 
-  static String _segmentName(ShuttleEntry entry) =>
+  /// [now] 기준 아직 끝나지 않은 시간표 항목을 최대 [count]개.
+  /// 진행 중인 구간(수시운행 등)도 포함한다.
+  static List<ShuttleEntry> upcoming(
+    ShuttleTimetable? timetable,
+    DateTime now, {
+    int count = 3,
+  }) {
+    if (timetable == null) return const [];
+    final nowMinutes = now.hour * 60 + now.minute;
+    return timetable.entries
+        .where((e) => e.time.minutesOfDay >= nowMinutes || e.covers(nowMinutes))
+        .take(count)
+        .toList();
+  }
+
+  /// 구간 항목의 이름 (수시운행 / 도착버스 탑승)
+  static String segmentName(ShuttleEntry entry) =>
       entry.type == ShuttleEntryType.flexible ? '수시운행' : '도착버스 탑승';
 
   /// 구간 항목(수시운행·도착버스 탑승) → 상태 변환.

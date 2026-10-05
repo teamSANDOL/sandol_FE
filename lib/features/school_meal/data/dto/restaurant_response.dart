@@ -24,12 +24,12 @@ class LocationResponse {
   Map<String, dynamic> toJson() => _$LocationResponseToJson(this);
 
   Location toDomain() => Location(
-        isCampus: isCampus,
-        building: building,
-        mapLinks: mapLinks,
-        latitude: latitude,
-        longitude: longitude,
-      );
+    isCampus: isCampus,
+    building: building,
+    mapLinks: mapLinks,
+    latitude: latitude,
+    longitude: longitude,
+  );
 }
 
 @JsonSerializable(fieldRename: FieldRename.snake)
@@ -81,17 +81,17 @@ class RestaurantResponse {
   Map<String, dynamic> toJson() => _$RestaurantResponseToJson(this);
 
   Restaurant toDomain() => Restaurant(
-        id: id,
-        name: name,
-        establishmentType: establishmentType,
-        price: price,
-        location: location?.toDomain(),
-        openingTime: openingTime?.toDomain(),
-        breakTime: breakTime?.toDomain(),
-        breakfastTime: breakfastTime?.toDomain(),
-        brunchTime: brunchTime?.toDomain(),
-        lunchTime: lunchTime?.toDomain(),
-        dinnerTime: dinnerTime?.toDomain(),
-        owner: owner,
-      );
+    id: id,
+    name: name,
+    establishmentType: establishmentType,
+    price: price,
+    location: location?.toDomain(),
+    openingTime: openingTime?.toDomain(),
+    breakTime: breakTime?.toDomain(),
+    breakfastTime: breakfastTime?.toDomain(),
+    brunchTime: brunchTime?.toDomain(),
+    lunchTime: lunchTime?.toDomain(),
+    dinnerTime: dinnerTime?.toDomain(),
+    owner: owner,
+  );
 }

@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:handori/features/empty_class/component/empty_class_card.dart';
 import 'package:handori/features/empty_class/domain/model/nearby_empty_class.dart';
@@ -33,7 +32,18 @@ void main() {
           home: Scaffold(
             body: Padding(
               padding: const EdgeInsets.all(20),
-              child: EmptyClassTimelineCard(maxItems: 3, onBuildingTap: onTap),
+              child: Column(
+                children: [
+                  // 홈에서는 섹션 제목의 설정 아이콘이 시트를 연다
+                  Builder(
+                    builder: (context) => TextButton(
+                      onPressed: () => showBuildingSortSheet(context),
+                      child: const Text('정렬 열기'),
+                    ),
+                  ),
+                  EmptyClassTimelineCard(maxItems: 3, onBuildingTap: onTap),
+                ],
+              ),
             ),
           ),
         ),
@@ -60,17 +70,15 @@ void main() {
     expect(find.text('중앙'), findsNothing);
     expect(find.text('도보 2분'), findsOneWidget);
     expect(find.textContaining('가까움'), findsNothing);
-    // 호실 칩: 앞 4개 + 나머지 개수
-    expect(find.text('100호'), findsNWidgets(3));
-    expect(find.text('+9'), findsOneWidget); // E동 13곳 → 4개 미리보기 + 9
-    expect(find.text('+20'), findsOneWidget); // 산융 24곳
+    // 호실: 앞 3개 + 나머지 개수를 한 줄로
+    expect(find.text('100호 101호 102호 +10'), findsOneWidget); // E동 13곳
+    expect(find.text('100호 101호 102호 +21'), findsOneWidget); // 산융 24곳
     expect(find.text('도보 6분'), findsOneWidget);
     expect(find.byType(RangeSlider), findsOneWidget);
-    expect(find.textContaining('내 위치 정렬', findRichText: true), findsOneWidget);
-    expect(find.byType(SvgPicture), findsOneWidget); // 정렬 설정 아이콘
+    expect(find.text('빈 강의실 52곳'), findsOneWidget);
   });
 
-  testWidgets('설정 아이콘 → 정렬 시트 → 내 순서 선택 시 햄버거 목록', (tester) async {
+  testWidgets('정렬 시트 → 내 순서 선택 시 햄버거 목록', (tester) async {
     tester.view.physicalSize = const Size(390, 844);
     tester.view.devicePixelRatio = 1;
     addTearDown(tester.view.reset);
@@ -81,7 +89,7 @@ void main() {
     ]));
     await tester.pumpAndSettle();
 
-    await tester.tap(find.byType(SvgPicture));
+    await tester.tap(find.text('정렬 열기'));
     await tester.pumpAndSettle();
     expect(find.text('정렬 설정'), findsOneWidget);
     expect(find.text('빈 강의실 많은 순'), findsOneWidget);
@@ -116,7 +124,7 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('도보 2분'), findsOneWidget);
 
-    await tester.tap(find.byType(SvgPicture));
+    await tester.tap(find.text('정렬 열기'));
     await tester.pumpAndSettle();
     await tester.tap(find.text('빈 강의실 많은 순'));
     await tester.pumpAndSettle();

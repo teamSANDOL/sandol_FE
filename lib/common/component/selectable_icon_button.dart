@@ -8,22 +8,23 @@ class SelectableIconButton extends StatelessWidget {
     required this.onPressed,
     required this.isSelected,
     required this.imagePath,
-  super.key
+    super.key,
   });
 
   @override
   Widget build(BuildContext context) {
-    final Color isBackgroundColor = isSelected ? Color(0XFF95E0F4) : Colors.grey;
+    final Color isBackgroundColor =
+        isSelected ? Color(0XFF95E0F4) : Colors.grey;
     return GestureDetector(
       onTap: onPressed,
-      child:Container(
+      child: Container(
         width: 60,
         decoration: BoxDecoration(
           shape: BoxShape.circle,
           color: isBackgroundColor,
         ),
         child: Image.asset(imagePath),
-      ) ,
+      ),
     );
   }
 }

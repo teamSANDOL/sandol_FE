@@ -21,10 +21,6 @@ class ShuttleItemResponse {
       _$ShuttleItemResponseFromJson(json);
   Map<String, dynamic> toJson() => _$ShuttleItemResponseToJson(this);
 
-  Shuttle toDomain() => Shuttle(
-        id: id,
-        imageUrl: imageUrl,
-        place: place,
-        createdAt: createAt,
-      );
+  Shuttle toDomain() =>
+      Shuttle(id: id, imageUrl: imageUrl, place: place, createdAt: createAt);
 }

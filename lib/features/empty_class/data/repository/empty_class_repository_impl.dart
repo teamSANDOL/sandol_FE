@@ -30,16 +30,18 @@ class EmptyClassRepositoryImpl implements EmptyClassRepository {
       final rooms = List<String>.from(item.emptyClassrooms)..sort();
       final total = totals[item.building] ?? 0;
       final loc = buildingLocations[item.building];
-      list.add(EmptyClass(
-        className: item.building,
-        classCount: '${rooms.length}',
-        trafficIcon: _trafficIcon(rooms.length, total),
-        classIcons: buildingIcon(item.building),
-        classList: rooms,
-        latitude: loc?.latitude,
-        longitude: loc?.longitude,
-        totalCount: total,
-      ));
+      list.add(
+        EmptyClass(
+          className: item.building,
+          classCount: '${rooms.length}',
+          trafficIcon: _trafficIcon(rooms.length, total),
+          classIcons: buildingIcon(item.building),
+          classList: rooms,
+          latitude: loc?.latitude,
+          longitude: loc?.longitude,
+          totalCount: total,
+        ),
+      );
     }
 
     // 조회 구간에 빈 강의실이 하나도 없는 건물은 응답에서 빠진다.
@@ -48,20 +50,24 @@ class EmptyClassRepositoryImpl implements EmptyClassRepository {
     for (final entry in totals.entries) {
       if (present.contains(entry.key)) continue;
       final loc = buildingLocations[entry.key];
-      list.add(EmptyClass(
-        className: entry.key,
-        classCount: '0',
-        trafficIcon: _trafficIcon(0, entry.value),
-        classIcons: buildingIcon(entry.key),
-        classList: const [],
-        latitude: loc?.latitude,
-        longitude: loc?.longitude,
-        totalCount: entry.value,
-      ));
+      list.add(
+        EmptyClass(
+          className: entry.key,
+          classCount: '0',
+          trafficIcon: _trafficIcon(0, entry.value),
+          classIcons: buildingIcon(entry.key),
+          classList: const [],
+          latitude: loc?.latitude,
+          longitude: loc?.longitude,
+          totalCount: entry.value,
+        ),
+      );
     }
 
-    list.sort((a, b) =>
-        buildingOrder(a.className).compareTo(buildingOrder(b.className)));
+    list.sort(
+      (a, b) =>
+          buildingOrder(a.className).compareTo(buildingOrder(b.className)),
+    );
     return list;
   }
 

@@ -49,28 +49,31 @@ Future<List<NearbyEmptyClass>> nearbyEmptyClasses(Ref ref) async {
   final positionFuture = ref.watch(userLocationProvider.future);
   final classes = await classesFuture;
   final position = await positionFuture;
-  final settings = ref.watch(buildingSortControllerProvider).valueOrNull ??
+  final settings =
+      ref.watch(buildingSortControllerProvider).valueOrNull ??
       const BuildingSortSettings();
 
-  final items = classes.map((c) {
-    double? distance;
-    if (position != null && c.hasLocation) {
-      distance = Geolocator.distanceBetween(
-        position.latitude,
-        position.longitude,
-        c.latitude!,
-        c.longitude!,
-      );
-    }
-    return NearbyEmptyClass(building: c, distanceMeters: distance);
-  }).toList();
+  final items =
+      classes.map((c) {
+        double? distance;
+        if (position != null && c.hasLocation) {
+          distance = Geolocator.distanceBetween(
+            position.latitude,
+            position.longitude,
+            c.latitude!,
+            c.longitude!,
+          );
+        }
+        return NearbyEmptyClass(building: c, distanceMeters: distance);
+      }).toList();
 
   int byCount(NearbyEmptyClass a, NearbyEmptyClass b) {
     final c = b.building.emptyCount.compareTo(a.building.emptyCount);
     return c != 0
         ? c
-        : buildingOrder(a.building.className)
-            .compareTo(buildingOrder(b.building.className));
+        : buildingOrder(
+          a.building.className,
+        ).compareTo(buildingOrder(b.building.className));
   }
 
   switch (settings.mode) {

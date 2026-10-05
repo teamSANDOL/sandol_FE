@@ -213,6 +213,29 @@ class _OrganizationSearchProviderElement
   String get query => (origin as OrganizationSearchProvider).query;
 }
 
+String _$pinnedOrganizationUnitsHash() =>
+    r'06f5a987e03324e331028deb4969af0c69a801a4';
+
+/// [kPinnedOrganizationUnits] 중 트리에 있고 전화번호가 있는 부서.
+///
+/// Copied from [pinnedOrganizationUnits].
+@ProviderFor(pinnedOrganizationUnits)
+final pinnedOrganizationUnitsProvider =
+    AutoDisposeFutureProvider<List<OrganizationUnitNode>>.internal(
+      pinnedOrganizationUnits,
+      name: r'pinnedOrganizationUnitsProvider',
+      debugGetCreateSourceHash:
+          const bool.fromEnvironment('dart.vm.product')
+              ? null
+              : _$pinnedOrganizationUnitsHash,
+      dependencies: null,
+      allTransitiveDependencies: null,
+    );
+
+@Deprecated('Will be removed in 3.0. Use Ref instead')
+// ignore: unused_element
+typedef PinnedOrganizationUnitsRef =
+    AutoDisposeFutureProviderRef<List<OrganizationUnitNode>>;
 String _$organizationTreeNotifierHash() =>
     r'0b24a2aa1628237634c330b4dbd3e162e0a99950';
 

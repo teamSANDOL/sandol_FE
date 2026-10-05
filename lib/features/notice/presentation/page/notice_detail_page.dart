@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 import 'package:handori/features/notice/domain/model/notice.dart';
 import 'package:handori/shared/widget/sandol_loading_indicator.dart';
+import 'package:handori/core/constants/app_radius.dart';
 
 class NoticeDetailPage extends StatefulWidget {
   final Notice notice;
@@ -21,16 +22,17 @@ class _NoticeDetailPageState extends State<NoticeDetailPage> {
   @override
   void initState() {
     super.initState();
-    _controller = WebViewController()
-      ..setJavaScriptMode(JavaScriptMode.unrestricted)
-      ..setNavigationDelegate(
-        NavigationDelegate(
-          // 로드가 끝나기 전에 뒤로 가면 dispose 된 뒤 콜백이 온다.
-          onPageStarted: (_) => _setLoading(true),
-          onPageFinished: (_) => _setLoading(false),
-        ),
-      )
-      ..loadRequest(Uri.parse(widget.notice.url));
+    _controller =
+        WebViewController()
+          ..setJavaScriptMode(JavaScriptMode.unrestricted)
+          ..setNavigationDelegate(
+            NavigationDelegate(
+              // 로드가 끝나기 전에 뒤로 가면 dispose 된 뒤 콜백이 온다.
+              onPageStarted: (_) => _setLoading(true),
+              onPageFinished: (_) => _setLoading(false),
+            ),
+          )
+          ..loadRequest(Uri.parse(widget.notice.url));
   }
 
   void _setLoading(bool value) {
@@ -55,10 +57,10 @@ class _NoticeDetailPageState extends State<NoticeDetailPage> {
                 // 뒤로가기 버튼
                 Material(
                   color: Colors.white,
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: BorderRadius.circular(AppRadius.value),
                   elevation: 2,
                   child: InkWell(
-                    borderRadius: BorderRadius.circular(12),
+                    borderRadius: BorderRadius.circular(AppRadius.value),
                     onTap: () => context.pop(),
                     child: const SizedBox(
                       width: 44,
@@ -73,12 +75,12 @@ class _NoticeDetailPageState extends State<NoticeDetailPage> {
                 Expanded(
                   child: Material(
                     elevation: 2,
-                    borderRadius: BorderRadius.circular(12),
+                    borderRadius: BorderRadius.circular(AppRadius.value),
                     child: Container(
                       height: 44,
                       decoration: BoxDecoration(
                         color: Colors.white,
-                        borderRadius: BorderRadius.circular(12),
+                        borderRadius: BorderRadius.circular(AppRadius.value),
                         border: Border.all(color: Colors.grey.shade300),
                       ),
                       padding: const EdgeInsets.symmetric(horizontal: 12),
@@ -116,8 +118,7 @@ class _NoticeDetailPageState extends State<NoticeDetailPage> {
       body: Stack(
         children: [
           WebViewWidget(controller: _controller),
-          if (_isLoading)
-            const Center(child: SandolLoadingIndicator()),
+          if (_isLoading) const Center(child: SandolLoadingIndicator()),
         ],
       ),
     );

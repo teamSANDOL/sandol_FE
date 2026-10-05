@@ -41,8 +41,7 @@ class CustomPageResponse<T> {
   factory CustomPageResponse.fromJson(
     Map<String, dynamic> json,
     T Function(Object? json) fromJsonT,
-  ) =>
-      _$CustomPageResponseFromJson(json, fromJsonT);
+  ) => _$CustomPageResponseFromJson(json, fromJsonT);
 
   Map<String, dynamic> toJson(Object Function(T value) toJsonT) =>
       _$CustomPageResponseToJson(this, toJsonT);

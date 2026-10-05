@@ -4,8 +4,5 @@ class ShuttleRecent {
   final Shuttle primary;
   final Shuttle second;
 
-  const ShuttleRecent({
-    required this.primary,
-    required this.second,
-  });
+  const ShuttleRecent({required this.primary, required this.second});
 }

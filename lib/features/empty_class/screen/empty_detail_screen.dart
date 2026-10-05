@@ -1,26 +1,32 @@
-import 'dart:ui' as ui;
-import 'package:handori/core/constants/app_text_styles.dart';
 import 'dart:math' as math;
+import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
-import 'package:handori/core/constants/app_colors.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
-
 import 'package:flutter_naver_map/flutter_naver_map.dart';
-import 'package:geolocator/geolocator.dart';
-
-import 'package:handori/features/empty_class/model/class_model.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:geolocator/geolocator.dart';
+import 'package:go_router/go_router.dart';
+import 'package:handori/common/component/sandol_card.dart';
+import 'package:handori/common/component/sandol_icon_label.dart';
+import 'package:handori/common/layout/root_shell.dart';
+import 'package:handori/core/constants/app_colors.dart';
+import 'package:handori/core/constants/app_radius.dart';
+import 'package:handori/core/design_system/sandol_assets.dart';
+import 'package:handori/core/design_system/sandol_tokens.dart';
 import 'package:handori/features/empty_class/component/classroom_time_range_picker.dart';
+import 'package:handori/features/empty_class/model/class_model.dart';
 import 'package:handori/features/empty_class/presentation/provider/classroom_query_provider.dart';
 import 'package:handori/features/empty_class/presentation/provider/empty_class_focus_provider.dart';
 import 'package:handori/features/empty_class/presentation/provider/empty_class_provider.dart';
-
-import 'package:go_router/go_router.dart';
-import 'package:handori/common/layout/root_shell.dart';
 import 'package:handori/shared/widget/error_retry_view.dart';
 import 'package:handori/shared/widget/sandol_loading_indicator.dart';
 
+/// 빈 강의실 탭 (Figma 2158:806 · 2158:1177).
+///
+/// 지도와 마커는 그대로 두고, 아래 시트만 새 디자인이다. 시트는 세 높이
+/// (접힘 · 중간 · 거의 전체)로 멈추고, 거의 전체일 때는 지도 위를 어둡게
+/// 덮어 '지도' 라벨을 보여준다. 누르면 시트가 내려간다.
 class EmptyDetailScreen extends ConsumerStatefulWidget {
   const EmptyDetailScreen({super.key});
 
@@ -29,23 +35,25 @@ class EmptyDetailScreen extends ConsumerStatefulWidget {
 }
 
 class _EmptyDetailScreenState extends ConsumerState<EmptyDetailScreen> {
-  static const _primary = AppColors.primary;
-
   /// 시트 높이 3단. 접힘 높이만 픽셀 기준이라 화면 비율로 환산해 쓴다.
   static const _collapsedH = 120.0;
-  static const _snapFrac = 0.4;
-  static const _maxFrac = 0.8;
+  static const _snapFrac = 0.42;
+  static const _maxFrac = 0.9;
+
+  /// 이보다 높이 올라가면 지도를 덮고 '지도' 라벨을 보여준다.
+  static const _coverFrac = 0.7;
 
   /// 마커 탭으로 카드를 보여줄 때 올리는 높이 (드래그 스냅보다 한 단 높게)
   static const _revealFrac = 0.6;
 
   Set<NMarker> _markers = {};
   String? _selectedId;
+
   /// 마커 아이콘 캐시. 항목은 플러그인이 만든 임시 파일 경로와 앵커·크기뿐이라
   /// 메모리는 수십 바이트 단위다. 화면과 함께 사라지므로 상한을 두지 않는다
   /// (상한을 두면 재진입 시 3배 스케일 래스터화를 다시 하게 된다).
   final Map<String, ({NOverlayImage icon, NPoint anchor, Size size})>
-      _iconCache = {};
+  _iconCache = {};
   int _markerGen = 0;
 
   final DraggableScrollableController _sheetCtrl =
@@ -80,12 +88,16 @@ class _EmptyDetailScreenState extends ConsumerState<EmptyDetailScreen> {
       }
       final pos = await Geolocator.getCurrentPosition();
       final cam = NCameraPosition(
-          target: NLatLng(pos.latitude, pos.longitude), zoom: 17.0);
+        target: NLatLng(pos.latitude, pos.longitude),
+        zoom: 17.0,
+      );
       _initialCamera = cam;
       if (mounted) {
         try {
           // 권한이 확보된 시점이므로 내 위치 오버레이(파란 점)도 켠다.
-          _mapController?.setLocationTrackingMode(NLocationTrackingMode.noFollow);
+          _mapController?.setLocationTrackingMode(
+            NLocationTrackingMode.noFollow,
+          );
           _mapController?.updateCamera(
             NCameraUpdate.scrollAndZoomTo(target: cam.target, zoom: cam.zoom)
               ..setAnimation(
@@ -110,9 +122,9 @@ class _EmptyDetailScreenState extends ConsumerState<EmptyDetailScreen> {
       final name = e.className.replaceAll(':', '').trim();
       final selected = e.className == _selectedId;
       final key = '$name:${e.classCount}:${selected ? 1 : 0}';
-      final iconData = _iconCache[key] ??
-          await _buildCustomMarkerIcon(name, e.classCount,
-              selected: selected);
+      final iconData =
+          _iconCache[key] ??
+          await _buildCustomMarkerIcon(name, e.classCount, selected: selected);
       _iconCache[key] = iconData;
 
       final marker = NMarker(
@@ -159,9 +171,9 @@ class _EmptyDetailScreenState extends ConsumerState<EmptyDetailScreen> {
         NCameraUpdate.scrollAndZoomTo(
           target: NLatLng(e.latitude!, e.longitude!),
         )..setAnimation(
-            animation: NCameraAnimation.easing,
-            duration: const Duration(milliseconds: 300),
-          ),
+          animation: NCameraAnimation.easing,
+          duration: const Duration(milliseconds: 300),
+        ),
       );
     } catch (_) {}
     if (reveal) _revealCard(e.className);
@@ -215,7 +227,10 @@ class _EmptyDetailScreenState extends ConsumerState<EmptyDetailScreen> {
   // 헤더는 스크롤러블 밖에 있으므로 시트 컨트롤러를 직접 구동한다.
   // 리스트가 어디까지 스크롤돼 있든 헤더 드래그는 항상 시트를 움직인다.
   void _onHeaderDragUpdate(
-      DragUpdateDetails d, double minFrac, double screenH) {
+    DragUpdateDetails d,
+    double minFrac,
+    double screenH,
+  ) {
     if (!_sheetCtrl.isAttached) return;
     _sheetCtrl.jumpTo(
       (_sheetCtrl.size - d.delta.dy / screenH).clamp(minFrac, _maxFrac),
@@ -230,13 +245,15 @@ class _EmptyDetailScreenState extends ConsumerState<EmptyDetailScreen> {
     final double target;
     if (v.abs() > 0.9) {
       // 플링: 진행 방향의 다음 정지점으로
-      target = v > 0
-          ? stops.firstWhere((s) => s > cur + 0.01, orElse: () => _maxFrac)
-          : stops.lastWhere((s) => s < cur - 0.01, orElse: () => minFrac);
+      target =
+          v > 0
+              ? stops.firstWhere((s) => s > cur + 0.01, orElse: () => _maxFrac)
+              : stops.lastWhere((s) => s < cur - 0.01, orElse: () => minFrac);
     } else {
       // 가장 가까운 정지점으로
-      target =
-          stops.reduce((a, b) => (a - cur).abs() <= (b - cur).abs() ? a : b);
+      target = stops.reduce(
+        (a, b) => (a - cur).abs() <= (b - cur).abs() ? a : b,
+      );
     }
     _sheetCtrl.animateTo(
       target,
@@ -253,7 +270,7 @@ class _EmptyDetailScreenState extends ConsumerState<EmptyDetailScreen> {
   /// 앱 컬러 토큰만 사용한다: 잔여 있음 = primary, 없음 = muted 회색,
   /// 선택된 건물은 primary 반전 + 헤일로로 지도 위에서 바로 구분된다.
   static Future<({NOverlayImage icon, NPoint anchor, Size size})>
-      _buildCustomMarkerIcon(
+  _buildCustomMarkerIcon(
     String name,
     String count, {
     required bool selected,
@@ -332,18 +349,22 @@ class _EmptyDetailScreenState extends ConsumerState<EmptyDetailScreen> {
     // 말풍선(캡슐 + 꼬리)을 하나의 패스로 합쳐 외곽선이 매끄럽게 이어지게 한다.
     Path bubblePath(double inflate) {
       final rrect = RRect.fromRectAndRadius(
-        Rect.fromLTWH(ox - inflate, oy - inflate, pillW + inflate * 2,
-            pillH + inflate * 2),
+        Rect.fromLTWH(
+          ox - inflate,
+          oy - inflate,
+          pillW + inflate * 2,
+          pillH + inflate * 2,
+        ),
         Radius.circular(radius + inflate),
       );
       final tipX = ox + pillW / 2;
-      final tip = Path()
-        ..moveTo(tipX - tipHalfW - inflate, oy + pillH - radius / 2)
-        ..lineTo(tipX + tipHalfW + inflate, oy + pillH - radius / 2)
-        ..lineTo(tipX, oy + pillH + tipH + inflate)
-        ..close();
-      return Path.combine(
-          PathOperation.union, Path()..addRRect(rrect), tip);
+      final tip =
+          Path()
+            ..moveTo(tipX - tipHalfW - inflate, oy + pillH - radius / 2)
+            ..lineTo(tipX + tipHalfW + inflate, oy + pillH - radius / 2)
+            ..lineTo(tipX, oy + pillH + tipH + inflate)
+            ..close();
+      return Path.combine(PathOperation.union, Path()..addRRect(rrect), tip);
     }
 
     final bubble = bubblePath(0);
@@ -371,17 +392,18 @@ class _EmptyDetailScreenState extends ConsumerState<EmptyDetailScreen> {
     );
 
     // 말풍선 본체 (미세한 세로 그라데이션으로 평면감 제거)
-    final Paint pillPaint = Paint()
-      ..shader = ui.Gradient.linear(
-        Offset(0, oy),
-        Offset(0, oy + pillH + tipH),
-        selected
-            ? [
-                Color.lerp(primary, Colors.white, 0.14)!,
-                Color.lerp(primary, Colors.black, 0.08)!,
-              ]
-            : [Colors.white, const Color(0xFFF5FAFD)],
-      );
+    final Paint pillPaint =
+        Paint()
+          ..shader = ui.Gradient.linear(
+            Offset(0, oy),
+            Offset(0, oy + pillH + tipH),
+            selected
+                ? [
+                  Color.lerp(primary, Colors.white, 0.14)!,
+                  Color.lerp(primary, Colors.black, 0.08)!,
+                ]
+                : [Colors.white, const Color(0xFFF5FAFD)],
+          );
     canvas.drawPath(bubble, pillPaint);
 
     // 외곽선 (선택 시에는 배경색이 곧 브랜드 컬러라 생략)
@@ -405,7 +427,7 @@ class _EmptyDetailScreenState extends ConsumerState<EmptyDetailScreen> {
     canvas.drawRRect(
       RRect.fromRectAndRadius(
         Rect.fromLTWH(badgeX, badgeY, badgeW, badgeH),
-        const Radius.circular(999),
+        const Radius.circular(AppRadius.value),
       ),
       Paint()..color = badgeBg,
     );
@@ -419,10 +441,13 @@ class _EmptyDetailScreenState extends ConsumerState<EmptyDetailScreen> {
 
     final picture = recorder.endRecording();
     final img = await picture.toImage(
-        (canvasW * scale).round(), (canvasH * scale).round());
+      (canvasW * scale).round(),
+      (canvasH * scale).round(),
+    );
     final byteData = await img.toByteData(format: ui.ImageByteFormat.png);
-    final icon =
-        await NOverlayImage.fromByteArray(byteData!.buffer.asUint8List());
+    final icon = await NOverlayImage.fromByteArray(
+      byteData!.buffer.asUint8List(),
+    );
 
     // 꼬리 끝(지리 위치)에 앵커 설정
     final double anchorX = (ox + pillW / 2) / canvasW;
@@ -455,524 +480,461 @@ class _EmptyDetailScreenState extends ConsumerState<EmptyDetailScreen> {
       if (name != null && data != null) _consumeFocus(data);
     });
 
+    final items = classesAsync.valueOrNull;
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: SandolColors.background,
       extendBodyBehindAppBar: true,
       extendBody: true,
       // 구간을 바꿔 다시 불러올 때도 지도와 시트를 그대로 둔다.
       // when() 으로 로딩 화면을 끼워 넣으면 Stack 이 통째로 다시 만들어져
       // 시트가 접힌 위치로 돌아가고 지도도 초기화된다.
-      body: _buildBody(classesAsync, size, minFrac),
+      body:
+          items == null
+              ? classesAsync.hasError
+                  ? ErrorRetryView(
+                    title: '빈 강의실 정보를 불러오지 못했어요',
+                    onRetry: () => ref.invalidate(emptyClassesProvider),
+                  )
+                  : const Center(child: SandolLoadingIndicator())
+              : _buildStack(
+                items,
+                size,
+                minFrac,
+                refreshing: classesAsync.isLoading,
+              ),
     );
   }
 
-  Widget _buildBody(
-      AsyncValue<List<EmptyClass>> classesAsync, Size size, double minFrac) {
-    final items = classesAsync.valueOrNull;
-    if (items == null) {
-      return classesAsync.hasError
-          ? ErrorRetryView(
-              title: '빈 강의실 정보를 불러오지 못했어요',
-              onRetry: () => ref.invalidate(emptyClassesProvider),
-            )
-          : const Center(child: SandolLoadingIndicator());
-    }
-    final refreshing = classesAsync.isLoading;
-    return _buildStack(items, size, minFrac, refreshing: refreshing);
-  }
-
-  Widget _buildStack(List<EmptyClass> items, Size size, double minFrac,
-      {required bool refreshing}) {
+  Widget _buildStack(
+    List<EmptyClass> items,
+    Size size,
+    double minFrac, {
+    required bool refreshing,
+  }) {
+    final topInset = MediaQuery.of(context).padding.top;
     return Stack(
-          children: [
-            Positioned.fill(
-              child: NaverMap(
-                options: NaverMapViewOptions(
-                  initialCameraPosition: _initialCamera,
-                  mapType: NMapType.basic,
-                  locationButtonEnable: false,
-                  contentPadding: EdgeInsets.only(
-                    bottom: _collapsedH,
-                    top: MediaQuery.of(context).padding.top,
-                  ),
-                ),
-                onMapReady: (c) {
-                  _mapController = c;
-                  _refreshMarkers(items);
-                  _consumeFocus(items);
-                },
+      children: [
+        Positioned.fill(
+          child: NaverMap(
+            options: NaverMapViewOptions(
+              initialCameraPosition: _initialCamera,
+              mapType: NMapType.basic,
+              locationButtonEnable: false,
+              contentPadding: EdgeInsets.only(
+                bottom: _collapsedH,
+                top: topInset,
               ),
             ),
-            SafeArea(
-              child: Padding(
-                padding: const EdgeInsets.fromLTRB(12, 12, 12, 0),
-                child: _buildTopBar(),
-              ),
-            ),
-            Positioned.fill(
-              child: DraggableScrollableSheet(
-                controller: _sheetCtrl,
-                minChildSize: minFrac,
-                initialChildSize: minFrac,
-                maxChildSize: _maxFrac,
-                snap: true,
-                snapSizes: const [_snapFrac],
-                builder: (context, sc) =>
-                    _buildSheet(items, sc, minFrac, size.height),
-              ),
-            ),
-            // 내 위치 FAB: 시트 컨트롤러에만 반응하므로 시트 드래그가
-            // 화면 전체 리빌드로 번지지 않는다.
-            AnimatedBuilder(
-              animation: _sheetCtrl,
-              builder: (context, child) {
-                final frac =
-                    _sheetCtrl.isAttached ? _sheetCtrl.size : minFrac;
-                final hidden = frac > 0.6;
-                return Positioned(
-                  bottom: frac * size.height + 12,
-                  right: 12,
-                  child: IgnorePointer(
-                    ignoring: hidden,
-                    child: AnimatedOpacity(
-                      duration: const Duration(milliseconds: 150),
-                      opacity: hidden ? 0.0 : 1.0,
-                      child: child!,
-                    ),
-                  ),
-                );
-              },
-              child: FloatingActionButton(
-                backgroundColor: Colors.white,
-                foregroundColor: Colors.black87,
-                elevation: 4,
-                onPressed: _initCameraToMyLocation,
-                child: const Icon(Icons.my_location_rounded, size: 24),
-              ),
-            ),
-            // 구간 변경으로 다시 불러오는 동안의 작은 표시
-            Positioned(
-              top: MediaQuery.of(context).padding.top + 12,
-              left: 0,
-              right: 0,
-              child: IgnorePointer(
-                child: AnimatedOpacity(
-                  duration: const Duration(milliseconds: 150),
-                  opacity: refreshing ? 1 : 0,
-                  child: Center(
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 12, vertical: 7),
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(999),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withValues(alpha: 0.12),
-                            blurRadius: 10,
-                            offset: const Offset(0, 3),
-                          ),
-                        ],
-                      ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          const SizedBox(
-                            width: 12,
-                            height: 12,
-                            child: CircularProgressIndicator(
-                              strokeWidth: 1.6,
-                              color: AppColors.primary,
-                            ),
-                          ),
-                          const SizedBox(width: 8),
-                          Text(
-                            '빈 강의실 갱신 중',
-                            style: AppTextStyles.caption04.copyWith(
-                              color: Colors.black87,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-            ),
-          ],
-        );
-  }
-
-  Widget _buildTopBar() {
-    return Align(
-      alignment: Alignment.topLeft,
-      child: Material(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(14),
-        elevation: 3,
-        shadowColor: Colors.black.withValues(alpha: 0.18),
-        child: InkWell(
-          borderRadius: BorderRadius.circular(14),
-          onTap: _handleBack,
-          child: const SizedBox(
-            width: 44,
-            height: 44,
-            child: Icon(Icons.arrow_back_ios_new_rounded,
-                color: Colors.black87, size: 20),
+            onMapReady: (c) {
+              _mapController = c;
+              _refreshMarkers(items);
+              _consumeFocus(items);
+            },
           ),
         ),
-      ),
-    );
-  }
-
-  Widget _buildSheet(List<EmptyClass> items, ScrollController sc,
-      double minFrac, double screenH) {
-    final totalBuildings = items.length;
-    final totalRooms =
-        items.fold<int>(0, (s, e) => s + (int.tryParse(e.classCount) ?? 0));
-    final query = ref.watch(classroomQueryControllerProvider);
-
-    return DecoratedBox(
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.08),
-            blurRadius: 20,
-            offset: const Offset(0, -4),
+        // 시트 높이에 따라 달라지는 것들은 시트 컨트롤러에만 반응하게 해
+        // 드래그가 화면 전체 리빌드로 번지지 않게 한다.
+        AnimatedBuilder(
+          animation: _sheetCtrl,
+          builder: (context, _) {
+            final frac = _sheetCtrl.isAttached ? _sheetCtrl.size : minFrac;
+            return _MapCover(
+              visible: frac > _coverFrac,
+              onTap:
+                  () => _sheetCtrl.animateTo(
+                    _snapFrac,
+                    duration: const Duration(milliseconds: 260),
+                    curve: Curves.easeOutCubic,
+                  ),
+            );
+          },
+        ),
+        Positioned.fill(
+          child: DraggableScrollableSheet(
+            controller: _sheetCtrl,
+            minChildSize: minFrac,
+            // 시안의 기본 상태는 중간 높이(지도 + 첫 건물 카드)
+            initialChildSize: _snapFrac,
+            maxChildSize: _maxFrac,
+            snap: true,
+            snapSizes: const [_snapFrac],
+            builder:
+                (context, sc) => _buildSheet(items, sc, minFrac, size.height),
           ),
-        ],
-      ),
-      child: ClipRRect(
-        borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // 헤더: 리스트 스크롤 위치와 무관하게 항상 시트를 끌 수 있다.
-            GestureDetector(
-              behavior: HitTestBehavior.opaque,
-              onVerticalDragUpdate: (d) =>
-                  _onHeaderDragUpdate(d, minFrac, screenH),
-              onVerticalDragEnd: (d) => _onHeaderDragEnd(d, minFrac, screenH),
-              child: Padding(
-                padding: const EdgeInsets.fromLTRB(20, 10, 20, 12),
-                child: Column(
-                  children: [
-                    Center(
-                      child: Container(
-                        width: 36,
-                        height: 4,
-                        margin: const EdgeInsets.only(bottom: 14),
-                        decoration: BoxDecoration(
-                          color: Colors.grey.shade300,
-                          borderRadius: BorderRadius.circular(99),
-                        ),
+        ),
+        AnimatedBuilder(
+          animation: _sheetCtrl,
+          builder: (context, child) {
+            final frac = _sheetCtrl.isAttached ? _sheetCtrl.size : minFrac;
+            final hidden = frac > _coverFrac - 0.1;
+            return Positioned(
+              bottom: frac * size.height + 12,
+              right: 12,
+              child: IgnorePointer(
+                ignoring: hidden,
+                child: AnimatedOpacity(
+                  duration: const Duration(milliseconds: 150),
+                  opacity: hidden ? 0.0 : 1.0,
+                  child: child!,
+                ),
+              ),
+            );
+          },
+          child: FloatingActionButton(
+            backgroundColor: SandolColors.background,
+            foregroundColor: SandolColors.text,
+            elevation: 4,
+            onPressed: _initCameraToMyLocation,
+            child: const Icon(Icons.my_location_rounded, size: 24),
+          ),
+        ),
+        // 구간 변경으로 다시 불러오는 동안의 작은 표시
+        Positioned(
+          top: topInset + 12,
+          left: 0,
+          right: 0,
+          child: IgnorePointer(
+            child: AnimatedOpacity(
+              duration: const Duration(milliseconds: 150),
+              opacity: refreshing ? 1 : 0,
+              child: Center(
+                child: SandolCard(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 7,
+                  ),
+                  child: SandolIconLabel(
+                    icon: const SizedBox.square(
+                      dimension: 12,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 1.6,
+                        color: SandolColors.primary,
                       ),
                     ),
-                    Row(
-                      children: [
-                        Text(
-                          '빈 강의실 현황',
-                          style: AppTextStyles.title02.copyWith(
-                            color: Colors.black87,
-                          ),
-                        ),
-                        const Spacer(),
-                        _StatChip(label: '$totalBuildings동', color: _primary),
-                        const SizedBox(width: 6),
-                        _StatChip(
-                            label: '총 $totalRooms개',
-                            color: AppColors.primary),
-                      ],
-                    ),
-                    const SizedBox(height: 4),
-                    Row(
-                      children: [
-                        Expanded(
-                          child: Text(
-                            '${query.dayName} ${query.timeLabel} 동안 비어 있는 강의실',
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: AppTextStyles.caption04.copyWith(
-                              color: AppColors.textSecondary,
-                            ),
-                          ),
-                        ),
-                        Tooltip(
-                          message: '시간 설정',
-                          child: InkWell(
-                            borderRadius: BorderRadius.circular(8),
-                            onTap: () => showClassroomTimeSheet(context),
-                            child: Padding(
-                              padding: const EdgeInsets.all(4),
-                              child: SvgPicture.asset(
-                                'assets/icon/emptyclass_setting.svg',
-                                width: 18,
-                                height: 18,
-                                colorFilter: const ColorFilter.mode(
-                                    AppColors.textSecondary, BlendMode.srcIn),
-                              ),
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
+                    label: '빈 강의실 갱신 중',
+                    style: SandolTypography.caption,
+                  ),
                 ),
               ),
             ),
-            const Divider(height: 1, thickness: 1, color: AppColors.divider),
-            const SizedBox(height: 4),
-            // 리스트
-            Expanded(
-              child: items.isEmpty
-                  ? Center(
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(Icons.meeting_room_outlined,
-                              size: 52, color: Colors.grey.shade300),
-                          const SizedBox(height: 12),
-                          Text(
-                            '현재 빈 강의실이 없습니다.',
-                            style: AppTextStyles.caption03.copyWith(
-                              color: Colors.black38,
-                            ),
-                          ),
-                        ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildSheet(
+    List<EmptyClass> items,
+    ScrollController sc,
+    double minFrac,
+    double screenH,
+  ) {
+    final totalRooms = items.fold<int>(0, (s, e) => s + e.emptyCount);
+    final query = ref.watch(classroomQueryControllerProvider);
+
+    return Material(
+      color: SandolColors.background,
+      shape: const RoundedRectangleBorder(
+        borderRadius: SandolMetrics.radiusTop,
+        side: BorderSide(color: SandolColors.border),
+      ),
+      clipBehavior: Clip.antiAlias,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          // 헤더: 리스트 스크롤 위치와 무관하게 항상 시트를 끌 수 있다.
+          GestureDetector(
+            behavior: HitTestBehavior.opaque,
+            onVerticalDragUpdate:
+                (d) => _onHeaderDragUpdate(d, minFrac, screenH),
+            onVerticalDragEnd: (d) => _onHeaderDragEnd(d, minFrac, screenH),
+            child: _SheetHeader(
+              subtitle: '${query.dayName} ${query.timeLabel} 동안 비어 있는 강의실',
+              buildings: items.length,
+              rooms: totalRooms,
+              onBack: _handleBack,
+              onSubtitleTap: () => showClassroomTimeSheet(context),
+            ),
+          ),
+          Expanded(
+            child:
+                items.isEmpty
+                    ? Center(
+                      child: Text(
+                        '현재 빈 강의실이 없습니다.',
+                        style: SandolTypography.caption.muted,
                       ),
                     )
-                  : ListView.separated(
+                    : ListView.separated(
                       controller: sc,
                       // 카드가 미리 빌드돼 있어야 ensureVisible 스크롤이
                       // 항상 정확히 동작한다 (건물 수십 개 수준이라 부담 없음).
                       cacheExtent: 4000,
-                      padding: const EdgeInsets.fromLTRB(16, 8, 16, 40),
+                      padding: const EdgeInsets.fromLTRB(
+                        SandolMetrics.pageGutter,
+                        SandolSpacing.md,
+                        SandolMetrics.pageGutter,
+                        SandolSpacing.xl,
+                      ),
                       itemCount: items.length,
-                      separatorBuilder: (_, _) => const SizedBox(height: 10),
+                      separatorBuilder:
+                          (_, _) => const SizedBox(height: SandolSpacing.lg),
                       itemBuilder: (_, idx) {
                         final item = items[idx];
                         return KeyedSubtree(
                           key: _cardKeys.putIfAbsent(
-                              item.className, GlobalKey.new),
-                          child: _EmptyClassCard(
+                            item.className,
+                            GlobalKey.new,
+                          ),
+                          child: _BuildingCard(
                             item: item,
-                            isSelected: item.className == _selectedId,
+                            selected: item.className == _selectedId,
                             onTap: () => _selectBuilding(item, reveal: false),
                           ),
                         );
                       },
                     ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _StatChip extends StatelessWidget {
-  final String label;
-  final Color color;
-  const _StatChip({required this.label, required this.color});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-      decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.09),
-        borderRadius: BorderRadius.circular(99),
-        border: Border.all(color: color.withValues(alpha: 0.25)),
-      ),
-      child: Text(
-        label,
-        style: AppTextStyles.caption04.copyWith(color: color),
-      ),
-    );
-  }
-}
-
-class _EmptyClassCard extends StatelessWidget {
-  final EmptyClass item;
-  final bool isSelected;
-  final VoidCallback? onTap;
-
-  const _EmptyClassCard(
-      {required this.item, this.isSelected = false, this.onTap});
-
-  @override
-  Widget build(BuildContext context) {
-    const primary = AppColors.primary;
-
-    return AnimatedContainer(
-      duration: const Duration(milliseconds: 200),
-      decoration: BoxDecoration(
-        // 기본은 차분한 쿨그레이, 선택 시에만 브랜드 톤으로 밝게 반전
-        color: isSelected ? AppColors.primaryLight : const Color(0xFFF5F6F8),
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(
-          color: isSelected
-              ? primary.withValues(alpha: 0.45)
-              : const Color(0xFFE7E9EE),
-          width: isSelected ? 1.5 : 1.0,
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: isSelected
-                ? primary.withValues(alpha: 0.12)
-                : Colors.black.withValues(alpha: 0.04),
-            blurRadius: isSelected ? 16 : 10,
-            offset: const Offset(0, 6),
           ),
         ],
       ),
-      child: Material(
-        color: Colors.transparent,
-        borderRadius: BorderRadius.circular(20),
-        child: InkWell(
-          borderRadius: BorderRadius.circular(20),
-          onTap: onTap,
-          child: Padding(
-            padding: const EdgeInsets.all(14),
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
+    );
+  }
+}
 
-                // 내용
-                Expanded(
+/// 시트가 거의 전체로 올라왔을 때 지도를 덮는 어두운 막 + '지도' 라벨 (2158:1177).
+class _MapCover extends StatelessWidget {
+  const _MapCover({required this.visible, required this.onTap});
+
+  final bool visible;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) => Positioned.fill(
+    child: IgnorePointer(
+      ignoring: !visible,
+      child: AnimatedOpacity(
+        duration: const Duration(milliseconds: 200),
+        opacity: visible ? 1 : 0,
+        child: GestureDetector(
+          onTap: onTap,
+          child: ColoredBox(
+            // main20 + text20 을 지도 위에 겹친 색
+            color: const Color(0x333882D3),
+            child: ColoredBox(
+              color: const Color(0x33040404),
+              child: SafeArea(
+                child: Padding(
+                  padding: const EdgeInsets.only(top: 12),
                   child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Row(
-                        children: [
-                          Expanded(
-                            child: Text(
-                              item.className,
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style: AppTextStyles.caption01.copyWith(
-                                color: isSelected ? primary : Colors.black87,
-                              ),
-                            ),
-                          ),
-                          const SizedBox(width: 8),
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 10, vertical: 5),
-                            decoration: BoxDecoration(
-                              color: isSelected ? primary : Colors.white,
-                              border: Border.all(
-                                color: isSelected
-                                    ? Colors.transparent
-                                    : const Color(0xFFE3E6EB),
-                              ),
-                              borderRadius: BorderRadius.circular(999),
-                            ),
-                            child: Text(
-                              '총 ${item.classCount}개',
-                              style: AppTextStyles.caption04.copyWith(
-                                color:
-                                    isSelected ? Colors.white : Colors.black87,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 8),
-                      _FloorGroupedRooms(classList: item.classList),
+                      Text('지도', style: SandolTypography.title.onPrimary),
+                      const SizedBox(height: 7),
+                      const _Grip(),
                     ],
                   ),
                 ),
-              ],
+              ),
             ),
           ),
         ),
+      ),
+    ),
+  );
+}
+
+/// 시트 손잡이 (2158:1410)
+class _Grip extends StatelessWidget {
+  const _Grip();
+
+  @override
+  Widget build(BuildContext context) => const SizedBox(
+    width: 42.5,
+    height: 8,
+    child: DecoratedBox(
+      decoration: BoxDecoration(
+        color: SandolColors.inactive,
+        borderRadius: BorderRadius.all(Radius.circular(4)),
+      ),
+    ),
+  );
+}
+
+/// 손잡이 · 뒤로가기 + 제목 · 조회 구간 + 동/개수 (2158:811 상단)
+class _SheetHeader extends StatelessWidget {
+  const _SheetHeader({
+    required this.subtitle,
+    required this.buildings,
+    required this.rooms,
+    required this.onBack,
+    required this.onSubtitleTap,
+  });
+
+  final String subtitle;
+  final int buildings;
+  final int rooms;
+  final VoidCallback onBack;
+
+  /// 조회 구간 문구를 누르면 시간 설정 시트가 열린다.
+  final VoidCallback onSubtitleTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final stat = SandolTypography.caption.strong.muted;
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(
+        SandolMetrics.pageGutter,
+        5,
+        SandolMetrics.pageGutter,
+        0,
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Center(child: _Grip()),
+          const SizedBox(height: 12),
+          Row(
+            children: [
+              InkWell(
+                borderRadius: SandolMetrics.radius,
+                onTap: onBack,
+                child: Padding(
+                  padding: const EdgeInsets.all(SandolSpacing.xs),
+                  child: SvgPicture.asset(SandolAssets.backArrow),
+                ),
+              ),
+              const SizedBox(width: 11),
+              const Text('빈 강의실 현황', style: SandolTypography.title),
+            ],
+          ),
+          const SizedBox(height: 5),
+          Row(
+            children: [
+              Expanded(
+                child: InkWell(
+                  borderRadius: SandolMetrics.radius,
+                  onTap: onSubtitleTap,
+                  child: Text(
+                    subtitle,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: SandolTypography.caption.muted,
+                  ),
+                ),
+              ),
+              const SizedBox(width: 12),
+              Text('$buildings동', style: stat),
+              const SizedBox(width: 12),
+              Text('총 $rooms개', style: stat),
+            ],
+          ),
+        ],
       ),
     );
   }
 }
 
-/// 강의실 목록을 층별로 그룹화하여 세로 표시
-class _FloorGroupedRooms extends StatelessWidget {
-  final List<String> classList;
-  const _FloorGroupedRooms({required this.classList});
+/// 건물 한 장: 건물명 · 개수 · 층별 강의실 칩 (2158:815)
+class _BuildingCard extends StatelessWidget {
+  const _BuildingCard({
+    required this.item,
+    required this.selected,
+    required this.onTap,
+  });
 
-  String _extractFloor(String room) {
-    final match = RegExp(r'\d').firstMatch(room);
-    return match != null ? '${match.group(0)}층' : '기타';
+  final EmptyClass item;
+
+  /// 마커로 고른 건물. 개수를 강조색 굵은 글씨로 보여준다(2158:1194).
+  final bool selected;
+  final VoidCallback onTap;
+
+  static String _floorOf(String room) {
+    final m = RegExp(r'\d').firstMatch(room);
+    return m == null ? '기타' : '${m.group(0)}층';
   }
 
   @override
   Widget build(BuildContext context) {
-    final Map<String, List<String>> floorMap = {};
-    for (final room in classList) {
-      floorMap.putIfAbsent(_extractFloor(room), () => []).add(room);
+    final floors = <String, List<String>>{};
+    for (final room in item.classList) {
+      floors.putIfAbsent(_floorOf(room), () => []).add(room);
     }
+    final sortedFloors =
+        floors.keys.toList()..sort((a, b) {
+          if (a == '기타') return 1;
+          if (b == '기타') return -1;
+          return a.compareTo(b);
+        });
 
-    final sortedFloors = floorMap.keys.toList()
-      ..sort((a, b) {
-        if (a == '기타') return 1;
-        if (b == '기타') return -1;
-        return a.compareTo(b);
-      });
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: sortedFloors.map((floor) {
-        final rooms = floorMap[floor]!;
-        return Padding(
-          padding: const EdgeInsets.only(bottom: 6),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+    return SandolCard(
+      onTap: onTap,
+      padding: const EdgeInsets.fromLTRB(11, 24, 19, 20),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        spacing: SandolSpacing.md,
+        children: [
+          Row(
             children: [
-              Row(
-                children: [
-                  const Icon(Icons.layers_rounded,
-                      size: 12, color: AppColors.primary),
-                  const SizedBox(width: 4),
-                  Text(
-                    floor,
-                    style: AppTextStyles.caption04.copyWith(
-                      color: AppColors.primary,
-                    ),
-                  ),
-                ],
+              Expanded(
+                child: Text(
+                  item.className,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: SandolTypography.title.accent,
+                ),
               ),
-              const SizedBox(height: 4),
-              Wrap(
-                spacing: 4,
-                runSpacing: 4,
-                children:
-                    rooms.map((room) => _RoomChip(text: room)).toList(),
+              Text(
+                '${item.emptyCount}개',
+                style:
+                    selected
+                        ? SandolTypography.body.strong.accent
+                        : SandolTypography.body.copyWith(
+                          color: SandolColors.textSecondary,
+                        ),
               ),
             ],
           ),
-        );
-      }).toList(),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            spacing: SandolSpacing.sm,
+            children: [
+              for (final floor in sortedFloors) ...[
+                SandolIconLabel(
+                  icon: SvgPicture.asset(SandolAssets.floor),
+                  label: floor,
+                  style: SandolTypography.caption,
+                  gap: 5,
+                ),
+                Wrap(
+                  spacing: SandolSpacing.sm,
+                  runSpacing: SandolSpacing.sm,
+                  children: [
+                    for (final room in floors[floor]!) _RoomChip(room),
+                  ],
+                ),
+              ],
+            ],
+          ),
+        ],
+      ),
     );
   }
 }
 
 class _RoomChip extends StatelessWidget {
-  final String text;
-  const _RoomChip({required this.text});
+  const _RoomChip(this.room);
+
+  final String room;
 
   @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        border: Border.all(color: const Color(0xFFE3E6EB)),
-        borderRadius: BorderRadius.circular(999),
-      ),
-      child: Text(
-        text,
-        style: AppTextStyles.caption04.copyWith(color: Colors.black87),
-      ),
-    );
-  }
+  Widget build(BuildContext context) => Container(
+    padding: const EdgeInsets.symmetric(
+      horizontal: 10,
+      vertical: SandolSpacing.xs,
+    ),
+    decoration: const BoxDecoration(
+      color: Colors.white,
+      borderRadius: SandolMetrics.radius,
+    ),
+    child: Text(room, style: SandolTypography.caption),
+  );
 }
-

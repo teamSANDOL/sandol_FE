@@ -100,11 +100,32 @@ NextShuttle nextShuttle(
   required ShuttleDirection direction,
 }) {
   final now = ref.watch(shuttleClockProvider);
-  final dayType = ShuttleScheduleData.dayTypeOf(now);
-  final timetable = ShuttleScheduleData.timetableFor(
-    route: route,
-    direction: direction,
-    dayType: dayType,
+  return NextShuttleCalculator.calculate(
+    _timetableAt(now, route, direction),
+    now,
   );
-  return NextShuttleCalculator.calculate(timetable, now);
 }
+
+/// (노선·방향)별 [shuttleClockProvider] 기준 이후 시간표 항목(최대 3개).
+@riverpod
+List<ShuttleEntry> upcomingShuttles(
+  Ref ref, {
+  required ShuttleRoute route,
+  required ShuttleDirection direction,
+}) {
+  final now = ref.watch(shuttleClockProvider);
+  return NextShuttleCalculator.upcoming(
+    _timetableAt(now, route, direction),
+    now,
+  );
+}
+
+ShuttleTimetable? _timetableAt(
+  DateTime now,
+  ShuttleRoute route,
+  ShuttleDirection direction,
+) => ShuttleScheduleData.timetableFor(
+  route: route,
+  direction: direction,
+  dayType: ShuttleScheduleData.dayTypeOf(now),
+);

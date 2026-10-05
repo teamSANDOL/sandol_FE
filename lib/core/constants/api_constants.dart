@@ -28,5 +28,6 @@ abstract class ApiConstants {
 
   /// 계정 삭제 요청 페이지(웹). 앱 내 탈퇴와 별개로 Play 정책이 요구한다.
   /// 원본은 docs/account-deletion.html.
-  static const String accountDeletionUrl = 'https://sandori.kr/account-deletion';
+  static const String accountDeletionUrl =
+      'https://sandori.kr/account-deletion';
 }

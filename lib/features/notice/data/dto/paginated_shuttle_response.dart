@@ -23,7 +23,7 @@ class PaginatedShuttleResponse {
   Map<String, dynamic> toJson() => _$PaginatedShuttleResponseToJson(this);
 
   ({List<Shuttle> items, int total}) toDomain() => (
-        items: items.map((e) => e.toDomain()).toList(),
-        total: total,
-      );
+    items: items.map((e) => e.toDomain()).toList(),
+    total: total,
+  );
 }
