@@ -426,8 +426,9 @@ class _NextBusCard extends StatelessWidget {
 
 // ── 본교 환승 (정왕역 ↔ 제2캠퍼스) ─────────────────────────────────────────
 
-/// 직행편 말고 본교에서 갈아타는 연결. 소요시간이 추정이라 '예상'으로 적는다.
-class _TransferCard extends StatelessWidget {
+/// 직행편 말고 본교에서 갈아타는 연결. 간격이 안전 기준이라 '예상'으로 적는다.
+/// "이전 버스도 보기"를 펼치면 같은 환승편에 빠듯하게 닿는 1구간 편도 보인다.
+class _TransferCard extends StatefulWidget {
   const _TransferCard({required this.school, required this.connections});
 
   /// 본교 정류장 이름.
@@ -435,36 +436,66 @@ class _TransferCard extends StatelessWidget {
   final List<ShuttleConnection> connections;
 
   @override
-  Widget build(BuildContext context) => SandolCard(
-    child: Padding(
-      padding: const EdgeInsets.all(SandolMetrics.cardInset),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        spacing: SandolSpacing.sm,
-        children: [
-          Text(
-            '$school에서 갈아타기 (예상)'.keepAll,
-            style: SandolTypography.body.strong,
-          ),
-          if (connections.isEmpty)
-            Text('오늘 환승 가능한 편이 없어요', style: SandolTypography.body.muted)
-          else
-            for (final c in connections)
-              Text(
-                '${c.departure.label} 출발'
-                        '${c.first.isSegment ? ' (${NextShuttleCalculator.segmentName(c.first)})' : ''}'
-                        ' → 본교 ${c.transfer.label} 환승 출발'
-                    .keepAll,
-                style: SandolTypography.body,
+  State<_TransferCard> createState() => _TransferCardState();
+}
+
+class _TransferCardState extends State<_TransferCard> {
+  bool _showTighter = false;
+
+  static String _row(ShuttleTime departure, ShuttleTime transfer, String tag) =>
+      '${departure.label} 출발$tag → 본교 ${transfer.label} 환승 출발'.keepAll;
+
+  @override
+  Widget build(BuildContext context) {
+    final connections = widget.connections;
+    final hasTighter = connections.any((c) => c.tighter.isNotEmpty);
+    return SandolCard(
+      child: Padding(
+        padding: const EdgeInsets.all(SandolMetrics.cardInset),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          spacing: SandolSpacing.sm,
+          children: [
+            Text(
+              '${widget.school}에서 갈아타기 (예상)'.keepAll,
+              style: SandolTypography.body.strong,
+            ),
+            if (connections.isEmpty)
+              Text('오늘 환승 가능한 편이 없어요', style: SandolTypography.body.muted)
+            else
+              for (final c in connections) ...[
+                Text(
+                  _row(
+                    c.departure,
+                    c.transfer,
+                    c.first.isSegment
+                        ? ' (${NextShuttleCalculator.segmentName(c.first)})'
+                        : '',
+                  ),
+                  style: SandolTypography.body,
+                ),
+                // 같은 환승편으로 이어지는, 더 늦게 출발하는 1구간 편.
+                if (_showTighter)
+                  for (final t in c.tighter)
+                    Text(
+                      _row(t, c.transfer, ' (빠듯함)'),
+                      style: SandolTypography.body.muted,
+                    ),
+              ],
+            if (hasTighter)
+              TextButton(
+                onPressed: () => setState(() => _showTighter = !_showTighter),
+                child: Text(_showTighter ? '이전 버스 숨기기' : '이전 버스도 보기'),
               ),
-          Text(
-            '환승 시간은 교통 상황에 따라 달라질 수 있어요'.keepAll,
-            style: SandolTypography.caption.inactive,
-          ),
-        ],
+            Text(
+              '환승 시간은 교통 상황에 따라 달라질 수 있어요'.keepAll,
+              style: SandolTypography.caption.inactive,
+            ),
+          ],
+        ),
       ),
-    ),
-  );
+    );
+  }
 }
 
 // ── 전체 시간표 (2156:511 · 2156:514) ────────────────────────────────────────

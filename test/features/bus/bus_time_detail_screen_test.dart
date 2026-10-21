@@ -125,7 +125,7 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('정왕역 → 제2캠퍼스 (한국공학대 정문 경유)'), findsOneWidget);
     expect(find.text('한국공학대 정문 경유'), findsOneWidget);
-    expect(find.text('운행 종료'), findsOneWidget);
+    expect(find.text('직행 종료 · 환승 이용'), findsOneWidget);
   });
 
   testWidgets('정왕역 → 제2캠퍼스: 직행편과 본교 환승을 함께 보여 준다', (tester) async {
@@ -146,6 +146,41 @@ void main() {
       findsOneWidget,
     );
     expect(find.text('환승 시간은 교통 상황에 따라 달라질 수 있어요'.keepAll), findsOneWidget);
+  });
+
+  testWidgets('직행이 끝나도 환승이 있으면 다음 버스 카드가 환승을 안내하고, 빠듯한 편은 펼쳐 본다', (
+    tester,
+  ) async {
+    await pump(tester, DateTime.utc(2026, 10, 6, 10, 0));
+    await tester.tap(find.byTooltip('출발 정류장 선택'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('정왕역').last);
+    await tester.pumpAndSettle();
+    await tester.tap(find.byTooltip('도착 정류장 선택'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('제2캠퍼스'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('직행 종료 · 환승 이용'), findsOneWidget);
+    expect(find.text('10:30 출발 → 본교 11:00 환승'), findsOneWidget);
+    final tight = find.text('10:50 출발 (빠듯함) → 본교 11:00 환승 출발'.keepAll);
+    expect(tight, findsNothing);
+    await tester.tap(find.text('이전 버스도 보기'));
+    await tester.pumpAndSettle();
+    expect(tight, findsOneWidget);
+  });
+
+  testWidgets('직행도 환승도 없으면 운행 종료', (tester) async {
+    await pump(tester, DateTime.utc(2026, 10, 6, 20, 0));
+    await tester.tap(find.byTooltip('출발 정류장 선택'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('정왕역').last);
+    await tester.pumpAndSettle();
+    await tester.tap(find.byTooltip('도착 정류장 선택'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('제2캠퍼스'));
+    await tester.pumpAndSettle();
+    expect(find.text('운행 종료'), findsOneWidget);
   });
 
   testWidgets('환승 연결이 없으면 안내한다', (tester) async {
