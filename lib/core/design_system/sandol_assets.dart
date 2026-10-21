@@ -11,7 +11,8 @@ abstract final class SandolAssets {
   static const selectArrow = '$_base/select_arrow.svg'; // 2143:2648
   static const dividerLeft = '$_base/divider_left.svg'; // 2142:2400
   static const dividerRight = '$_base/divider_right.svg'; // 2142:2402
-  // VIDEO fill(2219:447)의 정지 프레임. 원본 MP4 확보 후 영상으로 교체한다.
+  // VIDEO fill(2219:447). 영상 준비 전·실패 시엔 첫 프레임인 정지 이미지를 쓴다.
+  static const splashVideo = '$_base/splash.mp4'; // 오디오 트랙 제거본
   static const splashPoster = '$_base/splash_art.png';
 
   // ── 홈(2153:219) ─────────────────────────────────────────────

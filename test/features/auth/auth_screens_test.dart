@@ -23,6 +23,7 @@ import 'package:handori/features/school_meal/domain/model/meal.dart';
 import 'package:handori/features/school_meal/domain/model/restaurant.dart';
 import 'package:handori/features/school_meal/presentation/provider/meal_list_notifier.dart';
 import 'package:handori/features/school_meal/presentation/provider/restaurant_list_notifier.dart';
+import 'package:video_player/video_player.dart';
 
 class _TestAuth extends AuthNotifier {
   _TestAuth([this.restoredSession]);
@@ -321,6 +322,24 @@ void main() {
     await tester.pump(const Duration(seconds: 1));
     expect(router.routeInformationProvider.value.uri.path, RoutePaths.splash);
     schedule.complete(null);
+    await tester.pumpAndSettle();
+    expect(find.text('HOME'), findsOneWidget);
+  });
+
+  // 테스트엔 영상 플랫폼 구현이 없어 초기화가 실패한다. 영상(6초)을 기다리지
+  // 않고 정지 이미지를 보여 주다가 로딩이 끝난 그 프레임에 넘어가야 한다.
+  testWidgets('스플래시는 영상과 무관하게 로딩이 끝나는 즉시 이동한다', (tester) async {
+    final restored = Completer<AuthSession?>();
+    final router = await host(
+      tester,
+      initial: RoutePaths.splash,
+      session: restored.future,
+    );
+    expect(find.byType(VideoPlayer), findsNothing);
+    expect(find.bySemanticsLabel('산돌이 시작 화면'), findsOneWidget);
+    restored.complete(const AuthSession(accessToken: 'test-only'));
+    await tester.pump();
+    expect(router.routeInformationProvider.value.uri.path, RoutePaths.home);
     await tester.pumpAndSettle();
     expect(find.text('HOME'), findsOneWidget);
   });
