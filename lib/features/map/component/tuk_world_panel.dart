@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:handori/core/design_system/sandol_assets.dart';
 import 'package:handori/core/design_system/sandol_tokens.dart';
+import 'package:handori/core/utils/keep_all.dart';
 import 'package:handori/features/map/component/map_common.dart';
 import 'package:handori/features/map/data/tuk_place.dart';
 import 'package:handori/features/map/presentation/provider/tuk_world_provider.dart';
@@ -191,7 +192,7 @@ class _PlaceRow extends StatelessWidget {
               ),
               const SizedBox(height: SandolSpacing.sm),
               Text(
-                place.discountInfo ?? '',
+                (place.discountInfo ?? '').keepAll,
                 maxLines: 2,
                 overflow: TextOverflow.ellipsis,
                 style: SandolTypography.caption.muted.copyWith(fontSize: 12),
@@ -303,7 +304,7 @@ class TukPlaceDetail extends StatelessWidget {
             const Text('제휴 혜택', style: SandolTypography.body),
             const SizedBox(height: SandolSpacing.sm),
             Text(
-              place.discountInfo ?? '등록된 혜택 정보가 없어요',
+              (place.discountInfo ?? '등록된 혜택 정보가 없어요').keepAll,
               style: SandolTypography.body.muted,
             ),
           ],
@@ -319,7 +320,10 @@ class TukPlaceDetail extends StatelessWidget {
               child: Text('주소', style: SandolTypography.body),
             ),
             Expanded(
-              child: Text(place.address!, style: SandolTypography.body.muted),
+              child: Text(
+                place.address!.keepAll,
+                style: SandolTypography.body.muted,
+              ),
             ),
           ],
         ),

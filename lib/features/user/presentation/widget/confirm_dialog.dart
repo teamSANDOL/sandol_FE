@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:handori/core/constants/app_colors.dart';
 import 'package:handori/core/constants/app_radius.dart';
+import 'package:handori/core/utils/keep_all.dart';
 import 'package:handori/shared/widget/sandol_loading_indicator.dart';
 
 /// 진행 중 다이얼로그를 띄운 채 [task] 를 수행한다. 예외는 그대로 올린다.
@@ -69,7 +70,7 @@ class ConfirmDialog extends StatelessWidget {
             ),
             const SizedBox(height: 16),
             Text(
-              title,
+              title.keepAll,
               style: const TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.w700,
@@ -78,7 +79,7 @@ class ConfirmDialog extends StatelessWidget {
             ),
             const SizedBox(height: 8),
             Text(
-              message,
+              message.keepAll,
               textAlign: TextAlign.center,
               style: const TextStyle(
                 fontSize: 14,
@@ -139,8 +140,8 @@ class _DialogButton extends StatelessWidget {
       child: InkWell(
         onTap: onTap,
         borderRadius: BorderRadius.circular(AppRadius.value),
-        child: SizedBox(
-          height: 48,
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(minHeight: 48),
           child: Center(
             child: Text(
               label,

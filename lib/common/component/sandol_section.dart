@@ -10,7 +10,7 @@ class SandolSection extends StatelessWidget {
     this.trailing,
   });
 
-  /// 제목 줄 높이. 제목에 겹쳐 올리는 요소가 위치를 계산할 때 쓴다.
+  /// 제목 줄 최소 높이. 글꼴이 커지면 늘어난다. 제목에 겹쳐 올리는 요소는 기본 글꼴 기준으로 위치를 계산한다.
   static const double titleHeight = 24;
 
   final String title;
@@ -23,8 +23,8 @@ class SandolSection extends StatelessWidget {
   Widget build(BuildContext context) => Column(
     crossAxisAlignment: CrossAxisAlignment.stretch,
     children: [
-      SizedBox(
-        height: titleHeight,
+      ConstrainedBox(
+        constraints: const BoxConstraints(minHeight: titleHeight),
         child: Row(
           children: [
             Expanded(child: Text(title, style: SandolTypography.title)),

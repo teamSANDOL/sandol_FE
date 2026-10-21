@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:handori/common/layout/root_shell.dart';
+import 'package:handori/core/utils/keep_all.dart';
 import 'package:handori/core/utils/korea_time.dart';
 import 'package:handori/features/school_meal/domain/model/meal.dart';
 import 'package:handori/features/school_meal/domain/model/meal_type.dart';
@@ -115,15 +116,15 @@ void main() {
         await tapTab(tester, '점심');
         await tester.pumpAndSettle();
         expect(find.text('식당 1곳'), findsOneWidget);
-        expect(find.text('TIP 가가식당'), findsOneWidget);
-        expect(find.text('소고기 하이라이스'), findsOneWidget);
-        expect(find.text('E동 레스토랑'), findsNothing);
+        expect(find.text('TIP 가가식당'.keepAll), findsOneWidget);
+        expect(find.text('소고기 하이라이스'.keepAll), findsOneWidget);
+        expect(find.text('E동 레스토랑'.keepAll), findsNothing);
 
         await tapTab(tester, '저녁');
         await tester.pumpAndSettle();
-        expect(find.text('E동 레스토랑'), findsOneWidget);
-        expect(find.text('김치찌개'), findsOneWidget);
-        expect(find.text('TIP 가가식당'), findsNothing);
+        expect(find.text('E동 레스토랑'.keepAll), findsOneWidget);
+        expect(find.text('김치찌개'.keepAll), findsOneWidget);
+        expect(find.text('TIP 가가식당'.keepAll), findsNothing);
         expect(tester.takeException(), isNull);
       });
 
@@ -132,7 +133,7 @@ void main() {
         await tapTab(tester, '조식');
         await tester.pumpAndSettle();
         expect(find.text('식당 0곳'), findsOneWidget);
-        expect(find.text('등록된 식단이 없어요'), findsOneWidget);
+        expect(find.text('등록된 식단이 없어요'.keepAll), findsOneWidget);
       });
     });
   }

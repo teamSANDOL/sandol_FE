@@ -7,6 +7,7 @@ import 'package:handori/common/component/sandol_card.dart';
 import 'package:handori/core/design_system/sandol_assets.dart';
 import 'package:handori/core/design_system/sandol_tokens.dart';
 import 'package:handori/core/router/route_paths.dart';
+import 'package:handori/core/utils/keep_all.dart';
 import 'package:handori/features/user/presentation/widget/withdraw_actions.dart';
 
 /// 회원탈퇴 1단계: 이유 선택 (Figma 2196:800).
@@ -65,7 +66,7 @@ class _WithdrawReasonPageState extends State<WithdrawReasonPage> {
             Padding(
               padding: const EdgeInsets.only(left: 11),
               child: Text(
-                '탈퇴하는 이유를 알려주세요',
+                '탈퇴하는 이유를 알려주세요'.keepAll,
                 style: SandolTypography.title.accent,
               ),
             ),
@@ -148,7 +149,7 @@ class _ReasonOption extends StatelessWidget {
               ),
               Expanded(
                 child: Text(
-                  label,
+                  label.keepAll,
                   style:
                       selected
                           ? SandolTypography.body.strong

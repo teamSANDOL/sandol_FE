@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:handori/core/router/route_paths.dart';
+import 'package:handori/core/utils/keep_all.dart';
 import 'package:handori/features/auth/domain/model/auth_session.dart';
 import 'package:handori/features/auth/presentation/provider/auth_provider.dart';
 import 'package:handori/features/user/presentation/page/withdraw_confirm_page.dart';
@@ -67,11 +68,11 @@ void main() {
 
   testWidgets('이유 선택: 고르기 전엔 다음 단계 비활성, 고르면 의견 칸이 열리고 넘어간다', (tester) async {
     await pump(tester, RoutePaths.withdraw);
-    expect(find.text('탈퇴하는 이유를 알려주세요'), findsOneWidget);
+    expect(find.text('탈퇴하는 이유를 알려주세요'.keepAll), findsOneWidget);
     expect(enabled(tester, '다음 단계로'), isFalse);
     expect(find.byType(TextField), findsNothing);
 
-    await tester.tap(find.text('타 앱이 더 편해요(ex. tukorea portal)'));
+    await tester.tap(find.text('타 앱이 더 편해요(ex. tukorea portal)'.keepAll));
     await tester.pumpAndSettle();
     expect(find.byType(TextField), findsOneWidget);
     expect(enabled(tester, '다음 단계로'), isTrue);
@@ -84,7 +85,7 @@ void main() {
   testWidgets('최종 확인: 동의해야 탈퇴 버튼이 켜지고, 탈퇴하면 로그인 화면으로', (tester) async {
     await pump(tester, RoutePaths.withdrawConfirm);
     expect(find.text('꼭 확인해주세요!'), findsOneWidget);
-    expect(find.textContaining('30일 동안'), findsOneWidget);
+    expect(find.textContaining('30일 동안'.keepAll), findsOneWidget);
     expect(enabled(tester, '회원 탈퇴하기'), isFalse);
 
     await tester.tap(find.text('위 내용을 숙지하였으며 탈퇴에 동의합니다.'));

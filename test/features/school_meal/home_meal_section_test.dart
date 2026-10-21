@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:handori/common/component/sandol_chip.dart';
+import 'package:handori/core/utils/keep_all.dart';
 import 'package:handori/core/utils/korea_time.dart';
 import 'package:handori/features/school_meal/domain/model/meal_type.dart';
 import 'package:handori/features/school_meal/domain/model/restaurant.dart';
@@ -58,7 +59,7 @@ void main() {
   double pageHeight(WidgetTester tester) =>
       tester.getSize(find.byType(PageView)).height;
   double cardX(WidgetTester tester, String text) =>
-      tester.getTopLeft(find.text(text)).dx;
+      tester.getTopLeft(find.text(text.keepAll)).dx;
   bool chipSelected(WidgetTester tester, String label) =>
       tester
           .widget<SandolChip>(find.widgetWithText(SandolChip, label))
@@ -109,7 +110,7 @@ void main() {
     await pump(tester);
     container.read(selectedRestaurantIdProvider.notifier).select(3);
     await tester.pumpAndSettle();
-    expect(find.text('C식당 메뉴0'), findsOneWidget);
+    expect(find.text('C식당 메뉴0'.keepAll), findsOneWidget);
     expect(selectedId(), 3); // 이동 중 지나친 B로 덮어쓰이지 않는다
     expect(cardX(tester, 'C식당 메뉴0'), lessThan(412));
   });
@@ -141,7 +142,7 @@ void main() {
 
   testWidgets('카드를 탭하면 선택을 확정하고 onTap을 부른다', (tester) async {
     await pump(tester);
-    await tester.tap(find.text('A식당 메뉴0'));
+    await tester.tap(find.text('A식당 메뉴0'.keepAll));
     expect(taps, 1);
     expect(selectedId(), 1);
   });
@@ -160,7 +161,7 @@ void main() {
     // 정지 상태에서 옆(B) 카드는 PageView 오른쪽 경계 밖에 놓인다.
     final viewRight = tester.getTopRight(find.byType(PageView)).dx;
     expect(
-      tester.getTopLeft(find.text('B식당 메뉴0', skipOffstage: false)).dx,
+      tester.getTopLeft(find.text('B식당 메뉴0'.keepAll, skipOffstage: false)).dx,
       greaterThanOrEqualTo(viewRight),
     );
   });

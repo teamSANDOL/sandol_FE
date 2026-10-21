@@ -11,6 +11,7 @@ import 'package:handori/core/design_system/sandol_assets.dart';
 import 'package:handori/core/design_system/sandol_tokens.dart';
 import 'package:handori/core/router/route_paths.dart';
 import 'package:handori/core/utils/external_link.dart';
+import 'package:handori/core/utils/keep_all.dart';
 import 'package:handori/core/utils/korea_time.dart';
 import 'package:handori/features/bus/component/bus_time_card.dart';
 import 'package:handori/features/bus/presentation/provider/next_shuttle_provider.dart';
@@ -209,7 +210,10 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     if (restaurants.isEmpty) {
       return Padding(
         padding: const EdgeInsets.symmetric(vertical: SandolSpacing.lg),
-        child: Text('등록된 식당이 없습니다', style: SandolTypography.caption.muted),
+        child: Text(
+          '등록된 식당이 없습니다'.keepAll,
+          style: SandolTypography.caption.muted,
+        ),
       );
     }
 
@@ -231,7 +235,7 @@ class _MealErrorView extends StatelessWidget {
       children: [
         Expanded(
           child: Text(
-            '학식 정보를 불러올 수 없습니다.',
+            '학식 정보를 불러올 수 없습니다.'.keepAll,
             style: SandolTypography.caption.muted,
           ),
         ),

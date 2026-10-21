@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:handori/core/utils/keep_all.dart';
 import 'package:handori/features/map/component/tuk_world_panel.dart';
 import 'package:handori/features/map/data/tuk_place.dart';
 import 'package:handori/features/map/presentation/provider/tuk_world_provider.dart';
@@ -93,7 +94,7 @@ void main() {
     expect(tester.takeException(), isNull);
     expect(find.text('술집  2곳', findRichText: true), findsOneWidget);
     expect(find.text('79대포'), findsOneWidget);
-    expect(find.text('김복남맥주 혜택'), findsOneWidget);
+    expect(find.text('김복남맥주 혜택'.keepAll), findsOneWidget);
     expect(find.text('볼링장'), findsNothing);
     await tester.tap(find.text('김복남맥주'));
     expect(opened?.id, 2);
@@ -105,7 +106,7 @@ void main() {
       host(null, load: () async => throw Exception('404')),
     );
     await tester.pumpAndSettle();
-    expect(find.text('TUK 월드 정보를 불러오지 못했어요'), findsOneWidget);
+    expect(find.text('TUK 월드 정보를 불러오지 못했어요'.keepAll), findsOneWidget);
   });
 
   testWidgets('상세: 혜택 · 주소 · 지도에서 위치 보기', (tester) async {
@@ -129,8 +130,8 @@ void main() {
       ),
     );
     expect(tester.takeException(), isNull);
-    expect(find.text('79대포 혜택'), findsOneWidget);
-    expect(find.text('경기 시흥시 산기대학로 237'), findsOneWidget);
+    expect(find.text('79대포 혜택'.keepAll), findsOneWidget);
+    expect(find.text('경기 시흥시 산기대학로 237'.keepAll), findsOneWidget);
     await tester.tap(find.text('지도에서 위치 보기'));
     expect(shown, isTrue);
   });

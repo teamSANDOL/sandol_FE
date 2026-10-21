@@ -138,8 +138,8 @@ class MapButton extends StatelessWidget {
       child: InkWell(
         borderRadius: SandolMetrics.radius,
         onTap: onTap,
-        child: SizedBox(
-          height: 38,
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(minHeight: 38),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
             spacing: SandolSpacing.xs,
