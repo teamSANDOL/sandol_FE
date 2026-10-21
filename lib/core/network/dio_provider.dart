@@ -26,6 +26,7 @@ Dio dio(Ref ref) {
     // TODO: ErrorInterceptor() — 에러 변환 추가
     if (kDebugMode)
       LogInterceptor(
+        requestHeader: false, // Authorization 토큰이 로그에 남지 않게 한다
         requestBody: true,
         responseBody: true,
         logPrint: (obj) => debugPrint(obj.toString()),
