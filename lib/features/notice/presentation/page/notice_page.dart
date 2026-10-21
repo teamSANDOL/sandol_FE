@@ -233,29 +233,34 @@ class _FilterChip extends StatelessWidget {
           borderRadius: SandolMetrics.radius,
         ),
         onTap: onTap,
-        // 높이는 최소값만 두어 글꼴이 커지면 라벨이 두 줄로 늘어난다.
+        // 아이콘과 글자를 한 덩어리로 묶어, 큰 글꼴(1.3배 상한)에서 칸보다 크면
+        // 단어 중간에서 끊지 않고 통째로 줄여 맞춘다. 높이는 최소값만 둔다.
         child: ConstrainedBox(
           constraints: const BoxConstraints(minHeight: 32),
-          child: Center(
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              spacing: SandolSpacing.xs,
-              children: [
-                if (filter == NoticeFilter.saved)
-                  Icon(
-                    Icons.bookmark_border_rounded,
-                    size: 14,
-                    color: style.color,
-                  ),
-                Flexible(
-                  child: Text(
-                    filter.label,
-                    style: style,
-                    textAlign: TextAlign.center,
-                    maxLines: 2,
-                  ),
+          child: MediaQuery.withClampedTextScaling(
+            maxScaleFactor: 1.3,
+            child: Center(
+              child: FittedBox(
+                fit: BoxFit.scaleDown,
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  spacing: SandolSpacing.xs,
+                  children: [
+                    if (filter == NoticeFilter.saved)
+                      Icon(
+                        Icons.bookmark_border_rounded,
+                        size: 14,
+                        color: style.color,
+                      ),
+                    Text(
+                      filter.label,
+                      style: style,
+                      maxLines: 1,
+                      softWrap: false,
+                    ),
+                  ],
                 ),
-              ],
+              ),
             ),
           ),
         ),
