@@ -32,7 +32,7 @@ void main() {
   late ProviderContainer container;
   var taps = 0;
 
-  Future<void> pump(WidgetTester tester) async {
+  Future<void> pump(WidgetTester tester, {List<RestaurantMenu>? shown}) async {
     tester.view.physicalSize = const Size(412, 900);
     tester.view.devicePixelRatio = 1;
     addTearDown(tester.view.reset);
@@ -46,7 +46,10 @@ void main() {
           home: Scaffold(
             body: Padding(
               padding: const EdgeInsets.all(20),
-              child: HomeMealSection(menus: menus, onTap: () => taps++),
+              child: HomeMealSection(
+                menus: shown ?? menus,
+                onTap: () => taps++,
+              ),
             ),
           ),
         ),
@@ -145,6 +148,12 @@ void main() {
     await tester.tap(find.text('A식당 메뉴0'.keepAll));
     expect(taps, 1);
     expect(selectedId(), 1);
+  });
+
+  testWidgets('메뉴가 없는 식당은 아직 등록되지 않았다고 안내한다', (tester) async {
+    await pump(tester, shown: [_menu(1, 'A식당', 0)]);
+    expect(find.text('오늘 메뉴가 아직 등록되지 않았어요'.keepAll), findsOneWidget);
+    expect(find.textContaining('운영하지 않아요'), findsNothing);
   });
 
   testWidgets('옆 카드는 PageView 폭 밖에 그려지지 않는다', (tester) async {
