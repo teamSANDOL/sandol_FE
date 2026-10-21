@@ -10,25 +10,46 @@ import 'package:handori/common/component/sandol_icon_label.dart';
 import 'package:handori/common/layout/root_shell.dart';
 import 'package:handori/core/design_system/sandol_assets.dart';
 import 'package:handori/core/design_system/sandol_tokens.dart';
+import 'package:handori/core/utils/date_formatter.dart';
 import 'package:handori/core/utils/korea_time.dart';
 import 'package:handori/features/school_meal/domain/model/meal_type.dart';
 import 'package:handori/features/school_meal/domain/model/restaurant.dart';
 import 'package:handori/features/school_meal/presentation/model/restaurant_menu.dart';
 import 'package:handori/features/school_meal/presentation/provider/meal_list_notifier.dart';
 import 'package:handori/features/school_meal/presentation/provider/restaurant_list_notifier.dart';
-import 'package:handori/features/school_meal/presentation/provider/selected_restaurant_id_notifier.dart';
 import 'package:handori/shared/widget/error_retry_view.dart';
 import 'package:handori/shared/widget/sandol_loading_indicator.dart';
 
-/// 학식 탭 (Figma 2158:714).
+/// 학식 탭 (Figma 학식-2).
 ///
-/// 식당 칩 → 식당명·날짜·위치 → 끼니별(조식·점심·저녁) 메뉴 카드.
-/// 선택 식당은 홈 칩과 같은 [selectedRestaurantIdProvider]를 공유한다.
-class RestaurantDetailPage extends ConsumerWidget {
+/// 요일 스트립(이번 주 월~일) → 끼니 탭(조식·점심·저녁) → 그 끼니를 내는
+/// 식당 카드. 카드는 사진·이름·가격과 메뉴를 보여 준다.
+class RestaurantDetailPage extends ConsumerStatefulWidget {
   const RestaurantDetailPage({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<RestaurantDetailPage> createState() =>
+      _RestaurantDetailPageState();
+}
+
+class _RestaurantDetailPageState extends ConsumerState<RestaurantDetailPage> {
+  late final DateTime _today = _dateOnly(KoreaTime.now());
+  late DateTime _date = _today;
+  late MealType _mealType = _nowMealType();
+
+  static DateTime _dateOnly(DateTime d) => DateTime.utc(d.year, d.month, d.day);
+
+  /// 지금(KST) 어느 끼니인지. 기준 시각은 `restaurant_menu.dart`의 노출 우선순위와 같다.
+  static MealType _nowMealType() {
+    final now = KoreaTime.now();
+    final minutes = now.hour * 60 + now.minute;
+    if (minutes < 10 * 60 + 30) return MealType.breakfast;
+    if (minutes < 18 * 60) return MealType.lunch;
+    return MealType.dinner;
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final restaurantsAsync = ref.watch(restaurantListNotifierProvider);
 
     return Scaffold(
@@ -48,18 +69,48 @@ class RestaurantDetailPage extends ConsumerWidget {
       body: Stack(
         children: [
           const SandolBottomGlow(),
-          restaurantsAsync.when(
-            data: (restaurants) => _Content(restaurants: restaurants),
-            loading:
-                () => const Padding(
-                  padding: EdgeInsets.only(top: 80),
-                  child: Center(child: SandolLoadingIndicator()),
-                ),
-            error:
-                (e, _) => ErrorRetryView(
-                  title: '식당 정보를 불러올 수 없습니다.',
-                  onRetry: () => ref.invalidate(restaurantListNotifierProvider),
-                ),
+          ListView(
+            padding: const EdgeInsets.fromLTRB(
+              SandolMetrics.pageGutter,
+              SandolSpacing.md,
+              SandolMetrics.pageGutter,
+              SandolSpacing.xl,
+            ),
+            children: [
+              _DateStrip(
+                today: _today,
+                selected: _date,
+                onSelect: (d) => setState(() => _date = d),
+              ),
+              const SizedBox(height: 18),
+              _MealTabs(
+                selected: _mealType,
+                nowType: _date == _today ? _nowMealType() : null,
+                onSelect: (t) => setState(() => _mealType = t),
+              ),
+              const SizedBox(height: 20),
+              restaurantsAsync.when(
+                data:
+                    (restaurants) => _Cards(
+                      restaurants: restaurants,
+                      mealType: _mealType,
+                      // 오늘은 date 없이 조회한다(전날·주말에 미리 등록된 최신 식단 포함).
+                      date:
+                          _date == _today ? null : DateFormatter.isoDate(_date),
+                    ),
+                loading:
+                    () => const Padding(
+                      padding: EdgeInsets.only(top: 60),
+                      child: Center(child: SandolLoadingIndicator()),
+                    ),
+                error:
+                    (e, _) => ErrorRetryView(
+                      title: '식당 정보를 불러올 수 없습니다.',
+                      onRetry:
+                          () => ref.invalidate(restaurantListNotifierProvider),
+                    ),
+              ),
+            ],
           ),
         ],
       ),
@@ -67,140 +118,141 @@ class RestaurantDetailPage extends ConsumerWidget {
   }
 }
 
-class _Content extends ConsumerWidget {
-  const _Content({required this.restaurants});
+// ── 요일 스트립 · 끼니 탭 ────────────────────────────────────────────────────
 
-  final List<Restaurant> restaurants;
+/// 선택 여부만 다른 둥근 칸. 선택은 primary 바탕, 아니면 테두리.
+class _Pill extends StatelessWidget {
+  const _Pill({
+    required this.selected,
+    required this.onTap,
+    required this.child,
+    required this.width,
+    required this.height,
+  });
+
+  final bool selected;
+  final VoidCallback onTap;
+  final Widget child;
+  final double width;
+  final double height;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    if (restaurants.isEmpty) {
-      return const _Notice('등록된 식당이 없습니다');
-    }
-
-    // 선택 탭은 전역 provider(식당 ID)에서 파생한다. 홈 화면의 칩 선택이
-    // 그대로 진입 탭으로 반영되고, 여기서 탭을 바꾸면 홈 칩도 동기화된다.
-    final selectedId = ref.watch(selectedRestaurantIdProvider);
-    var selected = restaurants.indexWhere((r) => r.id == selectedId);
-    if (selected < 0) selected = 0;
-
-    final mealsAsync = ref.watch(mealListNotifierProvider());
-
-    return ListView(
-      padding: const EdgeInsets.fromLTRB(
-        SandolMetrics.pageGutter,
-        SandolSpacing.md,
-        SandolMetrics.pageGutter,
-        SandolSpacing.xl,
+  Widget build(BuildContext context) => Material(
+    color: selected ? SandolColors.primary : SandolColors.background,
+    shape: RoundedRectangleBorder(
+      borderRadius: SandolMetrics.radius,
+      side:
+          selected
+              ? BorderSide.none
+              : const BorderSide(color: SandolColors.border),
+    ),
+    child: InkWell(
+      borderRadius: SandolMetrics.radius,
+      onTap: onTap,
+      child: SizedBox(
+        width: width,
+        height: height,
+        child: Center(child: child),
       ),
-      children: [
-        // 칩 줄은 화면 끝까지 흘러간다(홈과 같은 규칙).
-        SizedBox(
-          height: SandolChip.height,
-          child: ListView.separated(
-            scrollDirection: Axis.horizontal,
-            clipBehavior: Clip.none,
-            itemCount: restaurants.length,
-            separatorBuilder: (_, _) => const SizedBox(width: 12),
-            itemBuilder:
-                (_, i) => SandolChip(
-                  label: restaurants[i].name,
-                  selected: i == selected,
-                  style: SandolChipStyle.solid,
-                  onTap:
-                      () => ref
-                          .read(selectedRestaurantIdProvider.notifier)
-                          .select(restaurants[i].id),
-                ),
-          ),
-        ),
-        const SizedBox(height: 12),
-        mealsAsync.when(
-          data:
-              (meals) => _MenuSection(
-                menu: buildRestaurantMenus(restaurants, meals)[selected],
-              ),
-          loading:
-              () => const Padding(
-                padding: EdgeInsets.symmetric(vertical: 40),
-                child: Center(child: SandolLoadingIndicator()),
-              ),
-          error:
-              (e, _) => ErrorRetryView(
-                title: '식단 정보를 불러올 수 없습니다.',
-                onRetry: () => ref.invalidate(mealListNotifierProvider()),
-              ),
-        ),
-      ],
-    );
-  }
+    ),
+  );
 }
 
-// ── 식당명 · 날짜 · 위치 + 끼니별 블록 ───────────────────────────────────────
+class _DateStrip extends StatelessWidget {
+  const _DateStrip({
+    required this.today,
+    required this.selected,
+    required this.onSelect,
+  });
 
-class _MenuSection extends StatelessWidget {
-  const _MenuSection({required this.menu});
-
-  final RestaurantMenu menu;
+  final DateTime today;
+  final DateTime selected;
+  final ValueChanged<DateTime> onSelect;
 
   static const _weekdays = ['월', '화', '수', '목', '금', '토', '일'];
 
-  /// `9월 15일 화요일`
-  static String _koreanDate(DateTime d) =>
-      '${d.month}월 ${d.day}일 ${_weekdays[d.weekday - 1]}요일';
-
   @override
   Widget build(BuildContext context) {
-    final location = menu.location;
-    final muted = SandolTypography.caption.muted;
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
+    final monday = today.subtract(Duration(days: today.weekday - 1));
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Text(menu.name, style: SandolTypography.title),
-        const SizedBox(height: SandolSpacing.xs),
-        Row(
-          spacing: SandolSpacing.sm,
-          children: [
-            Text(_koreanDate(KoreaTime.now()), style: muted),
-            if (location != null) ...[
-              const DecoratedBox(
-                decoration: BoxDecoration(
-                  color: SandolColors.muted,
-                  shape: BoxShape.circle,
-                ),
-                child: SizedBox.square(dimension: 4),
-              ),
-              Flexible(
-                child: SandolIconLabel(
-                  icon: SvgPicture.asset(SandolAssets.mealPin),
-                  label: location,
-                  style: muted,
-                  gap: SandolSpacing.xs,
-                ),
-              ),
-            ],
-          ],
-        ),
-        const SizedBox(height: 20),
-        if (menu.slots.isEmpty)
-          const _Notice('오늘은 등록된 식단이 없어요')
-        else
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            spacing: 48,
-            children: [for (final slot in menu.slots) _MealBlock(slot: slot)],
-          ),
+        for (var i = 0; i < 7; i++)
+          _dayPill(monday.add(Duration(days: i)), _weekdays[i]),
       ],
+    );
+  }
+
+  Widget _dayPill(DateTime day, String weekday) {
+    final isSelected = day == selected;
+    return _Pill(
+      width: 44,
+      height: 50,
+      selected: isSelected,
+      onTap: () => onSelect(day),
+      child: Text(
+        '$weekday\n${day.month}/${day.day}',
+        textAlign: TextAlign.center,
+        style:
+            isSelected
+                ? SandolTypography.caption.strong.onPrimary
+                : SandolTypography.caption.copyWith(
+                  color: SandolColors.textSecondary,
+                ),
+      ),
     );
   }
 }
 
-/// 끼니 아이콘 + 라벨, 그 아래 메뉴 카드 (2158:748)
-class _MealBlock extends StatelessWidget {
-  const _MealBlock({required this.slot});
+class _MealTabs extends StatelessWidget {
+  const _MealTabs({
+    required this.selected,
+    required this.nowType,
+    required this.onSelect,
+  });
 
-  final MenuSlot slot;
+  final MealType selected;
+
+  /// 선택한 날짜가 오늘일 때 지금 끼니. 그 탭에 `• NOW`를 붙인다.
+  final MealType? nowType;
+  final ValueChanged<MealType> onSelect;
+
+  static const _tabs = [MealType.breakfast, MealType.lunch, MealType.dinner];
+
+  @override
+  Widget build(BuildContext context) => Row(
+    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+    children: [
+      for (final type in _tabs)
+        _Pill(
+          width: SandolChip.minWidth,
+          height: SandolChip.height,
+          selected: type == selected,
+          onTap: () => onSelect(type),
+          child: Text(
+            type == nowType ? '${type.label} • NOW' : type.label,
+            style:
+                type == selected
+                    ? SandolTypography.caption.onPrimary
+                    : SandolTypography.caption,
+          ),
+        ),
+    ],
+  );
+}
+
+// ── 끼니 헤더 + 식당 카드 ────────────────────────────────────────────────────
+
+class _Cards extends ConsumerWidget {
+  const _Cards({
+    required this.restaurants,
+    required this.mealType,
+    required this.date,
+  });
+
+  final List<Restaurant> restaurants;
+  final MealType mealType;
+  final String? date;
 
   static String _iconOf(MealType type) => switch (type) {
     MealType.breakfast || MealType.brunch => SandolAssets.mealBreakfast,
@@ -209,77 +261,153 @@ class _MealBlock extends StatelessWidget {
   };
 
   @override
-  Widget build(BuildContext context) => Column(
-    crossAxisAlignment: CrossAxisAlignment.stretch,
-    spacing: SandolSpacing.sm,
-    children: [
-      SandolIconLabel(
-        icon: SizedBox.square(
-          dimension: SandolMetrics.iconSize,
-          child: Center(child: SvgPicture.asset(_iconOf(slot.mealType))),
-        ),
-        label: slot.label,
-        style: SandolTypography.body.strong,
-      ),
-      _MenuCard(items: slot.menu),
-    ],
-  );
-}
-
-/// 메뉴를 두 열의 불릿 목록으로. 비어 있으면 안내 한 줄.
-class _MenuCard extends StatelessWidget {
-  const _MenuCard({required this.items});
-
-  final List<String> items;
-
-  @override
-  Widget build(BuildContext context) {
-    if (items.isEmpty) {
-      return SandolCard(
-        padding: const EdgeInsets.symmetric(
-          horizontal: SandolMetrics.cardInset,
-          vertical: 14,
-        ),
-        child: Text('아직 등록된 메뉴가 없어요', style: SandolTypography.caption.muted),
-      );
-    }
-    // 왼쪽 열에 앞 절반, 오른쪽 열에 뒤 절반.
-    final half = (items.length + 1) ~/ 2;
-    return SandolCard(
-      padding: const EdgeInsets.fromLTRB(30, 22, 30, 22),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Expanded(child: _BulletColumn(items.sublist(0, half))),
-          const SizedBox(width: SandolSpacing.md),
-          Expanded(child: _BulletColumn(items.sublist(half))),
-        ],
-      ),
+  Widget build(BuildContext context, WidgetRef ref) {
+    final mealsAsync = ref.watch(mealListNotifierProvider(date: date));
+    return mealsAsync.when(
+      data: (meals) {
+        // 이 끼니에 메뉴가 등록된 식당만 보여 준다.
+        final cards = <(RestaurantMenu, MenuSlot)>[];
+        for (final menu in buildRestaurantMenus(restaurants, meals)) {
+          for (final slot in menu.slots) {
+            if (slot.mealType == mealType && slot.menu.isNotEmpty) {
+              cards.add((menu, slot));
+            }
+          }
+        }
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Row(
+              children: [
+                SandolIconLabel(
+                  icon: SizedBox.square(
+                    dimension: SandolMetrics.iconSize,
+                    child: Center(child: SvgPicture.asset(_iconOf(mealType))),
+                  ),
+                  label: mealType.label,
+                  style: SandolTypography.title.accent,
+                ),
+                const SizedBox(width: SandolSpacing.md),
+                Text(
+                  '식당 ${cards.length}곳',
+                  style: SandolTypography.caption.copyWith(
+                    color: SandolColors.textSecondary,
+                  ),
+                ),
+                const Spacer(),
+                // ponytail: 서버에 좋아요·인기 데이터가 없어 정렬은 동작하지 않는다(표시만).
+                Text(
+                  '인기순',
+                  style: SandolTypography.caption.strong.copyWith(
+                    color: SandolColors.textSecondary,
+                  ),
+                ),
+                const Icon(
+                  Icons.unfold_more_rounded,
+                  size: 16,
+                  color: SandolColors.textSecondary,
+                ),
+              ],
+            ),
+            const SizedBox(height: 13),
+            if (cards.isEmpty)
+              const _Notice('등록된 식단이 없어요')
+            else
+              Column(
+                spacing: 20,
+                children: [
+                  for (final (menu, slot) in cards)
+                    _RestaurantCard(menu: menu, slot: slot),
+                ],
+              ),
+          ],
+        );
+      },
+      loading:
+          () => const Padding(
+            padding: EdgeInsets.symmetric(vertical: 40),
+            child: Center(child: SandolLoadingIndicator()),
+          ),
+      error:
+          (e, _) => ErrorRetryView(
+            title: '식단 정보를 불러올 수 없습니다.',
+            onRetry: () => ref.invalidate(mealListNotifierProvider(date: date)),
+          ),
     );
   }
 }
 
-class _BulletColumn extends StatelessWidget {
-  const _BulletColumn(this.items);
+/// 위: 사진 + 이름·가격 + 좋아요, 구분선, 아래: 메뉴 목록.
+class _RestaurantCard extends StatelessWidget {
+  const _RestaurantCard({required this.menu, required this.slot});
 
-  final List<String> items;
+  final RestaurantMenu menu;
+  final MenuSlot slot;
+
+  /// 7000 → `7,000원`
+  static String _won(int price) =>
+      '${price.toString().replaceAllMapped(RegExp(r'\B(?=(\d{3})+$)'), (_) => ',')}원';
 
   @override
-  Widget build(BuildContext context) => Column(
-    crossAxisAlignment: CrossAxisAlignment.start,
-    spacing: 20,
-    children: [
-      for (final item in items)
-        Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          spacing: SandolSpacing.sm,
-          children: [
-            const Text('•', style: SandolTypography.caption),
-            Expanded(child: Text(item, style: SandolTypography.caption)),
-          ],
-        ),
-    ],
-  );
+  Widget build(BuildContext context) {
+    final photo = menu.photoAsset;
+    final price = slot.price;
+    return SandolCard(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Padding(
+            padding: const EdgeInsets.all(SandolMetrics.cardInset),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                ClipRRect(
+                  borderRadius: SandolMetrics.radius,
+                  child: SizedBox(
+                    width: 102,
+                    height: 89,
+                    child:
+                        photo == null
+                            ? const ColoredBox(color: SandolColors.primarySoft)
+                            : Image.asset(photo, fit: BoxFit.cover),
+                  ),
+                ),
+                const SizedBox(width: SandolSpacing.md),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(menu.name, style: SandolTypography.headline),
+                      if (price != null)
+                        Text(_won(price), style: SandolTypography.body.accent),
+                    ],
+                  ),
+                ),
+                // ponytail: 좋아요 수 API가 없어 아이콘만 둔다. 서버 지원 시 숫자·토글 연결.
+                const Icon(
+                  Icons.favorite_rounded,
+                  size: 20,
+                  color: SandolColors.inactive,
+                ),
+              ],
+            ),
+          ),
+          const Divider(height: 1, thickness: 1, color: SandolColors.border),
+          Padding(
+            padding: const EdgeInsets.all(SandolMetrics.cardInset),
+            child: Wrap(
+              spacing: SandolSpacing.lg,
+              runSpacing: SandolSpacing.md,
+              children: [
+                for (final item in slot.menu)
+                  Text(item, style: SandolTypography.caption),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 }
 
 class _Notice extends StatelessWidget {

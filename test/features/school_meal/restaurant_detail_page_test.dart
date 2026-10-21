@@ -9,7 +9,6 @@ import 'package:handori/features/school_meal/domain/model/restaurant.dart';
 import 'package:handori/features/school_meal/presentation/page/restaurant_detail_page.dart';
 import 'package:handori/features/school_meal/presentation/provider/meal_list_notifier.dart';
 import 'package:handori/features/school_meal/presentation/provider/restaurant_list_notifier.dart';
-import 'package:handori/features/school_meal/presentation/provider/selected_restaurant_id_notifier.dart';
 
 class _Restaurants extends RestaurantListNotifier {
   _Restaurants(this.items);
@@ -90,29 +89,33 @@ void main() {
     await tester.pumpAndSettle();
   }
 
-  testWidgets('식당 칩 · 이름 · 끼니별 메뉴가 두 열로 그려진다', (tester) async {
+  testWidgets('끼니 탭을 누르면 그 끼니를 내는 식당 카드만 보인다', (tester) async {
     await pump(tester);
-    // 칩 + 제목
-    expect(find.text('TIP 가가식당'), findsNWidgets(2));
-    expect(find.text('TIP 1층'), findsOneWidget); // 위치 폴백
-    expect(find.text('점심'), findsOneWidget);
+    // 요일 스트립 7칸 + 끼니 탭
+    expect(find.textContaining('월\n'), findsOneWidget);
+    expect(find.textContaining('일\n'), findsOneWidget);
+    expect(find.text('인기순'), findsOneWidget);
+
+    await tester.tap(find.textContaining('점심'));
+    await tester.pumpAndSettle();
+    expect(find.text('식당 1곳'), findsOneWidget);
+    expect(find.text('TIP 가가식당'), findsOneWidget);
     expect(find.text('소고기 하이라이스'), findsOneWidget);
-    expect(find.text('파채콩나물무침'), findsOneWidget);
-    // 등록 안 된 끼니
-    expect(find.text('아직 등록된 메뉴가 없어요'), findsWidgets);
+    expect(find.text('E동 레스토랑'), findsNothing);
+
+    await tester.tap(find.textContaining('저녁'));
+    await tester.pumpAndSettle();
+    expect(find.text('E동 레스토랑'), findsOneWidget);
+    expect(find.text('김치찌개'), findsOneWidget);
+    expect(find.text('TIP 가가식당'), findsNothing);
     expect(tester.takeException(), isNull);
   });
 
-  testWidgets('칩을 누르면 식당이 바뀌고 전역 선택이 갱신된다', (tester) async {
+  testWidgets('메뉴가 없는 끼니는 안내를 보여 준다', (tester) async {
     await pump(tester);
-    await tester.tap(find.text('E동 레스토랑'));
+    await tester.tap(find.textContaining('조식'));
     await tester.pumpAndSettle();
-
-    expect(find.text('E동 레스토랑'), findsNWidgets(2));
-    expect(find.text('김치찌개'), findsOneWidget);
-    final container = ProviderScope.containerOf(
-      tester.element(find.byType(RestaurantDetailPage)),
-    );
-    expect(container.read(selectedRestaurantIdProvider), 2);
+    expect(find.text('식당 0곳'), findsOneWidget);
+    expect(find.text('등록된 식단이 없어요'), findsOneWidget);
   });
 }
