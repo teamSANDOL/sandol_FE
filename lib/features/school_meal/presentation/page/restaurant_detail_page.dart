@@ -156,13 +156,8 @@ class _Pill extends StatelessWidget {
         constraints: BoxConstraints(minWidth: width, minHeight: height),
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-          // 칸 폭이 정해져 있어 글꼴은 1.3배까지만 키우고, 더 넘치면 줄여 맞춘다.
-          child: MediaQuery.withClampedTextScaling(
-            maxScaleFactor: 1.3,
-            child: Center(
-              child: FittedBox(fit: BoxFit.scaleDown, child: child),
-            ),
-          ),
+          // 글꼴 배율은 그대로 따르되 칸 폭을 넘으면 내용을 줄여 맞춘다.
+          child: Center(child: FittedBox(fit: BoxFit.scaleDown, child: child)),
         ),
       ),
     ),

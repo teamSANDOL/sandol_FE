@@ -109,18 +109,15 @@ class _NavItem extends StatelessWidget {
                 child: Padding(
                   // 이웃 라벨과 붙어 보이지 않게 칸마다 좌우 여백을 둔다.
                   padding: const EdgeInsets.symmetric(horizontal: 4),
-                  child: MediaQuery.withClampedTextScaling(
-                    maxScaleFactor: 1.3,
-                    child: FittedBox(
-                      fit: BoxFit.scaleDown,
-                      child: Text(
-                        label,
-                        maxLines: 1,
-                        style:
-                            selected
-                                ? SandolTypography.caption.strong.accent
-                                : SandolTypography.caption,
-                      ),
+                  child: FittedBox(
+                    fit: BoxFit.scaleDown,
+                    child: Text(
+                      label,
+                      maxLines: 1,
+                      style:
+                          selected
+                              ? SandolTypography.caption.strong.accent
+                              : SandolTypography.caption,
                     ),
                   ),
                 ),
