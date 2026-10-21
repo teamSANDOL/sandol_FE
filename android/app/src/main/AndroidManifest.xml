@@ -3,10 +3,16 @@
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+    <!-- Android 13+ 알림 표시 권한. 선언만 하고 실행 중 요청은 PushService.requestPermission() 이 맡는다. -->
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
     <application
         android:label="산돌이"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
+        <!-- 백그라운드 FCM 알림도 PushService 와 같은 채널로 보낸다. -->
+        <meta-data
+            android:name="com.google.firebase.messaging.default_notification_channel_id"
+            android:value="sandol_default" />
         <!-- taskAffinity="" 를 쓰면 AppAuth(singleTask) 인증 액티비티가 별도
              태스크로 분리되어 로그인 리다이렉트 응답이 유실된다("No stored
              state"). 기본 affinity(패키지명)로 두어야 로그인이 동작한다. -->

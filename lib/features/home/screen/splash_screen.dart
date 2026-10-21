@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:handori/core/design_system/sandol_assets.dart';
 import 'package:handori/core/design_system/sandol_tokens.dart';
+import 'package:handori/core/push/push_service.dart';
 import 'package:handori/core/router/route_paths.dart';
 import 'package:handori/features/auth/domain/model/auth_session.dart';
 import 'package:handori/features/auth/presentation/provider/auth_provider.dart';
@@ -91,7 +92,14 @@ class _SplashscreenState extends ConsumerState<Splashscreen> {
         session != null ||
         await ref.read(guestAccessStorageProvider).isActive();
     if (toHome && mounted) await _preloadHome();
+    // 종료 상태에서 알림을 눌러 열었다면 홈 대신 그 화면으로 간다.
+    // 로그인 화면으로 가는 경우는 버린다.
+    final pushTarget = await ref.read(pushServiceProvider).takeLaunchTarget();
     if (!mounted) return;
+    if (toHome && pushTarget != null) {
+      context.go(pushTarget.path, extra: pushTarget.extra);
+      return;
+    }
     context.go(toHome ? RoutePaths.home : RoutePaths.login);
   }
 
