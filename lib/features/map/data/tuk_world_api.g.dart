@@ -18,12 +18,12 @@ class _TukWorldApi implements TukWorldApi {
   final ParseErrorLogger? errorLogger;
 
   @override
-  Future<List<TukPlace>> getPlaces() async {
+  Future<HttpResponse<List<TukPlace>>> getPlaces() async {
     final _extra = <String, dynamic>{};
     final queryParameters = <String, dynamic>{};
     final _headers = <String, dynamic>{};
     const Map<String, dynamic>? _data = null;
-    final _options = _setStreamType<List<TukPlace>>(
+    final _options = _setStreamType<HttpResponse<List<TukPlace>>>(
       Options(method: 'GET', headers: _headers, extra: _extra)
           .compose(
             _dio.options,
@@ -44,7 +44,8 @@ class _TukWorldApi implements TukWorldApi {
       errorLogger?.logError(e, s, _options);
       rethrow;
     }
-    return _value;
+    final httpResponse = HttpResponse(_value, _result);
+    return httpResponse;
   }
 
   RequestOptions _setStreamType<T>(RequestOptions requestOptions) {

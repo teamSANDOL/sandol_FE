@@ -41,8 +41,26 @@ class TukPlace {
   factory TukPlace.fromJson(Map<String, dynamic> json) =>
       _$TukPlaceFromJson(json);
 
+  /// 이미지 경로를 [base] 기준 절대 주소로 푼 사본. 목록을 대체 서버가 줬다면
+  /// 이미지도 그 서버에 있으므로, 운영 주소가 아니라 응답을 준 주소로 푼다.
+  TukPlace withImagesResolvedAgainst(Uri base) => TukPlace(
+    id: id,
+    name: name,
+    latitude: latitude,
+    longitude: longitude,
+    category: category,
+    address: address,
+    naverMapUrl: naverMapUrl,
+    kakaoMapUrl: kakaoMapUrl,
+    discountInfo: discountInfo,
+    images: [
+      for (final img in images)
+        TukPlaceImage(url: base.resolve(img.url).toString()),
+    ],
+  );
+
   /// 이미지 주소. 서버에 공개 주소가 설정돼 있지 않으면 경로만 오므로
-  /// static-info 호스트 기준으로 풀어 준다.
+  /// (아직 안 풀렸다면) static-info 호스트 기준으로 풀어 준다.
   List<String> get imageUrls => [
     for (final img in images)
       Uri.parse(ApiConstants.staticInfoBaseUrl).resolve(img.url).toString(),

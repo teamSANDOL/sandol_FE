@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:go_router/go_router.dart';
 import 'package:handori/core/constants/app_colors.dart';
@@ -82,6 +83,10 @@ class AppTopBar extends StatelessWidget implements PreferredSizeWidget {
   Widget build(BuildContext context) {
     return AppBar(
       backgroundColor: backgroundColor,
+      // 투명 배경은 어두운 색으로 추정돼 상태바 아이콘이 흰색이 되므로 고정한다.
+      systemOverlayStyle: SystemUiOverlayStyle.dark.copyWith(
+        statusBarColor: Colors.transparent,
+      ),
       shape: shape,
       surfaceTintColor: Colors.transparent,
       elevation: 0,

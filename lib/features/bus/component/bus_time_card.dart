@@ -41,9 +41,16 @@ class _BustimescreenState extends ConsumerState<Bustimescreen> {
     final next = ref.watch(
       nextShuttleProvider(route: route, direction: direction),
     );
-    final departures = ref.watch(
-      upcomingShuttlesProvider(route: route, direction: direction),
-    );
+    // 머리글이 이미 다음 출발을 말하므로, 같은 정시편은 빼고 그다음 편부터 보인다.
+    final departures =
+        ref
+            .watch(upcomingShuttlesProvider(route: route, direction: direction))
+            .where(
+              (e) =>
+                  e.isSegment ||
+                  e.time.minutesOfDay != next.departureTime?.minutesOfDay,
+            )
+            .toList();
 
     return SandolCard(
       onTap: widget.onTap,
@@ -181,7 +188,7 @@ class _DirectionBar extends StatelessWidget {
   }
 }
 
-/// 이후 출발 한 줄. 정시편은 `9:00시 · N분`, 구간은 `17:00~18:00 · 수시운행`.
+/// 이후 출발 한 줄. 정시편은 `9:00 · N분`, 구간은 `17:00~18:00 · 수시운행`.
 class _DepartureRow extends StatelessWidget {
   const _DepartureRow({required this.entry, required this.nowMinutes});
 
@@ -207,7 +214,7 @@ class _DepartureRow extends StatelessWidget {
               NextShuttleCalculator.segmentName(entry),
             )
             : (
-              '${_clock(entry.time)}시',
+              _clock(entry.time),
               _remain(entry.time.minutesOfDay - nowMinutes),
             );
 

@@ -164,9 +164,8 @@ class _RouteCard extends StatelessWidget {
   final VoidCallback onSwap;
   final ValueChanged<ShuttleDirection> onSelect;
 
-  /// 카드 윗변에서 가운데 구분선까지. 교환 버튼이 이 선 위에 걸친다.
-  static const double _lineTop = 72;
-  static const Size _swapSize = Size(35.06, 36.58);
+  /// 가운데 구분선 줄의 높이. 교환 버튼이 이 줄 안에서 선 위에 걸친다.
+  static const double _swapRowHeight = 36.58;
 
   /// 출발지(또는 도착지)를 골라 방향을 정한다. 정왕역 노선은 정류장이 둘뿐이라
   /// 한쪽을 고르면 반대쪽은 자동으로 정해진다.
@@ -194,46 +193,45 @@ class _RouteCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => SandolCard(
-    child: Stack(
+    child: Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Padding(
-              padding: const EdgeInsets.fromLTRB(18, 18, 20, 16),
-              child: _StopRow(
-                icon: SandolAssets.busStopPin,
-                label: '출발',
-                name: direction.origin,
-                gap: SandolSpacing.sm,
-                button: SandolAssets.busPinButton,
-                onTap: () => _pickStop(context, origin: true),
-              ),
-            ),
-            const Divider(height: 1, thickness: 1, color: SandolColors.field),
-            Padding(
-              padding: const EdgeInsets.fromLTRB(18, 8, 20, 24),
-              child: _StopRow(
-                icon: SandolAssets.busStopFlag,
-                label: '도착',
-                name: direction.destination,
-                gap: SandolSpacing.xs,
-                button: SandolAssets.busChevronButton,
-                onTap: () => _pickStop(context, origin: false),
-              ),
-            ),
-          ],
+        Padding(
+          padding: const EdgeInsets.fromLTRB(18, 18, 20, 0),
+          child: _StopRow(
+            icon: SandolAssets.busStopPin,
+            label: '출발',
+            name: direction.origin,
+            gap: SandolSpacing.sm,
+            button: SandolAssets.busPinButton,
+            onTap: () => _pickStop(context, origin: true),
+          ),
         ),
-        Positioned(
-          top: _lineTop - _swapSize.height / 2,
-          left: 0,
-          right: 0,
-          child: Center(
-            child: SandolIconButton(
-              tooltip: '출발 · 도착 바꾸기',
-              onTap: onSwap,
-              icon: SvgPicture.asset(SandolAssets.busSwap),
-            ),
+        // 버튼을 카드 위에 겹쳐 두면 글꼴이 커질 때 이름을 덮으므로
+        // 구분선과 같은 줄에 두어 위아래 내용이 늘어나도 따라 내려가게 한다.
+        SizedBox(
+          height: _swapRowHeight,
+          child: Stack(
+            alignment: Alignment.center,
+            children: [
+              const Divider(height: 1, thickness: 1, color: SandolColors.field),
+              SandolIconButton(
+                tooltip: '출발 · 도착 바꾸기',
+                onTap: onSwap,
+                icon: SvgPicture.asset(SandolAssets.busSwap),
+              ),
+            ],
+          ),
+        ),
+        Padding(
+          padding: const EdgeInsets.fromLTRB(18, 0, 20, 24),
+          child: _StopRow(
+            icon: SandolAssets.busStopFlag,
+            label: '도착',
+            name: direction.destination,
+            gap: SandolSpacing.xs,
+            button: SandolAssets.busChevronButton,
+            onTap: () => _pickStop(context, origin: false),
           ),
         ),
       ],
@@ -350,7 +348,7 @@ class _NextBusCard extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Container(
-            height: 47,
+            constraints: const BoxConstraints(minHeight: 47),
             color: SandolColors.primary,
             padding: const EdgeInsets.symmetric(horizontal: 15),
             child: Row(
@@ -421,12 +419,15 @@ class _TimetableHeader extends StatelessWidget {
   final ShuttleDirection direction;
 
   @override
-  Widget build(BuildContext context) => SizedBox(
-    height: 30,
-    child: Row(
+  Widget build(BuildContext context) => ConstrainedBox(
+    constraints: const BoxConstraints(minHeight: 30),
+    // 큰 글꼴에서 제목과 경로가 한 줄에 안 들어가면 경로가 아래 줄로 내려간다.
+    child: Wrap(
+      alignment: WrapAlignment.spaceBetween,
+      crossAxisAlignment: WrapCrossAlignment.center,
+      spacing: SandolSpacing.sm,
       children: [
         const Text('전체 시간표', style: SandolTypography.title),
-        const Spacer(),
         Text(
           '${direction.origin} → ${direction.destination}',
           style: SandolTypography.body.muted,
@@ -523,9 +524,14 @@ class _HourRow extends StatelessWidget {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        SizedBox(
-          width: 64,
-          child: Text('${hour.toString().padLeft(2, '0')}시', style: hourStyle),
+        ConstrainedBox(
+          constraints: const BoxConstraints(minWidth: 64),
+          child: Text(
+            '${hour.toString().padLeft(2, '0')}시',
+            style: hourStyle,
+            maxLines: 1,
+            softWrap: false,
+          ),
         ),
         Expanded(
           child: Wrap(

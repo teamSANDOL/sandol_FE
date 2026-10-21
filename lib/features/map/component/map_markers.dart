@@ -37,10 +37,13 @@ TextPainter _text(String text, TextStyle style) => TextPainter(
 /// 고른 건물은 primary 바탕에 흰 글씨 (2548:19361).
 ///
 /// 시안은 20/16px 글씨지만 A~D동이 붙어 있어 지도에서 겹치므로 한 단계 줄였다.
+/// [tipRight]가 true면 꼬리를 말풍선 오른쪽 끝에 붙여 카드가 건물 왼쪽으로
+/// 뻗게 한다. 오른쪽 이웃 건물(A동 옆 B동)의 말풍선과 겹치지 않게 하려는 것이다.
 Future<MarkerIcon> buildingMarkerIcon(
   String name,
   int emptyCount, {
   required bool selected,
+  bool tipRight = false,
 }) {
   const padH = 12.0, padV = 8.0, gap = 2.0, tipH = 9.0, tipHalfW = 8.0;
   const shadow = 8.0;
@@ -64,12 +67,14 @@ Future<MarkerIcon> buildingMarkerIcon(
   const m = shadow * 2;
   final w = cardW + m * 2, h = cardH + tipH + m * 2;
 
-  return _render(w, h, NPoint(0.5, (m + cardH + tipH) / h), (canvas) {
+  // 꼬리는 둥근 모서리(12) 안쪽에 남도록 가장자리에서 20 띄운다.
+  final tipX = tipRight ? m + cardW - 20 : m + cardW / 2;
+
+  return _render(w, h, NPoint(tipX / w, (m + cardH + tipH) / h), (canvas) {
     final card = RRect.fromRectAndRadius(
       const Offset(m, m) & Size(cardW, cardH),
       const Radius.circular(12),
     );
-    final tipX = m + cardW / 2;
     final bubble = Path.combine(
       PathOperation.union,
       Path()..addRRect(card),

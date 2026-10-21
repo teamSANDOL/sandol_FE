@@ -12,5 +12,8 @@ TukWorldApi tukWorldApi(Ref ref) =>
 
 /// TUK 월드 제휴 업체 전체. 분류 필터는 화면에서 한다(수십 곳 규모).
 @riverpod
-Future<List<TukPlace>> tukWorldPlaces(Ref ref) =>
-    ref.watch(tukWorldApiProvider).getPlaces();
+Future<List<TukPlace>> tukWorldPlaces(Ref ref) async {
+  final res = await ref.watch(tukWorldApiProvider).getPlaces();
+  final base = res.response.realUri;
+  return [for (final p in res.data) p.withImagesResolvedAgainst(base)];
+}
