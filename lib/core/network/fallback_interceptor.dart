@@ -53,10 +53,24 @@ class FallbackInterceptor extends Interceptor {
     DioException err,
     ErrorInterceptorHandler handler,
   ) async {
-    final base = _fallbackBaseUrl;
-    if (base == null || !_shouldRetry(err)) return handler.next(err);
+    if (_fallbackBaseUrl == null || !_shouldRetry(err)) {
+      return handler.next(err);
+    }
+    try {
+      handler.resolve((await retry(err.requestOptions))!);
+    } on DioException catch (retryErr) {
+      handler.next(retryErr);
+    }
+  }
 
-    final original = err.requestOptions;
+  /// [original]과 같은 경로·쿼리로 대체 서버에 GET·HEAD 를 1회 보낸다. 대체
+  /// 주소가 없으면 null. 인증 헤더는 싣지 않는다.
+  ///
+  /// 오류 응답이 아니라 200 본문을 해석하지 못한 경우처럼 인터셉터가 볼 수
+  /// 없는 실패에서는 호출부가 직접 부른다(지금은 셔틀 시간표만).
+  Future<Response<dynamic>?> retry(RequestOptions original) async {
+    final base = _fallbackBaseUrl;
+    if (base == null) return null;
     final uri = Uri.parse(base).replace(
       path: original.uri.path,
       query: original.uri.hasQuery ? original.uri.query : null,
@@ -64,23 +78,17 @@ class FallbackInterceptor extends Interceptor {
     if (kDebugMode) {
       debugPrint('[Fallback] ${original.method} ${original.uri.path} -> 대체 서버');
     }
-
-    try {
-      final response = await _retryDio.requestUri<dynamic>(
-        uri,
-        options: Options(
-          method: original.method,
-          responseType: original.responseType,
-          // 인증 헤더는 일부러 복사하지 않는다.
-          headers: {
-            if (original.headers['Accept'] != null)
-              'Accept': original.headers['Accept'],
-          },
-        ),
-      );
-      handler.resolve(response);
-    } on DioException catch (retryErr) {
-      handler.next(retryErr);
-    }
+    return _retryDio.requestUri<dynamic>(
+      uri,
+      options: Options(
+        method: original.method,
+        responseType: original.responseType,
+        // 인증 헤더는 일부러 복사하지 않는다.
+        headers: {
+          if (original.headers['Accept'] != null)
+            'Accept': original.headers['Accept'],
+        },
+      ),
+    );
   }
 }

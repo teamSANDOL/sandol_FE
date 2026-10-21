@@ -5,6 +5,7 @@ import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:handori/core/network/fallback_interceptor.dart';
 import 'package:handori/core/network/static_info_dio_provider.dart';
 import 'package:handori/core/utils/korea_time.dart';
 import 'package:handori/features/bus/data/data_source/remote_shuttle_schedule.dart';
@@ -258,12 +259,26 @@ void main() {
   group('ShuttleScheduleSource', () {
     late _FakeAdapter adapter;
 
+    /// [fallback]이 있으면 운영 앱처럼 인증 헤더와 대체 서버 재시도를 붙인다.
     Future<ProviderContainer> load(
-      (int, String) Function(RequestOptions) h,
-    ) async {
+      (int, String) Function(RequestOptions) h, {
+      String? fallback,
+    }) async {
       adapter = _FakeAdapter(h);
       final dio = Dio(BaseOptions(baseUrl: 'https://prod.example.com'))
         ..httpClientAdapter = adapter;
+      if (fallback != null) {
+        dio.interceptors.addAll([
+          InterceptorsWrapper(
+            onRequest: (o, handler) {
+              o.headers['Authorization'] = 'Bearer secret';
+              o.headers['X-User-ID'] = 'user-1';
+              handler.next(o);
+            },
+          ),
+          FallbackInterceptor(dio, fallbackBaseUrl: fallback),
+        ]);
+      }
       final container = ProviderContainer(
         overrides: [staticInfoDioProvider.overrideWithValue(dio)],
       );
@@ -392,6 +407,60 @@ void main() {
         '2026-10-23',
       ]);
       expect(c.read(shuttleScheduleSourceProvider)?.date, '2026-10-23');
+    });
+
+    group('운영이 옛 형식(trips)을 200 으로 줄 때', () {
+      const oldBody = '{"sources": [], "trips": []}';
+      const fallback = 'https://fallback.example.com';
+      bool isFallback(RequestOptions o) => o.uri.host == 'fallback.example.com';
+
+      test('대체 서버의 새 형식을 쓰고 캐시에 저장한다', () async {
+        FlutterSecureStorage.setMockInitialValues({});
+        final c = await load(
+          (o) => isFallback(o) ? (200, _weekday) : (200, oldBody),
+          fallback: fallback,
+        );
+        expect(adapter.requests, hasLength(2));
+        final retry = adapter.requests.last;
+        expect(isFallback(retry), isTrue);
+        expect(retry.uri.path, '/static-info/bus/timetable');
+        expect(retry.uri.queryParameters['date'], '2026-10-22');
+        // 재시도에는 인증 헤더를 싣지 않는다.
+        expect(retry.headers['Authorization'], isNull);
+        expect(retry.headers['X-User-ID'], isNull);
+        expect(adapter.requests.first.headers['Authorization'], isNotNull);
+        expect(c.read(shuttleScheduleSourceProvider)?.version, 'v1');
+        expect(await cache(), _weekday);
+      });
+
+      test('대체 서버도 실패하면 캐시를 쓴다', () async {
+        FlutterSecureStorage.setMockInitialValues({
+          ShuttleScheduleSource.cacheKey: _weekday,
+        });
+        final c = await load(
+          (o) => isFallback(o) ? (503, '') : (200, oldBody),
+          fallback: fallback,
+        );
+        expect(adapter.requests, hasLength(2));
+        expect(c.read(shuttleScheduleSourceProvider)?.version, 'v1');
+        expect(await cache(), _weekday);
+      });
+
+      test('대체 서버도 옛 형식이면 캐시를 쓴다', () async {
+        FlutterSecureStorage.setMockInitialValues({
+          ShuttleScheduleSource.cacheKey: _weekday,
+        });
+        final c = await load((_) => (200, oldBody), fallback: fallback);
+        expect(adapter.requests, hasLength(2));
+        expect(c.read(shuttleScheduleSourceProvider)?.version, 'v1');
+      });
+
+      test('대체 주소가 없으면 재시도 없이 내장 시간표', () async {
+        FlutterSecureStorage.setMockInitialValues({});
+        final c = await load((_) => (200, oldBody), fallback: '');
+        expect(adapter.requests, hasLength(1));
+        expect(c.read(shuttleScheduleSourceProvider), isNull);
+      });
     });
 
     test('서버 정류장 좌표가 없으면 내장 대신 판정에서 빠진다', () async {
