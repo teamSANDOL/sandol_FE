@@ -340,6 +340,30 @@ void main() {
     });
   }
 
+  testWidgets('넓은 화면(800dp): 하단바 라벨이 2.0배에서 줄지 않고 그대로 커진다', (tester) async {
+    tester.view.physicalSize = const Size(800, 1400);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+    Future<double> labelWidth(double scale) async {
+      await tester.pumpWidget(
+        _scaled(
+          scale,
+          MaterialApp(
+            home: Scaffold(
+              bottomNavigationBar: AppBottomNav(currentIndex: 0, onTap: (_) {}),
+            ),
+          ),
+        ),
+      );
+      return tester.getRect(find.text('공지사항')).width;
+    }
+
+    final base = await labelWidth(1.0);
+    final big = await labelWidth(2.0);
+    // 자간 등이 배율에 정비례하지 않아 여유를 두되, 줄어들었다면 크게 모자란다.
+    expect(big / base, greaterThan(1.7));
+  });
+
   test('TUK 월드: 운영 404 후 대체 서버가 준 목록의 이미지는 대체 서버 주소로 푼다', () async {
     final dio = Dio(BaseOptions(baseUrl: 'https://prod.example.com'))
       ..httpClientAdapter = _TukAdapter();
