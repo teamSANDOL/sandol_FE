@@ -22,7 +22,7 @@ final tukWorldApiProvider = AutoDisposeProvider<TukWorldApi>.internal(
 @Deprecated('Will be removed in 3.0. Use Ref instead')
 // ignore: unused_element
 typedef TukWorldApiRef = AutoDisposeProviderRef<TukWorldApi>;
-String _$tukWorldPlacesHash() => r'6ea40f797f962f8f5bcfcc09d39082e20c3f83ac';
+String _$tukWorldPlacesHash() => r'6ed1d6cac494d8028f29c1eb61720318d030530c';
 
 /// TUK 월드 제휴 업체 전체. 분류 필터는 화면에서 한다(수십 곳 규모).
 ///
