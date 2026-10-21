@@ -13,8 +13,9 @@ String _$mealDioHash() => r'fded18e81f464b7f377f28eba4af7e697ccc5f33';
 final mealDioProvider = Provider<Dio>.internal(
   mealDio,
   name: r'mealDioProvider',
-  debugGetCreateSourceHash:
-      const bool.fromEnvironment('dart.vm.product') ? null : _$mealDioHash,
+  debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
+      ? null
+      : _$mealDioHash,
   dependencies: null,
   allTransitiveDependencies: null,
 );

@@ -13,10 +13,9 @@ String _$staticInfoDioHash() => r'306fbd3fe3b72f36a5d7a5deb4434265fb1ef9f9';
 final staticInfoDioProvider = Provider<Dio>.internal(
   staticInfoDio,
   name: r'staticInfoDioProvider',
-  debugGetCreateSourceHash:
-      const bool.fromEnvironment('dart.vm.product')
-          ? null
-          : _$staticInfoDioHash,
+  debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
+      ? null
+      : _$staticInfoDioHash,
   dependencies: null,
   allTransitiveDependencies: null,
 );
