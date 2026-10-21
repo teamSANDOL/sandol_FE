@@ -121,6 +121,9 @@ class _RestaurantDetailPageState extends ConsumerState<RestaurantDetailPage> {
 // ── 요일 스트립 · 끼니 탭 ────────────────────────────────────────────────────
 
 /// 선택 여부만 다른 둥근 칸. 선택은 primary 바탕, 아니면 테두리.
+///
+/// [width]·[height]는 최소 크기다. 글꼴이 커지면 세로로 늘어나고, 가로는 한 줄에
+/// 놓인 칸 수만큼 쓸 수 있는 폭이 정해져 있어 넘치면 내용을 줄여 맞춘다.
 class _Pill extends StatelessWidget {
   const _Pill({
     required this.selected,
@@ -149,10 +152,12 @@ class _Pill extends StatelessWidget {
     child: InkWell(
       borderRadius: SandolMetrics.radius,
       onTap: onTap,
-      child: SizedBox(
-        width: width,
-        height: height,
-        child: Center(child: child),
+      child: ConstrainedBox(
+        constraints: BoxConstraints(minWidth: width, minHeight: height),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 2),
+          child: Center(child: FittedBox(fit: BoxFit.scaleDown, child: child)),
+        ),
       ),
     ),
   );
@@ -178,7 +183,9 @@ class _DateStrip extends StatelessWidget {
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
         for (var i = 0; i < 7; i++)
-          _dayPill(monday.add(Duration(days: i)), _weekdays[i]),
+          Flexible(
+            child: _dayPill(monday.add(Duration(days: i)), _weekdays[i]),
+          ),
       ],
     );
   }
@@ -224,17 +231,20 @@ class _MealTabs extends StatelessWidget {
     mainAxisAlignment: MainAxisAlignment.spaceBetween,
     children: [
       for (final type in _tabs)
-        _Pill(
-          width: SandolChip.minWidth,
-          height: SandolChip.height,
-          selected: type == selected,
-          onTap: () => onSelect(type),
-          child: Text(
-            type == nowType ? '${type.label} • NOW' : type.label,
-            style:
-                type == selected
-                    ? SandolTypography.caption.onPrimary
-                    : SandolTypography.caption,
+        Flexible(
+          child: _Pill(
+            width: SandolChip.minWidth,
+            height: SandolChip.height,
+            selected: type == selected,
+            onTap: () => onSelect(type),
+            child: Text(
+              type == nowType ? '${type.label} • NOW' : type.label,
+              maxLines: 1,
+              style:
+                  type == selected
+                      ? SandolTypography.caption.onPrimary
+                      : SandolTypography.caption,
+            ),
           ),
         ),
     ],
@@ -279,22 +289,31 @@ class _Cards extends ConsumerWidget {
           children: [
             Row(
               children: [
-                SandolIconLabel(
-                  icon: SizedBox.square(
-                    dimension: SandolMetrics.iconSize,
-                    child: Center(child: SvgPicture.asset(_iconOf(mealType))),
+                // 큰 글꼴에서는 '식당 N곳'이 아래 줄로 내려가게 Wrap 으로 둔다.
+                Expanded(
+                  child: Wrap(
+                    crossAxisAlignment: WrapCrossAlignment.center,
+                    spacing: SandolSpacing.md,
+                    children: [
+                      SandolIconLabel(
+                        icon: SizedBox.square(
+                          dimension: SandolMetrics.iconSize,
+                          child: Center(
+                            child: SvgPicture.asset(_iconOf(mealType)),
+                          ),
+                        ),
+                        label: mealType.label,
+                        style: SandolTypography.title.accent,
+                      ),
+                      Text(
+                        '식당 ${cards.length}곳',
+                        style: SandolTypography.caption.copyWith(
+                          color: SandolColors.textSecondary,
+                        ),
+                      ),
+                    ],
                   ),
-                  label: mealType.label,
-                  style: SandolTypography.title.accent,
                 ),
-                const SizedBox(width: SandolSpacing.md),
-                Text(
-                  '식당 ${cards.length}곳',
-                  style: SandolTypography.caption.copyWith(
-                    color: SandolColors.textSecondary,
-                  ),
-                ),
-                const Spacer(),
                 // ponytail: 서버에 좋아요·인기 데이터가 없어 정렬은 동작하지 않는다(표시만).
                 Text(
                   '인기순',

@@ -46,11 +46,20 @@ class NoticeCard extends StatelessWidget {
           spacing: SandolSpacing.xs,
           children: [
             Row(
-              spacing: SandolSpacing.xs,
               children: [
-                Flexible(child: _Badge(notice.author, SandolColors.primary)),
-                if (_isNew) const _Badge('NEW', NoticeColors.badgeNew),
-                const Spacer(),
+                // Flexible+Spacer는 남는 칸을 반씩 나눠 배지가 짧으면 북마크가
+                // 안쪽으로 밀리므로, 배지 줄이 남은 폭을 모두 차지하게 한다.
+                Expanded(
+                  child: Row(
+                    spacing: SandolSpacing.xs,
+                    children: [
+                      Flexible(
+                        child: _Badge(notice.author, SandolColors.primary),
+                      ),
+                      if (_isNew) const _Badge('NEW', NoticeColors.badgeNew),
+                    ],
+                  ),
+                ),
                 IconButton(
                   tooltip: saved ? '저장 해제' : '저장',
                   visualDensity: VisualDensity.compact,

@@ -104,13 +104,19 @@ class _NavItem extends StatelessWidget {
             children: [
               SizedBox(height: _iconBox, child: Center(child: glyph)),
               const SizedBox(height: SandolSpacing.xs),
-              Text(
-                label,
-                maxLines: 1,
-                style:
-                    selected
-                        ? SandolTypography.caption.strong.accent
-                        : SandolTypography.caption,
+              // 큰 글꼴에서도 다섯 라벨이 잘리지 않게 칸 너비에 맞춰 줄인다.
+              Flexible(
+                child: FittedBox(
+                  fit: BoxFit.scaleDown,
+                  child: Text(
+                    label,
+                    maxLines: 1,
+                    style:
+                        selected
+                            ? SandolTypography.caption.strong.accent
+                            : SandolTypography.caption,
+                  ),
+                ),
               ),
             ],
           ),

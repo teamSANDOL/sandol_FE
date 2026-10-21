@@ -191,7 +191,6 @@ class _FilterChips extends StatelessWidget {
           for (final f in NoticeFilter.values)
             SizedBox(
               width: width,
-              height: 32,
               child: _FilterChip(
                 filter: f,
                 selected: f == selected,
@@ -218,7 +217,9 @@ class _FilterChip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final style =
-        selected ? SandolTypography.caption.onPrimary : SandolTypography.caption;
+        selected
+            ? SandolTypography.caption.onPrimary
+            : SandolTypography.caption;
     return Material(
       color: selected ? SandolColors.primary : SandolColors.background,
       shape: RoundedRectangleBorder(
@@ -232,26 +233,30 @@ class _FilterChip extends StatelessWidget {
           borderRadius: SandolMetrics.radius,
         ),
         onTap: onTap,
-        child: Center(
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            spacing: SandolSpacing.xs,
-            children: [
-              if (filter == NoticeFilter.saved)
-                Icon(
-                  Icons.bookmark_border_rounded,
-                  size: 14,
-                  color: style.color,
+        // 높이는 최소값만 두어 글꼴이 커지면 라벨이 두 줄로 늘어난다.
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(minHeight: 32),
+          child: Center(
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              spacing: SandolSpacing.xs,
+              children: [
+                if (filter == NoticeFilter.saved)
+                  Icon(
+                    Icons.bookmark_border_rounded,
+                    size: 14,
+                    color: style.color,
+                  ),
+                Flexible(
+                  child: Text(
+                    filter.label,
+                    style: style,
+                    textAlign: TextAlign.center,
+                    maxLines: 2,
+                  ),
                 ),
-              Flexible(
-                child: Text(
-                  filter.label,
-                  style: style,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),
@@ -419,7 +424,8 @@ class _NoticeListView extends ConsumerWidget {
                           .read(noticeBookmarksProvider.notifier)
                           .toggle(notice),
                   onTap:
-                      () => context.push(RoutePaths.noticeDetail, extra: notice),
+                      () =>
+                          context.push(RoutePaths.noticeDetail, extra: notice),
                 ),
               if (isLoadingMore) const _LoadingMore(),
             ],
@@ -448,10 +454,16 @@ class _SummaryRow extends StatelessWidget {
     padding: const EdgeInsets.symmetric(vertical: SandolSpacing.sm),
     child: Row(
       children: [
-        Text('최신 공지', style: SandolTypography.caption),
-        const SizedBox(width: SandolSpacing.sm),
-        Text('총 $total건', style: SandolTypography.caption),
-        const Spacer(),
+        // 큰 글꼴에서는 '총 N건'이 아래 줄로 내려가게 Wrap 으로 둔다.
+        Expanded(
+          child: Wrap(
+            spacing: SandolSpacing.sm,
+            children: [
+              Text('최신 공지', style: SandolTypography.caption),
+              Text('총 $total건', style: SandolTypography.caption),
+            ],
+          ),
+        ),
         DecoratedBox(
           decoration: BoxDecoration(
             color: SandolColors.background,
