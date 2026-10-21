@@ -20,16 +20,6 @@ abstract class MealApi {
     @Query('meal_type') String? mealType,
   });
 
-  @GET('/meal/meals/latest')
-  Future<CustomPageResponse<MealResponse>> getLatestMeals({
-    @Query('page') int page = 1,
-    @Query('size') int size = 50,
-    @Query('start_date') String? startDate,
-    @Query('end_date') String? endDate,
-    @Query('restaurant_name') String? restaurantName,
-    @Query('meal_type') String? mealType,
-  });
-
   @GET('/meal/meals/{meal_id}')
   Future<BaseResponse<MealResponse>> getMeal(@Path('meal_id') int mealId);
 

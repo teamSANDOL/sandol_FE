@@ -63,51 +63,6 @@ class _MealApi implements MealApi {
   }
 
   @override
-  Future<CustomPageResponse<MealResponse>> getLatestMeals({
-    int page = 1,
-    int size = 50,
-    String? startDate,
-    String? endDate,
-    String? restaurantName,
-    String? mealType,
-  }) async {
-    final _extra = <String, dynamic>{};
-    final queryParameters = <String, dynamic>{
-      r'page': page,
-      r'size': size,
-      r'start_date': startDate,
-      r'end_date': endDate,
-      r'restaurant_name': restaurantName,
-      r'meal_type': mealType,
-    };
-    queryParameters.removeWhere((k, v) => v == null);
-    final _headers = <String, dynamic>{};
-    const Map<String, dynamic>? _data = null;
-    final _options = _setStreamType<CustomPageResponse<MealResponse>>(
-      Options(method: 'GET', headers: _headers, extra: _extra)
-          .compose(
-            _dio.options,
-            '/meal/meals/latest',
-            queryParameters: queryParameters,
-            data: _data,
-          )
-          .copyWith(baseUrl: _combineBaseUrls(_dio.options.baseUrl, baseUrl)),
-    );
-    final _result = await _dio.fetch<Map<String, dynamic>>(_options);
-    late CustomPageResponse<MealResponse> _value;
-    try {
-      _value = CustomPageResponse<MealResponse>.fromJson(
-        _result.data!,
-        (json) => MealResponse.fromJson(json as Map<String, dynamic>),
-      );
-    } on Object catch (e, s) {
-      errorLogger?.logError(e, s, _options);
-      rethrow;
-    }
-    return _value;
-  }
-
-  @override
   Future<BaseResponse<MealResponse>> getMeal(int mealId) async {
     final _extra = <String, dynamic>{};
     final queryParameters = <String, dynamic>{};

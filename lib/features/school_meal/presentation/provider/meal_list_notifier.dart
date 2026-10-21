@@ -24,8 +24,8 @@ MealRepository mealRepository(Ref ref) {
   return MealRepositoryImpl(api);
 }
 
-// ── 최신 식사 목록 (식당 + 식사 유형별) ───────────────────────────────────────
-// family 파라미터 date: "YYYY-MM-DD" 문자열, null 이면 전체 최신.
+// ── 날짜별 식사 목록 (식당 + 식사 유형별) ─────────────────────────────────────
+// family 파라미터 date: "YYYY-MM-DD" 문자열(제공일), null 이면 오늘(KST).
 
 @riverpod
 class MealListNotifier extends _$MealListNotifier {
@@ -36,23 +36,18 @@ class MealListNotifier extends _$MealListNotifier {
   @override
   Future<List<Meal>> build({String? date}) async {
     final repo = ref.watch(mealRepositoryProvider);
-    // 서버의 날짜 필터는 [start_date, end_date) 반열린구간(end_date = 해당일 자정)이다.
-    // 따라서 특정 하루(date)를 조회하려면 end_date 를 다음 날로 보내야
-    // 그 날 낮에 등록된 식사가 포함된다. (date == null 이면 전체 최신)
-    //
-    // 단, '오늘'을 조회하는 경우에는 전날·주말에 미리 등록된 최신 식단(예: 가가 식당)이
-    // 누락되지 않도록 챗봇과 동일하게 날짜 제한 없이(start/end = null) 최신 식단을 조회한다.
-    final isToday = date == null || date == _today();
-    final startDate = isToday ? null : date;
-    final endDate = isToday ? null : _nextDay(date);
+    // 서버의 날짜 필터는 제공일(Meal.date) 기준 양 끝 포함(between)이다.
+    // 따라서 하루만 조회하려면 start_date = end_date = 그 날짜로 보낸다.
+    // date 가 null 이면 오늘(KST)로 해석한다.
+    final day = date ?? DateFormatter.isoDate(KoreaTime.now());
     final items = <Meal>[];
     var page = 1;
     while (true) {
-      final result = await repo.getLatestMeals(
+      final result = await repo.getMeals(
         page: page,
         size: _maxPageSize,
-        startDate: startDate,
-        endDate: endDate,
+        startDate: day,
+        endDate: day,
       );
       items.addAll(result.items);
       if (result.items.isEmpty || items.length >= result.total) break;
@@ -60,13 +55,6 @@ class MealListNotifier extends _$MealListNotifier {
     }
     return items;
   }
-
-  /// "YYYY-MM-DD" 문자열의 다음 날짜를 같은 형식으로 반환한다.
-  static String _nextDay(String date) =>
-      DateFormatter.isoDate(DateTime.parse(date).add(const Duration(days: 1)));
-
-  /// 오늘(KST) 날짜를 "YYYY-MM-DD" 형식으로 반환한다(호출부 date 형식과 동일).
-  static String _today() => DateFormatter.isoDate(KoreaTime.now());
 
   Future<void> refresh() async {
     state = const AsyncLoading();

@@ -13,6 +13,7 @@ import 'package:handori/core/router/app_router.dart';
 import 'package:handori/features/auth/presentation/provider/auth_provider.dart';
 import 'package:handori/features/bus/presentation/provider/next_shuttle_provider.dart';
 import 'package:handori/features/empty_class/presentation/provider/classroom_query_provider.dart';
+import 'package:handori/features/school_meal/presentation/provider/meal_list_notifier.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -81,6 +82,8 @@ class _MyAppState extends ConsumerState<MyApp> with WidgetsBindingObserver {
         ref.read(authNotifierProvider.notifier).refreshIfNeeded();
         ref.read(shuttleClockProvider.notifier).setAppVisible(true);
         ref.read(classroomQueryControllerProvider.notifier).syncToNow();
+        // 자정을 넘겨 돌아오면 '오늘' 학식이 어제 데이터라 다시 받는다.
+        ref.invalidate(mealListNotifierProvider);
       case AppLifecycleState.paused:
         ref.read(shuttleClockProvider.notifier).setAppVisible(false);
       default:
