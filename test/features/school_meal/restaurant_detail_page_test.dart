@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:handori/common/layout/root_shell.dart';
+import 'package:handori/core/utils/korea_time.dart';
 import 'package:handori/features/school_meal/domain/model/meal.dart';
 import 'package:handori/features/school_meal/domain/model/meal_type.dart';
 import 'package:handori/features/school_meal/domain/model/restaurant.dart';
@@ -89,33 +90,50 @@ void main() {
     await tester.pumpAndSettle();
   }
 
-  testWidgets('끼니 탭을 누르면 그 끼니를 내는 식당 카드만 보인다', (tester) async {
-    await pump(tester);
-    // 요일 스트립 7칸 + 끼니 탭
-    expect(find.textContaining('월\n'), findsOneWidget);
-    expect(find.textContaining('일\n'), findsOneWidget);
-    expect(find.text('인기순'), findsOneWidget);
+  // 선택한 끼니는 탭과 목록 제목에 모두 보이므로 탭(앞쪽)을 누른다.
+  Future<void> tapTab(WidgetTester tester, String label) =>
+      tester.tap(find.textContaining(label).first);
 
-    await tester.tap(find.textContaining('점심'));
-    await tester.pumpAndSettle();
-    expect(find.text('식당 1곳'), findsOneWidget);
-    expect(find.text('TIP 가가식당'), findsOneWidget);
-    expect(find.text('소고기 하이라이스'), findsOneWidget);
-    expect(find.text('E동 레스토랑'), findsNothing);
+  // 지금 끼니가 기본 선택이므로 조식·점심·저녁 시각 모두에서 검사한다(2026-10-06 KST).
+  for (final (name, hour) in [('조식', 8), ('점심', 12), ('저녁', 19)]) {
+    group('$name 시각', () {
+      setUp(
+        () =>
+            KoreaTime.clock =
+                () =>
+                    DateTime.utc(2026, 10, 6, hour).subtract(KoreaTime.offset),
+      );
+      tearDown(() => KoreaTime.clock = DateTime.now);
 
-    await tester.tap(find.textContaining('저녁'));
-    await tester.pumpAndSettle();
-    expect(find.text('E동 레스토랑'), findsOneWidget);
-    expect(find.text('김치찌개'), findsOneWidget);
-    expect(find.text('TIP 가가식당'), findsNothing);
-    expect(tester.takeException(), isNull);
-  });
+      testWidgets('끼니 탭을 누르면 그 끼니를 내는 식당 카드만 보인다', (tester) async {
+        await pump(tester);
+        // 요일 스트립 7칸 + 끼니 탭
+        expect(find.textContaining('월\n'), findsOneWidget);
+        expect(find.textContaining('일\n'), findsOneWidget);
+        expect(find.text('인기순'), findsOneWidget);
 
-  testWidgets('메뉴가 없는 끼니는 안내를 보여 준다', (tester) async {
-    await pump(tester);
-    await tester.tap(find.textContaining('조식'));
-    await tester.pumpAndSettle();
-    expect(find.text('식당 0곳'), findsOneWidget);
-    expect(find.text('등록된 식단이 없어요'), findsOneWidget);
-  });
+        await tapTab(tester, '점심');
+        await tester.pumpAndSettle();
+        expect(find.text('식당 1곳'), findsOneWidget);
+        expect(find.text('TIP 가가식당'), findsOneWidget);
+        expect(find.text('소고기 하이라이스'), findsOneWidget);
+        expect(find.text('E동 레스토랑'), findsNothing);
+
+        await tapTab(tester, '저녁');
+        await tester.pumpAndSettle();
+        expect(find.text('E동 레스토랑'), findsOneWidget);
+        expect(find.text('김치찌개'), findsOneWidget);
+        expect(find.text('TIP 가가식당'), findsNothing);
+        expect(tester.takeException(), isNull);
+      });
+
+      testWidgets('메뉴가 없는 끼니는 안내를 보여 준다', (tester) async {
+        await pump(tester);
+        await tapTab(tester, '조식');
+        await tester.pumpAndSettle();
+        expect(find.text('식당 0곳'), findsOneWidget);
+        expect(find.text('등록된 식단이 없어요'), findsOneWidget);
+      });
+    });
+  }
 }

@@ -1,3 +1,5 @@
+import 'package:flutter/foundation.dart';
+
 /// 한국 표준시(KST, UTC+9) 기준 "지금".
 ///
 /// 셔틀 다음 출발, 오늘 식단, 빈 강의실 조회 요일·시각처럼 캠퍼스 기준으로
@@ -10,5 +12,9 @@
 abstract final class KoreaTime {
   static const Duration offset = Duration(hours: 9);
 
-  static DateTime now() => DateTime.now().toUtc().add(offset);
+  /// 현재 시각의 출처. 테스트가 고정 시각을 넣을 때만 바꾼다(끝나면 되돌린다).
+  @visibleForTesting
+  static DateTime Function() clock = DateTime.now;
+
+  static DateTime now() => clock().toUtc().add(offset);
 }

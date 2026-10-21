@@ -11,6 +11,7 @@ import 'package:go_router/go_router.dart';
 import 'package:handori/common/component/app_bottom_nav.dart';
 import 'package:handori/common/layout/root_shell.dart';
 import 'package:handori/core/network/fallback_interceptor.dart';
+import 'package:handori/core/utils/korea_time.dart';
 import 'package:handori/core/network/static_info_dio_provider.dart';
 import 'package:handori/features/bus/component/bus_time_card.dart';
 import 'package:handori/features/bus/presentation/provider/next_shuttle_provider.dart';
@@ -143,6 +144,9 @@ void _expectSeparated(Rect a, Rect b, {double gap = 2}) {
 
 void main() {
   setUpAll(_loadPretendard);
+  // 학식 화면은 지금 끼니를 기본 선택한다. 시안 기준인 점심(2026-10-06 12:00 KST)으로 고정한다.
+  setUp(() => KoreaTime.clock = () => DateTime.utc(2026, 10, 6, 3));
+  tearDown(() => KoreaTime.clock = DateTime.now);
 
   for (final scale in _scales) {
     group('글꼴 $scale배', () {
