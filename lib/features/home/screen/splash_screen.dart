@@ -12,6 +12,7 @@ import 'package:handori/features/home/presentation/provider/home_static_provider
 import 'package:handori/features/organization/presentation/provider/organization_provider.dart';
 import 'package:handori/features/school_meal/presentation/provider/meal_list_notifier.dart';
 import 'package:handori/features/school_meal/presentation/provider/restaurant_list_notifier.dart';
+import 'package:video_player/video_player.dart';
 
 class Splashscreen extends ConsumerStatefulWidget {
   const Splashscreen({super.key});
@@ -38,10 +39,18 @@ class _SplashscreenState extends ConsumerState<Splashscreen> {
   /// 스플래시가 사라질 때는 홈이 이미 같은 provider 를 구독하고 있다.
   final _subscriptions = <ProviderSubscription<Future<Object?>>>[];
 
+  /// 화면 전환은 영상을 기다리지 않는다. 다른 앱의 음악을 끊지 않게 섞어 튼다.
+  final _video = VideoPlayerController.asset(
+    SandolAssets.splashVideo,
+    videoPlayerOptions: VideoPlayerOptions(mixWithOthers: true),
+  );
+  bool _videoReady = false;
+
   @override
   void initState() {
     super.initState();
     _navigateNext();
+    _playVideo();
   }
 
   @override
@@ -49,7 +58,21 @@ class _SplashscreenState extends ConsumerState<Splashscreen> {
     for (final s in _subscriptions) {
       s.close();
     }
+    _video.dispose();
     super.dispose();
+  }
+
+  /// 반복하지 않고 끝나면 마지막 프레임에 머문다. 실패하면 정지 이미지가 남는다.
+  Future<void> _playVideo() async {
+    try {
+      await _video.initialize();
+      if (!mounted) return;
+      await _video.setVolume(0);
+      setState(() => _videoReady = true);
+      await _video.play();
+    } catch (error) {
+      debugPrint('스플래시 영상 재생 실패, 정지 이미지 유지: $error');
+    }
   }
 
   /// 세션을 복원하고, 로그인 상태면 홈 데이터까지 받은 뒤 넘어간다.
@@ -87,11 +110,17 @@ class _SplashscreenState extends ConsumerState<Splashscreen> {
       backgroundColor: SandolColors.background,
       body: Center(
         // Figma의 412×733 원본 자산. 세로 중앙 정렬과 종횡비를 유지한다.
-        child: Image.asset(
-          SandolAssets.splashPoster,
-          width: MediaQuery.sizeOf(context).width,
-          fit: BoxFit.contain,
-          semanticLabel: '산돌이 시작 화면',
+        // 영상(1080×1920)은 같은 비율이라 정지 이미지 위에 그대로 덮는다.
+        child: Stack(
+          children: [
+            Image.asset(
+              SandolAssets.splashPoster,
+              width: MediaQuery.sizeOf(context).width,
+              fit: BoxFit.contain,
+              semanticLabel: '산돌이 시작 화면',
+            ),
+            if (_videoReady) Positioned.fill(child: VideoPlayer(_video)),
+          ],
         ),
       ),
     ),
