@@ -159,6 +159,9 @@ void main() {
     expect(rect.bottom, greaterThan(size.height));
     // 정지 상태에서 옆(B) 카드는 PageView 오른쪽 경계 밖에 놓인다.
     final viewRight = tester.getTopRight(find.byType(PageView)).dx;
-    expect(cardX(tester, 'B식당 메뉴0'), greaterThanOrEqualTo(viewRight));
+    expect(
+      tester.getTopLeft(find.text('B식당 메뉴0', skipOffstage: false)).dx,
+      greaterThanOrEqualTo(viewRight),
+    );
   });
 }
