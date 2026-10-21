@@ -108,6 +108,52 @@ void main() {
     expect(find.text('정왕역 → 한국공학대 정문'), findsOneWidget);
   });
 
+  testWidgets('제2캠퍼스를 도착으로 고르면 본교 → 제2캠퍼스(내장 시간표)', (tester) async {
+    await pump(tester, weekday);
+    await tester.tap(find.byTooltip('도착 정류장 선택'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('제2캠퍼스'));
+    await tester.pumpAndSettle();
+    expect(find.text('한국공학대 정문 → 제2캠퍼스'), findsOneWidget);
+    expect(find.text('11:00 출발'), findsOneWidget); // 10:00 편 이후
+
+    // 출발을 정왕역으로 → 정왕역 → 본교 → 제2캠퍼스(평일 08:55·09:00 뿐).
+    await tester.tap(find.byTooltip('출발 정류장 선택'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('정왕역').last);
+    await tester.pumpAndSettle();
+    expect(find.text('정왕역 → 제2캠퍼스 (한국공학대 정문 경유)'), findsOneWidget);
+    expect(find.text('한국공학대 정문 경유'), findsOneWidget);
+    expect(find.text('운행 종료'), findsOneWidget);
+  });
+
+  testWidgets('반대쪽과 같은 정류장을 고르면 출발·도착을 맞바꾼다', (tester) async {
+    await pump(tester, weekday);
+    await tester.tap(find.byTooltip('도착 정류장 선택'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('한국공학대 정문').last);
+    await tester.pumpAndSettle();
+    expect(find.text('정왕역 → 한국공학대 정문'), findsOneWidget);
+  });
+
+  testWidgets('토요일: 제2캠퍼스 → 정왕역 편만 운행', (tester) async {
+    await pump(tester, DateTime.utc(2026, 10, 10, 16, 0)); // 토요일
+    expect(find.text('운행 안함'), findsOneWidget); // 기본 정왕역 노선
+    await tester.tap(find.byTooltip('출발 정류장 선택'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('제2캠퍼스'));
+    await tester.pumpAndSettle();
+    // 도착(정왕역)은 그대로 → 제2캠퍼스 → 본교 → 정왕역.
+    expect(find.text('제2캠퍼스 → 정왕역 (한국공학대 정문 경유)'), findsOneWidget);
+    expect(find.text('16:30 출발'), findsOneWidget);
+    await tester.tap(find.byTooltip('도착 정류장 선택'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('한국공학대 정문').last);
+    await tester.pumpAndSettle();
+    expect(find.text('제2캠퍼스 → 한국공학대 정문'), findsOneWidget);
+    expect(find.text('운행 안함'), findsOneWidget);
+  });
+
   testWidgets('주말: 미운행 안내', (tester) async {
     await pump(tester, DateTime.utc(2026, 10, 4, 10, 0)); // 일요일
     expect(find.text('운행 안함'), findsOneWidget);

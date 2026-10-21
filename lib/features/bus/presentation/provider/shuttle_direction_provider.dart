@@ -7,7 +7,8 @@ import 'package:handori/features/empty_class/presentation/provider/user_location
 
 part 'shuttle_direction_provider.g.dart';
 
-/// 노선1 방향 선택. 홈 카드와 셔틀 상세 화면이 공유한다.
+/// 셔틀 방향 선택(6방향). 홈 카드와 셔틀 상세 화면이 공유한다. 기본은
+/// 정왕역 ↔ 본교 노선이고, 제2캠퍼스는 서버가 좌표를 줄 때만 자동 선택된다.
 ///
 /// 위치를 얻으면 가까운 정류장을 출발지로 기본 선택하되, 사용자가 직접 바꾼
 /// 뒤에는 위치가 갱신돼도 되돌리지 않는다. 위치는 홈이 이미 요청하는

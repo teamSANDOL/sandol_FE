@@ -8,19 +8,51 @@ library;
 /// - [route2] 제2캠퍼스 ↔ 본교·정왕역 (평일·토요일)
 enum ShuttleRoute { route1, route2 }
 
-/// 운행 방향.
+/// 운행 방향. 서버 방향 id 6개와 1:1이며, [origin]·[destination]은 서버
+/// 정류장 id다. 정류장 셋의 서로 다른 (출발, 도착) 조합이 정확히 이 여섯이다.
 enum ShuttleDirection {
-  /// 정왕역 → 학교 (등교) — 화면 토글 `학교 방면`
-  jeongwangToSchool,
+  /// `main_in` 정왕역 → 학교 (등교)
+  jeongwangToSchool('jeongwang', 'main_campus'),
 
-  /// 학교 → 정왕역 (하교) — 화면 토글 `정왕역 방면`
-  schoolToJeongwang,
+  /// `main_out` 학교 → 정왕역 (하교)
+  schoolToJeongwang('main_campus', 'jeongwang'),
 
-  /// 본교 → 제2캠퍼스
-  schoolToCampus2,
+  /// `campus2_out` 본교 → 제2캠퍼스
+  schoolToCampus2('main_campus', 'campus2'),
 
-  /// 제2캠퍼스 → 본교
-  campus2ToSchool,
+  /// `campus2_in` 제2캠퍼스 → 본교
+  campus2ToSchool('campus2', 'main_campus'),
+
+  /// `campus2_from_station` 정왕역 → 본교 → 제2캠퍼스
+  jeongwangToCampus2('jeongwang', 'campus2'),
+
+  /// `campus2_to_station` 제2캠퍼스 → 본교 → 정왕역
+  campus2ToJeongwang('campus2', 'jeongwang');
+
+  const ShuttleDirection(this.origin, this.destination);
+
+  final String origin;
+  final String destination;
+
+  /// 정왕역 ↔ 제2캠퍼스 편은 본교를 거친다.
+  bool get viaSchool =>
+      this == jeongwangToCampus2 || this == campus2ToJeongwang;
+
+  ShuttleRoute get route =>
+      this == jeongwangToSchool || this == schoolToJeongwang
+          ? ShuttleRoute.route1
+          : ShuttleRoute.route2;
+
+  /// [origin]에서 [destination]으로 가는 방향. 같은 정류장이면 null.
+  static ShuttleDirection? between(String origin, String destination) {
+    for (final d in values) {
+      if (d.origin == origin && d.destination == destination) return d;
+    }
+    return null;
+  }
+
+  /// 출발·도착을 맞바꾼 방향.
+  ShuttleDirection get reversed => between(destination, origin)!;
 }
 
 /// 요일 구분. 서버 `day_type`과 같은 네 가지다. 학교 시간표의 "주말" 표는
