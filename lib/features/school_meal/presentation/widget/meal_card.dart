@@ -349,7 +349,11 @@ class _MealMenuCard extends StatelessWidget {
                     ],
                   ),
                   if (items.isEmpty)
-                    Text('오늘은 운영하지 않아요', style: SandolTypography.caption.muted)
+                    // 홈 카드는 늘 오늘 식단이라 날짜 분기는 두지 않는다.
+                    Text(
+                      '오늘 메뉴가 아직 등록되지 않았어요'.keepAll,
+                      style: SandolTypography.caption.muted,
+                    )
                   else
                     for (final item in items)
                       Text(item.keepAll, style: SandolTypography.caption),
