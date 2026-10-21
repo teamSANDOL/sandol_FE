@@ -1,9 +1,13 @@
 import 'dart:async';
 
+import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
+import 'package:handori/core/network/static_info_dio_provider.dart';
 import 'package:handori/core/utils/korea_time.dart';
 
+import 'package:handori/features/bus/data/data_source/remote_shuttle_schedule.dart';
 import 'package:handori/features/bus/data/data_source/shuttle_schedule_data.dart';
 import 'package:handori/features/bus/domain/model/shuttle_schedule.dart';
 import 'package:handori/features/bus/domain/usecase/next_shuttle_calculator.dart';
@@ -89,9 +93,85 @@ class ShuttleClock extends _$ShuttleClock {
       DateTime.utc(t.year, t.month, t.day, t.hour, t.minute);
 }
 
+/// 서버에서 받은 셔틀 시간표. null 이면 내장 시간표를 쓴다.
+///
+/// 대체 순서는 서버 → 기기 캐시 → 내장 시간표다. 앱을 켜면 먼저 마지막 성공
+/// 응답(캐시)을 올리고, 이어서 서버에서 받아 바꾼다. 서버가 실패하거나 쓸 수
+/// 있는 노선이 없으면 캐시(없으면 내장)를 그대로 둔다. 시간표는 학기 단위로
+/// 바뀌므로 앱 실행마다 한 번만 받는다.
+@Riverpod(keepAlive: true)
+class ShuttleScheduleSource extends _$ShuttleScheduleSource {
+  static const cacheKey = 'bus.shuttle_timetable';
+  static const _storage = FlutterSecureStorage();
+
+  @override
+  RemoteShuttleSchedule? build() {
+    _load();
+    return null;
+  }
+
+  Future<void> _load() async {
+    try {
+      final cached = await _storage.read(key: cacheKey);
+      final fromCache =
+          cached == null ? null : RemoteShuttleSchedule.tryParse(cached);
+      if (fromCache != null) state = fromCache;
+    } catch (_) {
+      // 캐시를 못 읽으면 서버 응답이나 내장 시간표로 넘어간다.
+    }
+    // ponytail: 오프라인이 학기 경계를 넘기면 지난 학기 캐시가 남는다. 서버가
+    // 기간 필터를 하므로 앱은 valid_from/valid_to 를 다시 보지 않는다.
+    try {
+      final res = await ref
+          .read(staticInfoDioProvider)
+          .get<String>(
+            '/static-info/bus/timetable',
+            options: Options(responseType: ResponseType.plain),
+          );
+      final body = res.data;
+      final remote = body == null ? null : RemoteShuttleSchedule.tryParse(body);
+      if (remote == null) return;
+      state = remote;
+      await _storage.write(key: cacheKey, value: body);
+    } catch (_) {
+      // 오프라인·서버 오류: 캐시 또는 내장 시간표를 그대로 쓴다.
+    }
+  }
+}
+
+/// (노선·방향)별 [shuttleClockProvider] 기준 오늘 시간표. 미운행이면 null.
+///
+/// 서버 데이터가 그 노선을 다루면 서버 것을, 아니면 내장 시간표를 쓴다.
+/// 공휴일 판정은 앱 공휴일 목록([ShuttleScheduleData.dayTypeOf])으로 한다.
+/// 서버 `day_type`은 trip이 어느 요일 구분에 속하는지만 알려 주고 오늘이
+/// 공휴일인지는 알려 주지 않기 때문이다.
+@riverpod
+ShuttleTimetable? shuttleTimetable(
+  Ref ref, {
+  required ShuttleRoute route,
+  required ShuttleDirection direction,
+}) {
+  final dayType = ShuttleScheduleData.dayTypeOf(
+    ref.watch(shuttleClockProvider),
+  );
+  final remote = ref.watch(shuttleScheduleSourceProvider);
+  if (remote != null && remote.routes.contains(route)) {
+    return remote.timetableFor(
+      route: route,
+      direction: direction,
+      dayType: dayType,
+    );
+  }
+  return ShuttleScheduleData.timetableFor(
+    route: route,
+    direction: direction,
+    dayType: dayType,
+  );
+}
+
 /// (노선·방향)별 [shuttleClockProvider] 기준 다음 셔틀 정보.
 ///
-/// 기준 시각으로 요일·시각을 판정해 하드코딩 시간표에서 다음 셔틀을 계산한다.
+/// 기준 시각으로 [shuttleTimetableProvider]에서 다음 셔틀을 계산한다.
 /// 갱신은 `ref.read(shuttleClockProvider.notifier).refresh()`로 한다.
 @riverpod
 NextShuttle nextShuttle(
@@ -99,10 +179,9 @@ NextShuttle nextShuttle(
   required ShuttleRoute route,
   required ShuttleDirection direction,
 }) {
-  final now = ref.watch(shuttleClockProvider);
   return NextShuttleCalculator.calculate(
-    _timetableAt(now, route, direction),
-    now,
+    ref.watch(shuttleTimetableProvider(route: route, direction: direction)),
+    ref.watch(shuttleClockProvider),
   );
 }
 
@@ -113,19 +192,8 @@ List<ShuttleEntry> upcomingShuttles(
   required ShuttleRoute route,
   required ShuttleDirection direction,
 }) {
-  final now = ref.watch(shuttleClockProvider);
   return NextShuttleCalculator.upcoming(
-    _timetableAt(now, route, direction),
-    now,
+    ref.watch(shuttleTimetableProvider(route: route, direction: direction)),
+    ref.watch(shuttleClockProvider),
   );
 }
-
-ShuttleTimetable? _timetableAt(
-  DateTime now,
-  ShuttleRoute route,
-  ShuttleDirection direction,
-) => ShuttleScheduleData.timetableFor(
-  route: route,
-  direction: direction,
-  dayType: ShuttleScheduleData.dayTypeOf(now),
-);

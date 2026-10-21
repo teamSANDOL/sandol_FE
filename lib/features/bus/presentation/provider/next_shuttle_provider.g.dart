@@ -6,7 +6,7 @@ part of 'next_shuttle_provider.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$nextShuttleHash() => r'1412015ec70d82c9f84c7a6d5ecef98b8d1662e8';
+String _$shuttleTimetableHash() => r'3aa86585a9ee95f90b070f21cda151237e83b085';
 
 /// Copied from Dart SDK
 class _SystemHash {
@@ -29,9 +29,194 @@ class _SystemHash {
   }
 }
 
+/// (노선·방향)별 [shuttleClockProvider] 기준 오늘 시간표. 미운행이면 null.
+///
+/// 서버 데이터가 그 노선을 다루면 서버 것을, 아니면 내장 시간표를 쓴다.
+/// 공휴일 판정은 앱 공휴일 목록([ShuttleScheduleData.dayTypeOf])으로 한다.
+/// 서버 `day_type`은 trip이 어느 요일 구분에 속하는지만 알려 주고 오늘이
+/// 공휴일인지는 알려 주지 않기 때문이다.
+///
+/// Copied from [shuttleTimetable].
+@ProviderFor(shuttleTimetable)
+const shuttleTimetableProvider = ShuttleTimetableFamily();
+
+/// (노선·방향)별 [shuttleClockProvider] 기준 오늘 시간표. 미운행이면 null.
+///
+/// 서버 데이터가 그 노선을 다루면 서버 것을, 아니면 내장 시간표를 쓴다.
+/// 공휴일 판정은 앱 공휴일 목록([ShuttleScheduleData.dayTypeOf])으로 한다.
+/// 서버 `day_type`은 trip이 어느 요일 구분에 속하는지만 알려 주고 오늘이
+/// 공휴일인지는 알려 주지 않기 때문이다.
+///
+/// Copied from [shuttleTimetable].
+class ShuttleTimetableFamily extends Family<ShuttleTimetable?> {
+  /// (노선·방향)별 [shuttleClockProvider] 기준 오늘 시간표. 미운행이면 null.
+  ///
+  /// 서버 데이터가 그 노선을 다루면 서버 것을, 아니면 내장 시간표를 쓴다.
+  /// 공휴일 판정은 앱 공휴일 목록([ShuttleScheduleData.dayTypeOf])으로 한다.
+  /// 서버 `day_type`은 trip이 어느 요일 구분에 속하는지만 알려 주고 오늘이
+  /// 공휴일인지는 알려 주지 않기 때문이다.
+  ///
+  /// Copied from [shuttleTimetable].
+  const ShuttleTimetableFamily();
+
+  /// (노선·방향)별 [shuttleClockProvider] 기준 오늘 시간표. 미운행이면 null.
+  ///
+  /// 서버 데이터가 그 노선을 다루면 서버 것을, 아니면 내장 시간표를 쓴다.
+  /// 공휴일 판정은 앱 공휴일 목록([ShuttleScheduleData.dayTypeOf])으로 한다.
+  /// 서버 `day_type`은 trip이 어느 요일 구분에 속하는지만 알려 주고 오늘이
+  /// 공휴일인지는 알려 주지 않기 때문이다.
+  ///
+  /// Copied from [shuttleTimetable].
+  ShuttleTimetableProvider call({
+    required ShuttleRoute route,
+    required ShuttleDirection direction,
+  }) {
+    return ShuttleTimetableProvider(route: route, direction: direction);
+  }
+
+  @override
+  ShuttleTimetableProvider getProviderOverride(
+    covariant ShuttleTimetableProvider provider,
+  ) {
+    return call(route: provider.route, direction: provider.direction);
+  }
+
+  static const Iterable<ProviderOrFamily>? _dependencies = null;
+
+  @override
+  Iterable<ProviderOrFamily>? get dependencies => _dependencies;
+
+  static const Iterable<ProviderOrFamily>? _allTransitiveDependencies = null;
+
+  @override
+  Iterable<ProviderOrFamily>? get allTransitiveDependencies =>
+      _allTransitiveDependencies;
+
+  @override
+  String? get name => r'shuttleTimetableProvider';
+}
+
+/// (노선·방향)별 [shuttleClockProvider] 기준 오늘 시간표. 미운행이면 null.
+///
+/// 서버 데이터가 그 노선을 다루면 서버 것을, 아니면 내장 시간표를 쓴다.
+/// 공휴일 판정은 앱 공휴일 목록([ShuttleScheduleData.dayTypeOf])으로 한다.
+/// 서버 `day_type`은 trip이 어느 요일 구분에 속하는지만 알려 주고 오늘이
+/// 공휴일인지는 알려 주지 않기 때문이다.
+///
+/// Copied from [shuttleTimetable].
+class ShuttleTimetableProvider extends AutoDisposeProvider<ShuttleTimetable?> {
+  /// (노선·방향)별 [shuttleClockProvider] 기준 오늘 시간표. 미운행이면 null.
+  ///
+  /// 서버 데이터가 그 노선을 다루면 서버 것을, 아니면 내장 시간표를 쓴다.
+  /// 공휴일 판정은 앱 공휴일 목록([ShuttleScheduleData.dayTypeOf])으로 한다.
+  /// 서버 `day_type`은 trip이 어느 요일 구분에 속하는지만 알려 주고 오늘이
+  /// 공휴일인지는 알려 주지 않기 때문이다.
+  ///
+  /// Copied from [shuttleTimetable].
+  ShuttleTimetableProvider({
+    required ShuttleRoute route,
+    required ShuttleDirection direction,
+  }) : this._internal(
+         (ref) => shuttleTimetable(
+           ref as ShuttleTimetableRef,
+           route: route,
+           direction: direction,
+         ),
+         from: shuttleTimetableProvider,
+         name: r'shuttleTimetableProvider',
+         debugGetCreateSourceHash:
+             const bool.fromEnvironment('dart.vm.product')
+                 ? null
+                 : _$shuttleTimetableHash,
+         dependencies: ShuttleTimetableFamily._dependencies,
+         allTransitiveDependencies:
+             ShuttleTimetableFamily._allTransitiveDependencies,
+         route: route,
+         direction: direction,
+       );
+
+  ShuttleTimetableProvider._internal(
+    super._createNotifier, {
+    required super.name,
+    required super.dependencies,
+    required super.allTransitiveDependencies,
+    required super.debugGetCreateSourceHash,
+    required super.from,
+    required this.route,
+    required this.direction,
+  }) : super.internal();
+
+  final ShuttleRoute route;
+  final ShuttleDirection direction;
+
+  @override
+  Override overrideWith(
+    ShuttleTimetable? Function(ShuttleTimetableRef provider) create,
+  ) {
+    return ProviderOverride(
+      origin: this,
+      override: ShuttleTimetableProvider._internal(
+        (ref) => create(ref as ShuttleTimetableRef),
+        from: from,
+        name: null,
+        dependencies: null,
+        allTransitiveDependencies: null,
+        debugGetCreateSourceHash: null,
+        route: route,
+        direction: direction,
+      ),
+    );
+  }
+
+  @override
+  AutoDisposeProviderElement<ShuttleTimetable?> createElement() {
+    return _ShuttleTimetableProviderElement(this);
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return other is ShuttleTimetableProvider &&
+        other.route == route &&
+        other.direction == direction;
+  }
+
+  @override
+  int get hashCode {
+    var hash = _SystemHash.combine(0, runtimeType.hashCode);
+    hash = _SystemHash.combine(hash, route.hashCode);
+    hash = _SystemHash.combine(hash, direction.hashCode);
+
+    return _SystemHash.finish(hash);
+  }
+}
+
+@Deprecated('Will be removed in 3.0. Use Ref instead')
+// ignore: unused_element
+mixin ShuttleTimetableRef on AutoDisposeProviderRef<ShuttleTimetable?> {
+  /// The parameter `route` of this provider.
+  ShuttleRoute get route;
+
+  /// The parameter `direction` of this provider.
+  ShuttleDirection get direction;
+}
+
+class _ShuttleTimetableProviderElement
+    extends AutoDisposeProviderElement<ShuttleTimetable?>
+    with ShuttleTimetableRef {
+  _ShuttleTimetableProviderElement(super.provider);
+
+  @override
+  ShuttleRoute get route => (origin as ShuttleTimetableProvider).route;
+  @override
+  ShuttleDirection get direction =>
+      (origin as ShuttleTimetableProvider).direction;
+}
+
+String _$nextShuttleHash() => r'496812445c24f6acc007b2368841023f26a66be6';
+
 /// (노선·방향)별 [shuttleClockProvider] 기준 다음 셔틀 정보.
 ///
-/// 기준 시각으로 요일·시각을 판정해 하드코딩 시간표에서 다음 셔틀을 계산한다.
+/// 기준 시각으로 [shuttleTimetableProvider]에서 다음 셔틀을 계산한다.
 /// 갱신은 `ref.read(shuttleClockProvider.notifier).refresh()`로 한다.
 ///
 /// Copied from [nextShuttle].
@@ -40,14 +225,14 @@ const nextShuttleProvider = NextShuttleFamily();
 
 /// (노선·방향)별 [shuttleClockProvider] 기준 다음 셔틀 정보.
 ///
-/// 기준 시각으로 요일·시각을 판정해 하드코딩 시간표에서 다음 셔틀을 계산한다.
+/// 기준 시각으로 [shuttleTimetableProvider]에서 다음 셔틀을 계산한다.
 /// 갱신은 `ref.read(shuttleClockProvider.notifier).refresh()`로 한다.
 ///
 /// Copied from [nextShuttle].
 class NextShuttleFamily extends Family<NextShuttle> {
   /// (노선·방향)별 [shuttleClockProvider] 기준 다음 셔틀 정보.
   ///
-  /// 기준 시각으로 요일·시각을 판정해 하드코딩 시간표에서 다음 셔틀을 계산한다.
+  /// 기준 시각으로 [shuttleTimetableProvider]에서 다음 셔틀을 계산한다.
   /// 갱신은 `ref.read(shuttleClockProvider.notifier).refresh()`로 한다.
   ///
   /// Copied from [nextShuttle].
@@ -55,7 +240,7 @@ class NextShuttleFamily extends Family<NextShuttle> {
 
   /// (노선·방향)별 [shuttleClockProvider] 기준 다음 셔틀 정보.
   ///
-  /// 기준 시각으로 요일·시각을 판정해 하드코딩 시간표에서 다음 셔틀을 계산한다.
+  /// 기준 시각으로 [shuttleTimetableProvider]에서 다음 셔틀을 계산한다.
   /// 갱신은 `ref.read(shuttleClockProvider.notifier).refresh()`로 한다.
   ///
   /// Copied from [nextShuttle].
@@ -90,14 +275,14 @@ class NextShuttleFamily extends Family<NextShuttle> {
 
 /// (노선·방향)별 [shuttleClockProvider] 기준 다음 셔틀 정보.
 ///
-/// 기준 시각으로 요일·시각을 판정해 하드코딩 시간표에서 다음 셔틀을 계산한다.
+/// 기준 시각으로 [shuttleTimetableProvider]에서 다음 셔틀을 계산한다.
 /// 갱신은 `ref.read(shuttleClockProvider.notifier).refresh()`로 한다.
 ///
 /// Copied from [nextShuttle].
 class NextShuttleProvider extends AutoDisposeProvider<NextShuttle> {
   /// (노선·방향)별 [shuttleClockProvider] 기준 다음 셔틀 정보.
   ///
-  /// 기준 시각으로 요일·시각을 판정해 하드코딩 시간표에서 다음 셔틀을 계산한다.
+  /// 기준 시각으로 [shuttleTimetableProvider]에서 다음 셔틀을 계산한다.
   /// 갱신은 `ref.read(shuttleClockProvider.notifier).refresh()`로 한다.
   ///
   /// Copied from [nextShuttle].
@@ -197,7 +382,7 @@ class _NextShuttleProviderElement
   ShuttleDirection get direction => (origin as NextShuttleProvider).direction;
 }
 
-String _$upcomingShuttlesHash() => r'2e16093c2bc853030eda756328b70929c9b48d75';
+String _$upcomingShuttlesHash() => r'8423d478688aaa6e70aa80d76fa529cffe25f4e1';
 
 /// (노선·방향)별 [shuttleClockProvider] 기준 이후 시간표 항목(최대 3개).
 ///
@@ -372,5 +557,30 @@ final shuttleClockProvider = NotifierProvider<ShuttleClock, DateTime>.internal(
 );
 
 typedef _$ShuttleClock = Notifier<DateTime>;
+String _$shuttleScheduleSourceHash() =>
+    r'd1ae00146a43c8fe5ec9f9b9c9713f5a827fe7ae';
+
+/// 서버에서 받은 셔틀 시간표. null 이면 내장 시간표를 쓴다.
+///
+/// 대체 순서는 서버 → 기기 캐시 → 내장 시간표다. 앱을 켜면 먼저 마지막 성공
+/// 응답(캐시)을 올리고, 이어서 서버에서 받아 바꾼다. 서버가 실패하거나 쓸 수
+/// 있는 노선이 없으면 캐시(없으면 내장)를 그대로 둔다. 시간표는 학기 단위로
+/// 바뀌므로 앱 실행마다 한 번만 받는다.
+///
+/// Copied from [ShuttleScheduleSource].
+@ProviderFor(ShuttleScheduleSource)
+final shuttleScheduleSourceProvider =
+    NotifierProvider<ShuttleScheduleSource, RemoteShuttleSchedule?>.internal(
+      ShuttleScheduleSource.new,
+      name: r'shuttleScheduleSourceProvider',
+      debugGetCreateSourceHash:
+          const bool.fromEnvironment('dart.vm.product')
+              ? null
+              : _$shuttleScheduleSourceHash,
+      dependencies: null,
+      allTransitiveDependencies: null,
+    );
+
+typedef _$ShuttleScheduleSource = Notifier<RemoteShuttleSchedule?>;
 // ignore_for_file: type=lint
 // ignore_for_file: subtype_of_sealed_class, invalid_use_of_internal_member, invalid_use_of_visible_for_testing_member, deprecated_member_use_from_same_package
