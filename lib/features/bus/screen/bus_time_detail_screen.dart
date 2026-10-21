@@ -9,7 +9,6 @@ import 'package:handori/common/component/sandol_icon_button.dart';
 import 'package:handori/common/layout/root_shell.dart';
 import 'package:handori/core/design_system/sandol_assets.dart';
 import 'package:handori/core/design_system/sandol_tokens.dart';
-import 'package:handori/features/bus/data/data_source/shuttle_schedule_data.dart';
 import 'package:handori/features/bus/domain/model/shuttle_schedule.dart';
 import 'package:handori/features/bus/presentation/provider/next_shuttle_provider.dart';
 import 'package:handori/features/bus/presentation/provider/shuttle_direction_provider.dart';
@@ -68,10 +67,8 @@ class _BusTimeDetailScreenState extends ConsumerState<BusTimeDetailScreen> {
     final next = ref.watch(
       nextShuttleProvider(route: _route, direction: direction),
     );
-    final timetable = ShuttleScheduleData.timetableFor(
-      route: _route,
-      direction: direction,
-      dayType: ShuttleScheduleData.dayTypeOf(now),
+    final timetable = ref.watch(
+      shuttleTimetableProvider(route: _route, direction: direction),
     );
 
     return Scaffold(

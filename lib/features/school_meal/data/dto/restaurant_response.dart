@@ -1,4 +1,6 @@
 import 'package:json_annotation/json_annotation.dart';
+import 'package:handori/core/constants/api_constants.dart';
+import 'package:handori/core/utils/remote_url.dart';
 import 'package:handori/features/school_meal/domain/model/restaurant.dart';
 
 part 'restaurant_response.g.dart';
@@ -61,6 +63,9 @@ class RestaurantResponse {
   final TimeRangeResponse? dinnerTime;
   final int? owner;
 
+  /// 식당 사진. 절대 주소 또는 학식 서버 기준 경로. 아직 서버에 없는 필드다.
+  final String? imageUrl;
+
   const RestaurantResponse({
     required this.id,
     required this.name,
@@ -74,6 +79,7 @@ class RestaurantResponse {
     this.lunchTime,
     this.dinnerTime,
     this.owner,
+    this.imageUrl,
   });
 
   factory RestaurantResponse.fromJson(Map<String, dynamic> json) =>
@@ -93,5 +99,14 @@ class RestaurantResponse {
     lunchTime: lunchTime?.toDomain(),
     dinnerTime: dinnerTime?.toDomain(),
     owner: owner,
+    imageUrl: resolveMealImageUrl(imageUrl),
   );
 }
+
+/// 학식 응답(식당·끼니)의 이미지 경로를 절대 주소로 푼다. 빈 값은 없는 것으로 본다.
+// ponytail: 학식 API는 realUri 를 받지 않아 대체 서버가 응답해도 운영 주소로
+// 푼다. 서버가 절대 주소를 주면 상관없다.
+String? resolveMealImageUrl(String? url) =>
+    url == null || url.isEmpty
+        ? null
+        : resolveRemoteUrl(url, Uri.parse(ApiConstants.mealBaseUrl));

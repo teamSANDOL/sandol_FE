@@ -14,6 +14,7 @@ MealResponse _$MealResponseFromJson(Map<String, dynamic> json) => MealResponse(
   restaurantId: (json['restaurant_id'] as num).toInt(),
   restaurantName: json['restaurant_name'] as String,
   updatedAt: DateTime.parse(json['updated_at'] as String),
+  imageUrl: json['image_url'] as String?,
 );
 
 Map<String, dynamic> _$MealResponseToJson(MealResponse instance) =>
@@ -25,6 +26,7 @@ Map<String, dynamic> _$MealResponseToJson(MealResponse instance) =>
       'restaurant_id': instance.restaurantId,
       'restaurant_name': instance.restaurantName,
       'updated_at': instance.updatedAt.toIso8601String(),
+      'image_url': instance.imageUrl,
     };
 
 const _$MealTypeEnumMap = {

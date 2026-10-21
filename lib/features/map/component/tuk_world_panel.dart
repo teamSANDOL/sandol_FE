@@ -8,6 +8,7 @@ import 'package:handori/features/map/data/tuk_place.dart';
 import 'package:handori/features/map/presentation/provider/tuk_world_provider.dart';
 import 'package:handori/shared/widget/error_retry_view.dart';
 import 'package:handori/shared/widget/sandol_loading_indicator.dart';
+import 'package:handori/shared/widget/remote_image.dart';
 
 /// TUK 월드 분류. [all]은 필터 없음. 서버 분류 문자열과 [label]이 같다.
 enum TukCategory {
@@ -157,14 +158,7 @@ class _Thumb extends StatelessWidget {
       child: SizedBox(
         width: width,
         height: height,
-        child:
-            urls.isEmpty
-                ? fallback
-                : Image.network(
-                  urls.first,
-                  fit: BoxFit.cover,
-                  errorBuilder: (_, _, _) => fallback,
-                ),
+        child: RemoteImage(url: urls.firstOrNull, placeholder: fallback),
       ),
     );
   }

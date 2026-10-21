@@ -19,6 +19,7 @@ import 'package:handori/features/school_meal/presentation/provider/meal_list_not
 import 'package:handori/features/school_meal/presentation/provider/restaurant_list_notifier.dart';
 import 'package:handori/shared/widget/error_retry_view.dart';
 import 'package:handori/shared/widget/sandol_loading_indicator.dart';
+import 'package:handori/shared/widget/remote_image.dart';
 
 /// 학식 탭 (Figma 학식-2).
 ///
@@ -388,10 +389,10 @@ class _RestaurantCard extends StatelessWidget {
                   child: SizedBox(
                     width: 102,
                     height: 89,
-                    child:
-                        photo == null
-                            ? const ColoredBox(color: SandolColors.primarySoft)
-                            : Image.asset(photo, fit: BoxFit.cover),
+                    child: RemoteImage(
+                      url: menu.photoUrlFor(slot),
+                      asset: photo,
+                    ),
                   ),
                 ),
                 const SizedBox(width: SandolSpacing.md),

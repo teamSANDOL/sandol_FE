@@ -10,6 +10,10 @@ class Meal {
   final String restaurantName;
   final DateTime updatedAt;
 
+  /// 이 끼니 메뉴 사진 주소(절대 주소로 풀린 값). 서버 `image_url`이 없으면 null.
+  /// 있으면 식당 사진보다 먼저 보여 준다.
+  final String? imageUrl;
+
   const Meal({
     required this.id,
     required this.menu,
@@ -18,5 +22,6 @@ class Meal {
     required this.restaurantId,
     required this.restaurantName,
     required this.updatedAt,
+    this.imageUrl,
   });
 }
