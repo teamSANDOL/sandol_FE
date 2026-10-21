@@ -2,14 +2,14 @@ import 'package:handori/features/bus/domain/model/shuttle_schedule.dart';
 
 /// 본교 환승 연결 하나. [first]는 1구간 항목(정시편이면 [departure]가 그 시각,
 /// 수시운행·도착버스 구간이면 그 구간 안에서 타는 시각), [transfer]는 본교에서
-/// 갈아탈 2구간 출발 시각. [tighter]는 같은 [transfer]로 이어지지만 간격이
-/// [ShuttleTransfer.safeGapMinutes]보다 짧은 1구간 정시편("빠듯함").
+/// 갈아탈 2구간 출발 시각. [tight]면 간격이 [ShuttleTransfer.safeGapMinutes]보다
+/// 짧은("빠듯함") 연결이다.
 typedef ShuttleConnection =
     ({
       ShuttleEntry first,
       ShuttleTime departure,
       ShuttleTime transfer,
-      List<ShuttleTime> tighter,
+      bool tight,
     });
 
 /// 정왕역 ↔ 제2캠퍼스를 본교에서 갈아타 가는 연결을 계산하는 순수 로직.
@@ -47,7 +47,8 @@ class ShuttleTransfer {
   ///
   /// 1구간 수시운행·도착버스 구간은 구간 안 아무 때나 탈 수 있다고 보고, 지금
   /// (또는 구간 시작) 탄다고 계산한다. 같은 2구간 편으로 이어지는 1구간이 여럿이면
-  /// 가장 늦게 출발하는 것을 남긴다(본교에서 덜 기다린다).
+  /// 가장 늦게 출발하는 것을 남긴다(본교에서 덜 기다린다). 빠듯한 연결([tight])도
+  /// 함께 출발 시각순으로 섞여 나오며, 기본 목록은 이를 걸러 쓴다.
   static List<ShuttleConnection> connections(
     ShuttleTimetable? first,
     ShuttleTimetable? second,
@@ -72,22 +73,41 @@ class ShuttleTransfer {
       if (transfer != null) byTransfer[transfer] = (entry, depart);
     }
     final keys = byTransfer.keys.toList()..sort();
-    return [
+    final safe = [
       for (final transfer in keys.take(count))
         if (byTransfer[transfer] case (final entry, final depart))
           (
             first: entry,
             departure: _time(depart),
             transfer: _time(transfer),
-            tighter: [
-              for (final e in first.entries)
-                if (!e.isSegment &&
-                    e.time.minutesOfDay > depart &&
-                    transfer - e.time.minutesOfDay >= tightGapMinutes)
-                  e.time,
-            ],
+            tight: false,
           ),
     ];
+
+    // 빠듯한 연결: 지금 이후 1구간 정시편 중 간격이 tightGap 이상 safeGap 미만인
+    // 것. 안전 연결이 없는 환승편이어도 넣고, 안전 목록이 덮는 시각까지만 남긴다
+    // (안전 연결이 없으면 앞에서 count 개).
+    final lastSafe = safe.isEmpty ? null : safe.last.transfer.minutesOfDay;
+    final tight = <ShuttleConnection>[
+      for (final e in first.entries)
+        if (!e.isSegment && e.time.minutesOfDay >= nowMinutes)
+          if (_firstDeparture(second, e.time.minutesOfDay + tightGapMinutes)
+              case final transfer?
+              when transfer - e.time.minutesOfDay < safeGapMinutes &&
+                  (lastSafe == null || transfer <= lastSafe))
+            (
+              first: e,
+              departure: e.time,
+              transfer: _time(transfer),
+              tight: true,
+            ),
+    ];
+    return [...safe, ...(lastSafe == null ? tight.take(count) : tight)]..sort(
+      (a, b) =>
+          a.departure.minutesOfDay != b.departure.minutesOfDay
+              ? a.departure.minutesOfDay.compareTo(b.departure.minutesOfDay)
+              : a.transfer.minutesOfDay.compareTo(b.transfer.minutesOfDay),
+    );
   }
 
   static ShuttleTime _time(int minutes) =>

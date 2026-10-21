@@ -448,7 +448,12 @@ class _TransferCardState extends State<_TransferCard> {
   @override
   Widget build(BuildContext context) {
     final connections = widget.connections;
-    final hasTighter = connections.any((c) => c.tighter.isNotEmpty);
+    final hasTighter = connections.any((c) => c.tight);
+    // 기본은 안전 연결만, 펼치면 빠듯한 연결까지 출발 시각순으로.
+    final shown = [
+      for (final c in connections)
+        if (_showTighter || !c.tight) c,
+    ];
     return SandolCard(
       child: Padding(
         padding: const EdgeInsets.all(SandolMetrics.cardInset),
@@ -460,28 +465,24 @@ class _TransferCardState extends State<_TransferCard> {
               '${widget.school}에서 갈아타기 (예상)'.keepAll,
               style: SandolTypography.body.strong,
             ),
-            if (connections.isEmpty)
-              Text('오늘 환승 가능한 편이 없어요', style: SandolTypography.body.muted)
-            else
-              for (final c in connections) ...[
-                Text(
-                  _row(
-                    c.departure,
-                    c.transfer,
-                    c.first.isSegment
-                        ? ' (${NextShuttleCalculator.segmentName(c.first)})'
-                        : '',
-                  ),
-                  style: SandolTypography.body,
+            if (connections.every((c) => c.tight))
+              Text('오늘 환승 가능한 편이 없어요', style: SandolTypography.body.muted),
+            for (final c in shown)
+              Text(
+                _row(
+                  c.departure,
+                  c.transfer,
+                  c.tight
+                      ? ' (빠듯함)'
+                      : c.first.isSegment
+                      ? ' (${NextShuttleCalculator.segmentName(c.first)})'
+                      : '',
                 ),
-                // 같은 환승편으로 이어지는, 더 늦게 출발하는 1구간 편.
-                if (_showTighter)
-                  for (final t in c.tighter)
-                    Text(
-                      _row(t, c.transfer, ' (빠듯함)'),
-                      style: SandolTypography.body.muted,
-                    ),
-              ],
+                style:
+                    c.tight
+                        ? SandolTypography.body.muted
+                        : SandolTypography.body,
+              ),
             if (hasTighter)
               TextButton(
                 onPressed: () => setState(() => _showTighter = !_showTighter),

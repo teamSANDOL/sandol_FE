@@ -14,7 +14,7 @@ List<String> _connections(ShuttleDirection direction, DateTime now) {
   return [
     for (final c in ShuttleTransfer.connections(leg(first), leg(second), now))
       '${c.departure.label}→${c.transfer.label}'
-          '${c.tighter.isEmpty ? '' : ' 빠듯함 ${c.tighter.map((t) => t.label).join(',')}'}',
+          '${c.tight ? ' 빠듯함' : ''}',
   ];
 }
 
@@ -26,8 +26,14 @@ void main() {
         ShuttleDirection.jeongwangToCampus2,
         DateTime.utc(2026, 10, 6, 8),
       ),
-      // 10:30 → 11:00(30분)이 안전 연결이고, 10:50 은 빠듯함.
-      ['08:40→10:00', '10:30→11:00 빠듯함 10:50', '11:30→12:00 빠듯함 11:50'],
+      // 10:30 → 11:00(30분)이 안전 연결이고, 10:50 은 빠듯함(10분).
+      [
+        '08:40→10:00',
+        '10:30→11:00',
+        '10:50→11:00 빠듯함',
+        '11:30→12:00',
+        '11:50→12:00 빠듯함',
+      ],
     );
     // 수시운행 중(09:00)이면 지금 타는 것으로 본다.
     expect(
@@ -53,8 +59,32 @@ void main() {
         ShuttleDirection.campus2ToJeongwang,
         DateTime.utc(2026, 10, 6, 9),
       ),
-      // 09:40 → 10:00 은 정확히 20분이라 안전 연결에 든다.
-      ['09:40→10:00', '10:30→10:50', '11:30→11:50'],
+      // 09:40 → 10:00 은 정확히 20분이라 안전 연결에 든다(빠듯함 아님).
+      [
+        '09:40→10:00',
+        '10:30→10:40 빠듯함',
+        '10:30→10:50',
+        '11:30→11:40 빠듯함',
+        '11:30→11:50',
+      ],
+    );
+  });
+
+  test('안전 연결이 없는 환승편도 빠듯한 연결로 들어간다 (10:35)', () {
+    expect(
+      _connections(
+        ShuttleDirection.jeongwangToCampus2,
+        DateTime.utc(2026, 10, 6, 10, 35),
+      ),
+      [
+        '10:50→11:00 빠듯함',
+        '11:30→12:00',
+        '11:50→12:00 빠듯함',
+        '12:30→13:00',
+        '12:50→13:00 빠듯함',
+        '13:30→14:00',
+        '13:50→14:00 빠듯함',
+      ],
     );
   });
 
