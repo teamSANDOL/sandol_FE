@@ -5,12 +5,11 @@ import 'package:handori/features/bus/domain/model/shuttle_schedule.dart';
 class NearestShuttleOrigin {
   const NearestShuttleOrigin._();
 
-  // 좌표는 OpenStreetMap(Nominatim) 검색 기준이다.
-  // 학교: '한국공학대학교' 캠퍼스 중심점. 정문 정류장 좌표는 지도에 따로 없어
-  //       캠퍼스 중심으로 근사한다(두 정류장은 1.2km 이상 떨어져 있다).
-  // 정왕역: OSM 버스 정류장 노드 '정왕역'.
-  static const double schoolLat = 37.3402397;
-  static const double schoolLng = 126.7333516;
+  // 정류장 좌표 출처.
+  // 학교: 사용자 제공 Plus Code 8PQJ+VWR(정문 정류장).
+  // 정왕역: OpenStreetMap(Nominatim) 버스 정류장 노드 '정왕역'.
+  static const double schoolLat = 37.3397375;
+  static const double schoolLng = 126.7322656;
   static const double stationLat = 37.3512712;
   static const double stationLng = 126.7411157;
 

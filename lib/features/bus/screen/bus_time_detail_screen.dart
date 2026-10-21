@@ -13,6 +13,7 @@ import 'package:handori/features/bus/data/data_source/shuttle_schedule_data.dart
 import 'package:handori/features/bus/domain/model/shuttle_schedule.dart';
 import 'package:handori/features/bus/presentation/provider/next_shuttle_provider.dart';
 import 'package:handori/features/bus/presentation/provider/shuttle_direction_provider.dart';
+import 'package:handori/features/empty_class/presentation/provider/user_location_provider.dart';
 
 /// 셔틀버스 탭 (Figma 2156:451).
 ///
@@ -31,6 +32,23 @@ class _BusTimeDetailScreenState extends ConsumerState<BusTimeDetailScreen> {
   /// 노선1(정왕역 ↔ 본교)만 다룬다. 기본은 하교 방향.
   static const _route = ShuttleRoute.route1;
 
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) => _retryLocation());
+  }
+
+  /// 사용자가 직접 연 화면이므로 위치를 스스로 얻는다. 이전에 위치를 못 얻었으면
+  /// (권한 미결정 포함) 다시 시도하고, 영구 거부 · 위치 꺼짐이면 묻지 않는다.
+  Future<void> _retryLocation() async {
+    final location = ref.read(userLocationProvider);
+    if (location.hasValue &&
+        location.value == null &&
+        await canRetryLocation()) {
+      if (mounted) ref.invalidate(userLocationProvider);
+    }
+  }
+
   void _select(ShuttleDirection d) =>
       ref.read(shuttleDirectionSelectionProvider.notifier).select(d);
 
@@ -43,6 +61,8 @@ class _BusTimeDetailScreenState extends ConsumerState<BusTimeDetailScreen> {
 
   @override
   Widget build(BuildContext context) {
+    // 위치가 잡히면 방향 선택 provider가 가까운 출발지를 고른다.
+    ref.watch(userLocationProvider);
     final direction = ref.watch(shuttleDirectionSelectionProvider);
     final now = ref.watch(shuttleClockProvider);
     final next = ref.watch(
