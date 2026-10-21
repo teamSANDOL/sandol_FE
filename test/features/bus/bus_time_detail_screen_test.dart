@@ -4,6 +4,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:go_router/go_router.dart';
 import 'package:handori/common/layout/root_shell.dart';
+import 'package:handori/core/utils/keep_all.dart';
 import 'package:handori/features/bus/data/data_source/shuttle_schedule_data.dart';
 import 'package:handori/features/bus/presentation/provider/next_shuttle_provider.dart';
 import 'package:handori/features/empty_class/presentation/provider/user_location_provider.dart';
@@ -125,6 +126,35 @@ void main() {
     expect(find.text('정왕역 → 제2캠퍼스 (한국공학대 정문 경유)'), findsOneWidget);
     expect(find.text('한국공학대 정문 경유'), findsOneWidget);
     expect(find.text('운행 종료'), findsOneWidget);
+  });
+
+  testWidgets('정왕역 → 제2캠퍼스: 직행편과 본교 환승을 함께 보여 준다', (tester) async {
+    await pump(tester, DateTime.utc(2026, 10, 6, 8, 0));
+    await tester.tap(find.byTooltip('출발 정류장 선택'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('정왕역').last);
+    await tester.pumpAndSettle();
+    await tester.tap(find.byTooltip('도착 정류장 선택'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('제2캠퍼스'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('08:55 출발'), findsOneWidget); // 직행
+    expect(find.text('한국공학대 정문에서 갈아타기 (예상)'.keepAll), findsOneWidget);
+    expect(
+      find.text('08:40 출발 (수시운행) → 본교 10:00 환승 출발'.keepAll),
+      findsOneWidget,
+    );
+    expect(find.text('환승 시간은 교통 상황에 따라 달라질 수 있어요'.keepAll), findsOneWidget);
+  });
+
+  testWidgets('환승 연결이 없으면 안내한다', (tester) async {
+    await pump(tester, DateTime.utc(2026, 10, 6, 20, 0));
+    await tester.tap(find.byTooltip('출발 정류장 선택'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('제2캠퍼스'));
+    await tester.pumpAndSettle();
+    expect(find.text('오늘 환승 가능한 편이 없어요'), findsOneWidget);
   });
 
   testWidgets('반대쪽과 같은 정류장을 고르면 출발·도착을 맞바꾼다', (tester) async {

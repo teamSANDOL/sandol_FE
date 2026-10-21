@@ -13,6 +13,7 @@ import 'package:handori/features/bus/data/data_source/remote_shuttle_schedule.da
 import 'package:handori/features/bus/data/data_source/shuttle_schedule_data.dart';
 import 'package:handori/features/bus/domain/model/shuttle_schedule.dart';
 import 'package:handori/features/bus/domain/usecase/next_shuttle_calculator.dart';
+import 'package:handori/features/bus/domain/usecase/shuttle_transfer.dart';
 
 part 'next_shuttle_provider.g.dart';
 
@@ -233,5 +234,25 @@ List<ShuttleEntry> upcomingShuttles(
   return NextShuttleCalculator.upcoming(
     ref.watch(shuttleTimetableProvider(route: route, direction: direction)),
     ref.watch(shuttleClockProvider),
+  );
+}
+
+/// 정왕역 ↔ 제2캠퍼스 방향의 본교 환승 연결(최대 3개). 본교를 거치지 않는
+/// 방향이면 null.
+@riverpod
+List<ShuttleConnection>? shuttleTransfers(
+  Ref ref, {
+  required ShuttleDirection direction,
+}) {
+  final legs = ShuttleTransfer.legsOf(direction);
+  if (legs == null) return null;
+  final (first, second, ride) = legs;
+  ShuttleTimetable? leg(ShuttleDirection d) =>
+      ref.watch(shuttleTimetableProvider(route: d.route, direction: d));
+  return ShuttleTransfer.connections(
+    leg(first),
+    leg(second),
+    ref.watch(shuttleClockProvider),
+    rideMinutes: ride,
   );
 }

@@ -9,7 +9,10 @@ import 'package:handori/common/component/sandol_icon_button.dart';
 import 'package:handori/common/layout/root_shell.dart';
 import 'package:handori/core/design_system/sandol_assets.dart';
 import 'package:handori/core/design_system/sandol_tokens.dart';
+import 'package:handori/core/utils/keep_all.dart';
 import 'package:handori/features/bus/domain/model/shuttle_schedule.dart';
+import 'package:handori/features/bus/domain/usecase/next_shuttle_calculator.dart';
+import 'package:handori/features/bus/domain/usecase/shuttle_transfer.dart';
 import 'package:handori/features/bus/presentation/provider/next_shuttle_provider.dart';
 import 'package:handori/features/bus/presentation/provider/shuttle_direction_provider.dart';
 import 'package:handori/features/empty_class/presentation/provider/user_location_provider.dart';
@@ -68,6 +71,7 @@ class _BusTimeDetailScreenState extends ConsumerState<BusTimeDetailScreen> {
       shuttleTimetableProvider(route: direction.route, direction: direction),
     );
     final stops = ref.watch(shuttleStopsProvider);
+    final transfers = ref.watch(shuttleTransfersProvider(direction: direction));
     final needsReview =
         ref.watch(shuttleScheduleSourceProvider)?.needsReview ?? false;
 
@@ -109,6 +113,13 @@ class _BusTimeDetailScreenState extends ConsumerState<BusTimeDetailScreen> {
                 ),
                 const SizedBox(height: SandolSpacing.xl),
                 _NextBusCard(next: next, onRefresh: _refresh),
+                if (transfers != null) ...[
+                  const SizedBox(height: SandolSpacing.xl),
+                  _TransferCard(
+                    school: stops['main_campus']!.name,
+                    connections: transfers,
+                  ),
+                ],
                 const SizedBox(height: 48),
                 _TimetableHeader(
                   route:
@@ -411,6 +422,49 @@ class _NextBusCard extends StatelessWidget {
       ),
     );
   }
+}
+
+// ── 본교 환승 (정왕역 ↔ 제2캠퍼스) ─────────────────────────────────────────
+
+/// 직행편 말고 본교에서 갈아타는 연결. 소요시간이 추정이라 '예상'으로 적는다.
+class _TransferCard extends StatelessWidget {
+  const _TransferCard({required this.school, required this.connections});
+
+  /// 본교 정류장 이름.
+  final String school;
+  final List<ShuttleConnection> connections;
+
+  @override
+  Widget build(BuildContext context) => SandolCard(
+    child: Padding(
+      padding: const EdgeInsets.all(SandolMetrics.cardInset),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        spacing: SandolSpacing.sm,
+        children: [
+          Text(
+            '$school에서 갈아타기 (예상)'.keepAll,
+            style: SandolTypography.body.strong,
+          ),
+          if (connections.isEmpty)
+            Text('오늘 환승 가능한 편이 없어요', style: SandolTypography.body.muted)
+          else
+            for (final c in connections)
+              Text(
+                '${c.departure.label} 출발'
+                        '${c.first.isSegment ? ' (${NextShuttleCalculator.segmentName(c.first)})' : ''}'
+                        ' → 본교 ${c.transfer.label} 환승 출발'
+                    .keepAll,
+                style: SandolTypography.body,
+              ),
+          Text(
+            '환승 시간은 교통 상황에 따라 달라질 수 있어요'.keepAll,
+            style: SandolTypography.caption.inactive,
+          ),
+        ],
+      ),
+    ),
+  );
 }
 
 // ── 전체 시간표 (2156:511 · 2156:514) ────────────────────────────────────────
