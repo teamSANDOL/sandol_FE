@@ -32,7 +32,11 @@ class OrganizationQuickCard extends ConsumerWidget {
             const SizedBox(height: SandolSpacing.xs),
             for (final unit in units) _ContactRow(unit: unit),
             const SizedBox(height: SandolSpacing.sm),
-            const Divider(height: 1, thickness: 1, color: SandolColors.text),
+            const Divider(
+              height: 0.5,
+              thickness: 0.5,
+              color: SandolColors.border,
+            ),
           ],
           InkWell(
             onTap: onOpenAll,

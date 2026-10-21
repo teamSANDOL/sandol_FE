@@ -18,7 +18,7 @@ class WithdrawReasonPage extends StatefulWidget {
 
   static const reasons = [
     '앱 사용이 불편해요',
-    '타 어플이 더 편해요(ex. tukorea portal)',
+    '타 앱이 더 편해요(ex. tukorea portal)',
     '쓰지 않는 앱이에요',
     '재가입할 거예요',
     '기타',
@@ -62,9 +62,12 @@ class _WithdrawReasonPageState extends State<WithdrawReasonPage> {
             SandolSpacing.xl,
           ),
           children: [
-            const Padding(
-              padding: EdgeInsets.only(left: 11),
-              child: Text('탈퇴하는 이유를 알려주세요', style: SandolTypography.headline),
+            Padding(
+              padding: const EdgeInsets.only(left: 11),
+              child: Text(
+                '탈퇴하는 이유를 알려주세요',
+                style: SandolTypography.title.accent,
+              ),
             ),
             const SizedBox(height: 27),
             for (var i = 0; i < WithdrawReasonPage.reasons.length; i++)
