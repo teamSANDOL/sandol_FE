@@ -3,25 +3,27 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:go_router/go_router.dart';
 import 'package:handori/common/component/app_top_bar.dart';
-import 'package:handori/common/component/sandol_bottom_glow.dart';
-import 'package:handori/common/component/sandol_card.dart';
 import 'package:handori/common/layout/root_shell.dart';
 import 'package:handori/core/design_system/sandol_assets.dart';
 import 'package:handori/core/design_system/sandol_tokens.dart';
 import 'package:handori/core/router/route_paths.dart';
 import 'package:handori/features/notice/domain/model/notice.dart';
 import 'package:handori/features/notice/domain/model/shuttle.dart';
+import 'package:handori/features/notice/presentation/provider/notice_bookmark_provider.dart';
+import 'package:handori/features/notice/presentation/provider/notice_filter.dart';
 import 'package:handori/features/notice/presentation/provider/notice_provider.dart';
 import 'package:handori/features/notice/presentation/widget/notice_card.dart';
+import 'package:handori/features/notice/presentation/widget/notice_style.dart';
 import 'package:handori/features/notice/presentation/widget/shuttle_card.dart';
 import 'package:handori/shared/model/pagination_state.dart';
 import 'package:handori/shared/widget/error_retry_view.dart';
 import 'package:handori/shared/widget/sandol_loading_indicator.dart';
 
-/// 공지사항 탭 (Figma 2158:944).
+/// 공지사항 탭 (Figma 공지사항2).
 ///
-/// 상단 바와 탭이 아래 모서리가 둥근 한 판 안에 들어가고, 목록은 primary
-/// 테두리 카드 하나에 담긴다. 셔틀 탭은 시안이 아직 없어 기존 카드를 쓴다.
+/// 그라데이션 배경 위에 검색창 · 분류 칩 · 공지별 카드가 쌓인다.
+/// 공지 API 는 페이지 번호·크기만 받으므로 검색과 분류(생활관 제외)는 지금까지
+/// 불러온 목록 안에서 거른다. 셔틀 사진 공지는 시안에 자리가 없어 칩 하나로 둔다.
 class NoticePage extends ConsumerStatefulWidget {
   const NoticePage({super.key});
 
@@ -29,69 +31,229 @@ class NoticePage extends ConsumerStatefulWidget {
   ConsumerState<NoticePage> createState() => _NoticePageState();
 }
 
-class _NoticePageState extends ConsumerState<NoticePage>
-    with SingleTickerProviderStateMixin {
-  late final TabController _tabController;
-
-  @override
-  void initState() {
-    super.initState();
-    _tabController = TabController(length: 3, vsync: this);
-  }
+class _NoticePageState extends ConsumerState<NoticePage> {
+  final _searchController = TextEditingController();
+  NoticeFilter _filter = NoticeFilter.all;
 
   @override
   void dispose() {
-    _tabController.dispose();
+    _searchController.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: SandolColors.background,
-      appBar: AppTopBar(
-        title: '공지사항',
-        titleWidget: const Text('공지사항', style: SandolTypography.title),
-        backIcon: SvgPicture.asset(SandolAssets.backArrow),
-        onBack:
-            () => StatefulNavigationShell.of(
-              context,
-            ).goBranch(RootShell.homeBranch),
-        backgroundColor: SandolColors.background,
-        // 뒤로가기 버튼(44) 안의 아이콘(24)이 본문 여백(33)에 맞게
-        horizontalPadding: SandolMetrics.pageGutter - 10,
-        shape: const RoundedRectangleBorder(
-          borderRadius: SandolMetrics.radiusBottom,
-          side: BorderSide(color: SandolColors.border),
+    return DecoratedBox(
+      decoration: const BoxDecoration(gradient: NoticeColors.background),
+      child: Scaffold(
+        backgroundColor: Colors.transparent,
+        appBar: AppTopBar(
+          title: '공지사항',
+          titleWidget: const Text('공지사항', style: SandolTypography.title),
+          backIcon: SvgPicture.asset(SandolAssets.backArrow),
+          onBack:
+              () => StatefulNavigationShell.of(
+                context,
+              ).goBranch(RootShell.homeBranch),
+          backgroundColor: Colors.transparent,
+          // 뒤로가기 버튼(44) 안의 아이콘(24)이 본문 여백(33)에 맞게
+          horizontalPadding: SandolMetrics.pageGutter - 10,
         ),
-        bottom: TabBar(
-          controller: _tabController,
-          labelStyle: SandolTypography.body,
-          unselectedLabelStyle: SandolTypography.body,
-          labelColor: SandolColors.text,
-          unselectedLabelColor: SandolColors.text,
-          dividerColor: Colors.transparent,
-          indicatorSize: TabBarIndicatorSize.label,
-          indicator: const UnderlineTabIndicator(
-            borderSide: BorderSide(width: 4, color: SandolColors.primary),
-            borderRadius: BorderRadius.vertical(top: Radius.circular(4)),
-            insets: EdgeInsets.symmetric(horizontal: SandolSpacing.sm),
-          ),
-          tabs: const [Tab(text: '일반 공지'), Tab(text: '기숙사'), Tab(text: '셔틀')],
+        body: Column(
+          children: [
+            Padding(
+              padding: const EdgeInsets.fromLTRB(
+                SandolMetrics.pageGutter,
+                SandolSpacing.sm,
+                SandolMetrics.pageGutter,
+                0,
+              ),
+              child: _SearchBox(
+                controller: _searchController,
+                onChanged: (_) => setState(() {}),
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(
+                SandolMetrics.pageGutter,
+                SandolSpacing.md,
+                SandolMetrics.pageGutter,
+                0,
+              ),
+              child: _FilterChips(
+                selected: _filter,
+                onSelected: (f) => setState(() => _filter = f),
+              ),
+            ),
+            Expanded(child: _buildList()),
+          ],
         ),
       ),
-      body: Stack(
+    );
+  }
+
+  Widget _buildList() {
+    final query = _searchController.text;
+    return switch (_filter) {
+      NoticeFilter.shuttle => const _ShuttleListTab(),
+      NoticeFilter.saved => _SavedList(query: query),
+      _ => _NoticeListTab(
+        // 분류를 바꾸면 스크롤 위치도 새로 시작한다.
+        key: ValueKey(_filter),
+        filter: _filter,
+        query: query,
+      ),
+    };
+  }
+}
+
+/// 검색창 (Figma Frame 2147234866): 돋보기 · 힌트 · 오른쪽 필터 아이콘.
+/// 입력이 있으면 필터 아이콘 자리가 지우기 버튼이 된다.
+class _SearchBox extends StatelessWidget {
+  const _SearchBox({required this.controller, required this.onChanged});
+
+  final TextEditingController controller;
+  final ValueChanged<String> onChanged;
+
+  @override
+  Widget build(BuildContext context) => DecoratedBox(
+    decoration: BoxDecoration(
+      color: SandolColors.background,
+      borderRadius: SandolMetrics.radius,
+      border: Border.all(color: NoticeColors.border),
+    ),
+    child: Row(
+      children: [
+        const Padding(
+          padding: EdgeInsets.symmetric(horizontal: 11),
+          child: Icon(
+            Icons.search_rounded,
+            size: SandolMetrics.iconSize,
+            color: SandolColors.primary,
+          ),
+        ),
+        Expanded(
+          child: TextField(
+            controller: controller,
+            onChanged: onChanged,
+            textInputAction: TextInputAction.search,
+            style: SandolTypography.caption,
+            decoration: InputDecoration(
+              hintText: '어떤 공지를 찾고 있나요?',
+              hintStyle: SandolTypography.caption.muted,
+              border: InputBorder.none,
+              contentPadding: const EdgeInsets.symmetric(vertical: 17),
+              isDense: true,
+            ),
+          ),
+        ),
+        SizedBox(
+          width: 44,
+          child:
+              controller.text.isEmpty
+                  ? const Icon(
+                    Icons.tune_rounded,
+                    size: 20,
+                    color: SandolColors.muted,
+                  )
+                  : IconButton(
+                    tooltip: '검색어 지우기',
+                    icon: const Icon(Icons.close_rounded, size: 20),
+                    color: SandolColors.muted,
+                    onPressed: () {
+                      controller.clear();
+                      onChanged('');
+                    },
+                  ),
+        ),
+      ],
+    ),
+  );
+}
+
+/// 분류 칩 줄 (Figma Frame 2147235232): 한 줄 4개, 칸 사이 7 · 줄 사이 8.
+class _FilterChips extends StatelessWidget {
+  const _FilterChips({required this.selected, required this.onSelected});
+
+  final NoticeFilter selected;
+  final ValueChanged<NoticeFilter> onSelected;
+
+  static const _gap = 7.0;
+
+  @override
+  Widget build(BuildContext context) => LayoutBuilder(
+    builder: (context, constraints) {
+      final width = (constraints.maxWidth - _gap * 3) / 4;
+      return Wrap(
+        spacing: _gap,
+        runSpacing: SandolSpacing.sm,
         children: [
-          const SandolBottomGlow(),
-          TabBarView(
-            controller: _tabController,
-            children: const [
-              _NoticeListTab(isDormitory: false),
-              _NoticeListTab(isDormitory: true),
-              _ShuttleListTab(),
+          for (final f in NoticeFilter.values)
+            SizedBox(
+              width: width,
+              height: 32,
+              child: _FilterChip(
+                filter: f,
+                selected: f == selected,
+                onTap: () => onSelected(f),
+              ),
+            ),
+        ],
+      );
+    },
+  );
+}
+
+class _FilterChip extends StatelessWidget {
+  const _FilterChip({
+    required this.filter,
+    required this.selected,
+    required this.onTap,
+  });
+
+  final NoticeFilter filter;
+  final bool selected;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final style =
+        selected ? SandolTypography.caption.onPrimary : SandolTypography.caption;
+    return Material(
+      color: selected ? SandolColors.primary : SandolColors.background,
+      shape: RoundedRectangleBorder(
+        borderRadius: SandolMetrics.radius,
+        side: BorderSide(
+          color: selected ? SandolColors.primary : NoticeColors.border,
+        ),
+      ),
+      child: InkWell(
+        customBorder: const RoundedRectangleBorder(
+          borderRadius: SandolMetrics.radius,
+        ),
+        onTap: onTap,
+        child: Center(
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            spacing: SandolSpacing.xs,
+            children: [
+              if (filter == NoticeFilter.saved)
+                Icon(
+                  Icons.bookmark_border_rounded,
+                  size: 14,
+                  color: style.color,
+                ),
+              Flexible(
+                child: Text(
+                  filter.label,
+                  style: style,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
             ],
           ),
-        ],
+        ),
       ),
     );
   }
@@ -120,12 +282,13 @@ class _LoadingMore extends StatelessWidget {
   );
 }
 
-// ── 일반 / 기숙사 공지 탭 ──────────────────────────────────────────────────────
+// ── 공지 목록 (전체 · 분류 · 생활관) ─────────────────────────────────────────
 
 class _NoticeListTab extends ConsumerStatefulWidget {
-  const _NoticeListTab({required this.isDormitory});
+  const _NoticeListTab({required this.filter, required this.query, super.key});
 
-  final bool isDormitory;
+  final NoticeFilter filter;
+  final String query;
 
   @override
   ConsumerState<_NoticeListTab> createState() => _NoticeListTabState();
@@ -136,8 +299,9 @@ class _NoticeListTabState extends ConsumerState<_NoticeListTab> {
     () => ref.read(_provider.notifier).loadNextPage(),
   );
 
-  NoticeListNotifierProvider get _provider =>
-      noticeListNotifierProvider(isDormitory: widget.isDormitory);
+  NoticeListNotifierProvider get _provider => noticeListNotifierProvider(
+    isDormitory: widget.filter == NoticeFilter.dormitory,
+  );
 
   @override
   void dispose() {
@@ -161,59 +325,156 @@ class _NoticeListTabState extends ConsumerState<_NoticeListTab> {
   }
 
   Widget _buildList(PaginationState<Notice> data) {
-    return RefreshIndicator(
-      color: SandolColors.primary,
-      backgroundColor: SandolColors.background,
+    final items = filterNotices(
+      data.items,
+      filter: widget.filter,
+      query: widget.query,
+    );
+    // 거르지 않았을 때만 서버가 센 전체 건수를 그대로 보여 준다.
+    final narrowed = widget.filter.isKeyword || widget.query.trim().isNotEmpty;
+    return _NoticeListView(
+      items: items,
+      total: narrowed ? items.length : data.totalCount,
+      controller: _scrollController,
+      isLoadingMore: data.isLoadingMore,
       onRefresh: () => ref.read(_provider.notifier).refresh(),
-      child: ListView(
-        controller: _scrollController,
-        physics: const AlwaysScrollableScrollPhysics(),
-        padding: const EdgeInsets.fromLTRB(
-          SandolMetrics.pageGutter,
-          7,
-          SandolMetrics.pageGutter,
-          SandolSpacing.xl,
-        ),
-        children: [
-          Text('총 ${data.totalCount}건', style: SandolTypography.caption),
-          const SizedBox(height: SandolSpacing.xs),
-          if (data.items.isEmpty)
-            Padding(
-              padding: const EdgeInsets.symmetric(vertical: 60),
-              child: Text(
-                '공지사항이 없습니다.',
-                textAlign: TextAlign.center,
-                style: SandolTypography.caption.muted,
-              ),
-            )
-          else
-            SandolCard(
-              borderColor: SandolColors.primary,
-              padding: const EdgeInsets.fromLTRB(19, 18, 20, 18),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                spacing: SandolSpacing.lg,
-                children: [
-                  for (final notice in data.items)
-                    NoticeCard(
-                      notice: notice,
-                      onTap:
-                          () => context.push(
-                            RoutePaths.noticeDetail,
-                            extra: notice,
-                          ),
-                    ),
-                  if (data.isLoadingMore) const _LoadingMore(),
-                ],
-              ),
-            ),
-        ],
-      ),
     );
   }
 }
 
-// ── 셔틀 탭 ──────────────────────────────────────────────────────────────────
+// ── 저장한 공지 ──────────────────────────────────────────────────────────────
+
+class _SavedList extends ConsumerWidget {
+  const _SavedList({required this.query});
+
+  final String query;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final items = filterNotices(
+      ref.watch(noticeBookmarksProvider),
+      filter: NoticeFilter.saved,
+      query: query,
+    );
+    return _NoticeListView(
+      items: items,
+      total: items.length,
+      emptyText: '저장한 공지가 없습니다.',
+    );
+  }
+}
+
+/// 요약 줄('최신 공지 · 총 N건 · 최신순') 아래에 공지 카드를 늘어놓는다.
+class _NoticeListView extends ConsumerWidget {
+  const _NoticeListView({
+    required this.items,
+    required this.total,
+    this.controller,
+    this.isLoadingMore = false,
+    this.onRefresh,
+    this.emptyText = '공지사항이 없습니다.',
+  });
+
+  final List<Notice> items;
+  final int total;
+  final ScrollController? controller;
+  final bool isLoadingMore;
+  final Future<void> Function()? onRefresh;
+  final String emptyText;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final bookmarks = ref.watch(noticeBookmarksProvider);
+    final list = ListView(
+      controller: controller,
+      physics: const AlwaysScrollableScrollPhysics(),
+      padding: const EdgeInsets.fromLTRB(
+        SandolMetrics.pageGutter,
+        0,
+        SandolMetrics.pageGutter,
+        SandolSpacing.xl,
+      ),
+      children: [
+        _SummaryRow(total: total),
+        if (items.isEmpty)
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 60),
+            child: Text(
+              emptyText,
+              textAlign: TextAlign.center,
+              style: SandolTypography.caption.muted,
+            ),
+          )
+        else
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            spacing: SandolSpacing.sm,
+            children: [
+              for (final notice in items)
+                NoticeCard(
+                  notice: notice,
+                  saved: bookmarks.any((b) => b.id == notice.id),
+                  onToggleSaved:
+                      () => ref
+                          .read(noticeBookmarksProvider.notifier)
+                          .toggle(notice),
+                  onTap:
+                      () => context.push(RoutePaths.noticeDetail, extra: notice),
+                ),
+              if (isLoadingMore) const _LoadingMore(),
+            ],
+          ),
+      ],
+    );
+    if (onRefresh == null) return list;
+    return RefreshIndicator(
+      color: SandolColors.primary,
+      backgroundColor: SandolColors.background,
+      onRefresh: onRefresh!,
+      child: list,
+    );
+  }
+}
+
+/// '최신 공지  총 N건' 과 오른쪽 '최신순' 표시 (Figma Frame 2147235230).
+/// API 가 최신순만 주므로 정렬 표시는 누를 수 없다.
+class _SummaryRow extends StatelessWidget {
+  const _SummaryRow({required this.total});
+
+  final int total;
+
+  @override
+  Widget build(BuildContext context) => Padding(
+    padding: const EdgeInsets.symmetric(vertical: SandolSpacing.sm),
+    child: Row(
+      children: [
+        Text('최신 공지', style: SandolTypography.caption),
+        const SizedBox(width: SandolSpacing.sm),
+        Text('총 $total건', style: SandolTypography.caption),
+        const Spacer(),
+        DecoratedBox(
+          decoration: BoxDecoration(
+            color: SandolColors.background,
+            borderRadius: SandolMetrics.radius,
+            border: Border.all(color: NoticeColors.border),
+          ),
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(10, 8, 6, 8),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text('최신순', style: SandolTypography.caption),
+                const Icon(Icons.arrow_drop_down_rounded, size: 20),
+              ],
+            ),
+          ),
+        ),
+      ],
+    ),
+  );
+}
+
+// ── 셔틀 사진 공지 ───────────────────────────────────────────────────────────
 
 class _ShuttleListTab extends ConsumerStatefulWidget {
   const _ShuttleListTab();
