@@ -86,4 +86,43 @@ void main() {
       expect(NextShuttleCalculator.upcoming(null, at(9, 0)), isEmpty);
     });
   });
+
+  group('출발 기준 머리글', () {
+    String headline(int h, int m) =>
+        NextShuttleCalculator.calculate(timetable, at(h, m)).headline;
+
+    test('정각이면 곧 출발', () {
+      expect(headline(12, 30), '곧 출발');
+    });
+
+    test('20분 이내는 N분 뒤 출발', () {
+      expect(headline(12, 29), '1분 뒤 출발');
+      expect(headline(12, 10), '20분 뒤 출발');
+    });
+
+    test('20분보다 멀면 출발 시각', () {
+      expect(headline(12, 9), '12:30 출발');
+      expect(headline(10, 0), '12:30 출발');
+    });
+
+    test('20분 밖 정시편은 머리글과 같은 문구를 subText로 중복하지 않는다', () {
+      expect(
+        NextShuttleCalculator.calculate(timetable, at(12, 9)).subText,
+        isNull,
+      );
+      expect(
+        NextShuttleCalculator.calculate(timetable, at(12, 10)).subText,
+        '12:30 출발',
+      );
+    });
+
+    test('자정을 넘기면 막차 종료, 0시에는 첫 편 시각', () {
+      expect(headline(23, 59), '운행 종료');
+      expect(headline(0, 0), '08:40 출발');
+    });
+
+    test('미운행일 문구', () {
+      expect(NextShuttleCalculator.calculate(null, at(9, 0)).headline, '운행 안함');
+    });
+  });
 }

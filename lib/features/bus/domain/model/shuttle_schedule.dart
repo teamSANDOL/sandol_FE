@@ -175,25 +175,11 @@ class NextShuttle {
     this.subText,
   });
 
-  /// 카운트다운을 시작하는 상한(분).
+  /// "N분 뒤 출발"로 보여주는 상한(분).
   ///
-  /// 이보다 먼 출발은 도로 사정에 따라 오차가 커서 분 숫자를 신뢰하기 어렵다.
-  /// 15분 이내로 좁혀졌을 때만 숫자를 보여주고, 그 전에는 '도착정보없음'으로
-  /// 안내한다.
-  static const int countdownLimitMinutes = 15;
-
-  /// 분 숫자(굵은 강조)로 표기할 수 있는 상태인지.
-  bool get showsMinutes =>
-      status == ShuttleStatus.upcoming &&
-      remainMinutes != null &&
-      remainMinutes! <= countdownLimitMinutes;
-
-  /// 다음 출발은 있지만 아직 [countdownLimitMinutes]보다 멀어 분 표기를
-  /// 하지 않는 상태. UI는 '도착정보없음'으로 표시한다.
-  bool get isBeyondCountdown =>
-      status == ShuttleStatus.upcoming &&
-      remainMinutes != null &&
-      remainMinutes! > countdownLimitMinutes;
+  /// 이보다 먼 출발은 도로 사정에 따라 오차가 커서 분 숫자 대신 출발 시각
+  /// ("HH:MM 출발")을 보여준다.
+  static const int countdownLimitMinutes = 20;
 
   /// 운행 중(출발 예정 · 수시운행 · 도착버스 탑승)인가. 운행 종료 · 미운행은
   /// 강조색 대신 비활성 색으로 보여준다.
@@ -203,10 +189,12 @@ class NextShuttle {
   /// 카드 머리글 한 줄. 홈 카드와 셔틀 화면이 같은 문구를 쓴다.
   String get headline {
     final remain = remainMinutes;
-    if (showsMinutes && remain != null && remain > 0) return '$remain분 후 출발';
-    // 15분보다 멀면 분 숫자를 신뢰할 수 없어 안내하지 않는다.
-    if (isBeyondCountdown) return '도착정보없음';
-    if (status == ShuttleStatus.upcoming) return '곧 도착';
+    final time = departureTime;
+    if (status == ShuttleStatus.upcoming && remain != null) {
+      if (remain <= 0) return '곧 출발';
+      if (remain <= countdownLimitMinutes) return '$remain분 뒤 출발';
+      if (time != null) return '${time.label} 출발';
+    }
     return statusLabel ?? '운행 정보 없음';
   }
 

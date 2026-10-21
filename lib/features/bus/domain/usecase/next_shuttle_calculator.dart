@@ -34,14 +34,18 @@ class NextShuttleCalculator {
       if (entry.isSegment && entry.time.minutesOfDay == nowMinutes) {
         return _segment(entry);
       }
+      final remain = entry.time.minutesOfDay - nowMinutes;
       return NextShuttle(
         status: ShuttleStatus.upcoming,
-        remainMinutes: entry.time.minutesOfDay - nowMinutes,
+        remainMinutes: remain,
         departureTime: entry.time,
+        // 정시편은 20분 밖이면 머리글이 이미 "HH:MM 출발"이라 중복을 피한다.
         subText:
             entry.isSegment
                 ? '${entry.time.label}부터 ${segmentName(entry)}'
-                : '${entry.time.label} 출발',
+                : remain <= NextShuttle.countdownLimitMinutes
+                ? '${entry.time.label} 출발'
+                : null,
       );
     }
 

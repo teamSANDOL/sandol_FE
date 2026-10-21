@@ -9,6 +9,7 @@ import 'package:handori/core/design_system/sandol_tokens.dart';
 import 'package:handori/features/bus/domain/model/shuttle_schedule.dart';
 import 'package:handori/features/bus/domain/usecase/next_shuttle_calculator.dart';
 import 'package:handori/features/bus/presentation/provider/next_shuttle_provider.dart';
+import 'package:handori/features/bus/presentation/provider/shuttle_direction_provider.dart';
 
 /// 홈 셔틀버스 카드 (Figma 2153:253).
 ///
@@ -24,19 +25,17 @@ class Bustimescreen extends ConsumerStatefulWidget {
 }
 
 class _BustimescreenState extends ConsumerState<Bustimescreen> {
-  bool _isReverse = false; // false: 학교→정왕역 / true: 정왕역→학교
-
   @override
   Widget build(BuildContext context) {
-    final from = _isReverse ? '정왕역' : '학교';
-    final to = _isReverse ? '학교' : '정왕역';
-    final stopName = _isReverse ? '정왕역 버스 정류장' : '정문 버스 정류장';
+    // 홈 카드와 상세 화면이 방향을 공유한다(위치 기반 기본값 포함).
+    final selected = ref.watch(shuttleDirectionSelectionProvider);
+    final isReverse = selected == ShuttleDirection.jeongwangToSchool;
+    final from = isReverse ? '정왕역' : '학교';
+    final to = isReverse ? '학교' : '정왕역';
+    final stopName = isReverse ? '정왕역 버스 정류장' : '정문 버스 정류장';
 
     // 상세 화면과 동일한 방향 매핑 → 동일한 다음 셔틀 결과.
-    final direction =
-        _isReverse
-            ? ShuttleDirection.jeongwangToSchool
-            : ShuttleDirection.schoolToJeongwang;
+    final direction = selected;
     const route = ShuttleRoute.route1;
     final now = ref.watch(shuttleClockProvider);
     final next = ref.watch(
@@ -54,7 +53,14 @@ class _BustimescreenState extends ConsumerState<Bustimescreen> {
           _DirectionBar(
             from: from,
             to: to,
-            onSwap: () => setState(() => _isReverse = !_isReverse),
+            onSwap:
+                () => ref
+                    .read(shuttleDirectionSelectionProvider.notifier)
+                    .select(
+                      isReverse
+                          ? ShuttleDirection.schoolToJeongwang
+                          : ShuttleDirection.jeongwangToSchool,
+                    ),
             onRefresh: () => ref.read(shuttleClockProvider.notifier).refresh(),
           ),
           Padding(
@@ -104,7 +110,7 @@ class _BustimescreenState extends ConsumerState<Bustimescreen> {
                   ),
                 const SizedBox(height: 20),
                 Center(
-                  child: SandolIconLabel.note('도착 시간은 교통 상황에 따라 달라질 수 있어요.'),
+                  child: SandolIconLabel.note('출발 시간은 교통 상황에 따라 달라질 수 있어요.'),
                 ),
               ],
             ),

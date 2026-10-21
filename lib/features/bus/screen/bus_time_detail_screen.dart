@@ -12,6 +12,7 @@ import 'package:handori/core/design_system/sandol_tokens.dart';
 import 'package:handori/features/bus/data/data_source/shuttle_schedule_data.dart';
 import 'package:handori/features/bus/domain/model/shuttle_schedule.dart';
 import 'package:handori/features/bus/presentation/provider/next_shuttle_provider.dart';
+import 'package:handori/features/bus/presentation/provider/shuttle_direction_provider.dart';
 
 /// 셔틀버스 탭 (Figma 2156:451).
 ///
@@ -29,9 +30,9 @@ class BusTimeDetailScreen extends ConsumerStatefulWidget {
 class _BusTimeDetailScreenState extends ConsumerState<BusTimeDetailScreen> {
   /// 노선1(정왕역 ↔ 본교)만 다룬다. 기본은 하교 방향.
   static const _route = ShuttleRoute.route1;
-  ShuttleDirection _direction = ShuttleDirection.schoolToJeongwang;
 
-  void _swap() => setState(() => _direction = _direction.reversed);
+  void _select(ShuttleDirection d) =>
+      ref.read(shuttleDirectionSelectionProvider.notifier).select(d);
 
   /// 당겨서 새로고침 · 카드 버튼. 기준 시각을 갱신하면 다음 버스 · 시간표 ·
   /// 마지막 업데이트가 함께 다시 계산된다.
@@ -42,13 +43,14 @@ class _BusTimeDetailScreenState extends ConsumerState<BusTimeDetailScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final direction = ref.watch(shuttleDirectionSelectionProvider);
     final now = ref.watch(shuttleClockProvider);
     final next = ref.watch(
-      nextShuttleProvider(route: _route, direction: _direction),
+      nextShuttleProvider(route: _route, direction: direction),
     );
     final timetable = ShuttleScheduleData.timetableFor(
       route: _route,
-      direction: _direction,
+      direction: direction,
       dayType: ShuttleScheduleData.dayTypeOf(now),
     );
 
@@ -83,14 +85,14 @@ class _BusTimeDetailScreenState extends ConsumerState<BusTimeDetailScreen> {
               ),
               children: [
                 _RouteCard(
-                  direction: _direction,
-                  onSwap: _swap,
-                  onSelect: (d) => setState(() => _direction = d),
+                  direction: direction,
+                  onSwap: () => _select(direction.reversed),
+                  onSelect: _select,
                 ),
                 const SizedBox(height: SandolSpacing.xl),
                 _NextBusCard(next: next, onRefresh: _refresh),
                 const SizedBox(height: 48),
-                _TimetableHeader(direction: _direction),
+                _TimetableHeader(direction: direction),
                 const SizedBox(height: 12),
                 _TimetableCard(
                   timetable: timetable,
