@@ -5,12 +5,12 @@
 
 ## 1. 패키지명 — 완료 (코드)
 
-- `applicationId` / `namespace` = `kr.sandori.handori`
-- `MainActivity.kt` → `android/app/src/main/kotlin/kr/sandori/handori/`
+- `applicationId` / `namespace` = `kr.sandori.app` (2026-10-21 `kr.sandori.handori`에서 변경)
+- `MainActivity.kt` → `android/app/src/main/kotlin/kr/sandori/app/`
 - 딥링크 스킴 `kr.sandori.handori://oauthredirect` 는 패키지명과 무관하므로 Keycloak 설정 변경 불필요.
 
 **직접 해야 할 일**
-- [x] NCP 콘솔 → Maps → Application → Android 앱 패키지명을 `kr.sandori.handori` 로 교체 (2026-09-08 완료)(구 `com.example.handori` 삭제). 안 하면 릴리즈 빌드에서 지도가 빈 화면.
+- [ ] NCP 콘솔 → Maps → Application → Android 앱 패키지명을 `kr.sandori.app` 으로 교체 (2026-10-21 패키지 변경, 구 `kr.sandori.handori`는 2026-09-08 등록)(구 `com.example.handori` 삭제). 안 하면 릴리즈 빌드에서 지도가 빈 화면.
 - [ ] 이미 설치된 테스트 기기의 구 패키지 앱은 별개 앱으로 남으므로 삭제.
 
 ## 2. 릴리즈 서명 — 완료 (코드) + 백업 필요
