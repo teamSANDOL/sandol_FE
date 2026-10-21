@@ -155,8 +155,14 @@ class _Pill extends StatelessWidget {
       child: ConstrainedBox(
         constraints: BoxConstraints(minWidth: width, minHeight: height),
         child: Padding(
-          padding: const EdgeInsets.symmetric(vertical: 2),
-          child: Center(child: FittedBox(fit: BoxFit.scaleDown, child: child)),
+          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+          // 칸 폭이 정해져 있어 글꼴은 1.3배까지만 키우고, 더 넘치면 줄여 맞춘다.
+          child: MediaQuery.withClampedTextScaling(
+            maxScaleFactor: 1.3,
+            child: Center(
+              child: FittedBox(fit: BoxFit.scaleDown, child: child),
+            ),
+          ),
         ),
       ),
     ),
@@ -181,6 +187,7 @@ class _DateStrip extends StatelessWidget {
     final monday = today.subtract(Duration(days: today.weekday - 1));
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      spacing: 4,
       children: [
         for (var i = 0; i < 7; i++)
           Flexible(
@@ -229,6 +236,7 @@ class _MealTabs extends StatelessWidget {
   @override
   Widget build(BuildContext context) => Row(
     mainAxisAlignment: MainAxisAlignment.spaceBetween,
+    spacing: 4,
     children: [
       for (final type in _tabs)
         Flexible(

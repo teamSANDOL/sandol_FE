@@ -1,8 +1,10 @@
 import 'dart:convert';
+import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
@@ -39,7 +41,8 @@ Widget _scaled(double scale, Widget child) => MediaQuery(
 );
 
 void _phone(WidgetTester tester) {
-  tester.view.physicalSize = const Size(412, 1400);
+  // Pixel 6 (1080x2400, 420dpi) 의 논리 폭
+  tester.view.physicalSize = const Size(411, 1400);
   tester.view.devicePixelRatio = 1;
   addTearDown(tester.view.reset);
 }
@@ -118,7 +121,29 @@ Notice _notice(int id, String author) => Notice(
   createdAt: '2026-10-05T09:00:00',
 );
 
+/// 실제 앱 글꼴(Pretendard). 기본 테스트 글꼴(Ahem)은 글자 폭이 달라
+/// 실기기에서만 생기는 겹침·잘림을 놓친다.
+Future<void> _loadPretendard() async {
+  final loader = FontLoader('Pretendard');
+  for (final w in ['Light', 'Regular', 'Medium', 'SemiBold', 'Bold']) {
+    final f = File('assets/fonts/Pretendard-$w.otf');
+    if (f.existsSync()) {
+      loader.addFont(Future.value(ByteData.sublistView(f.readAsBytesSync())));
+    }
+  }
+  await loader.load();
+}
+
+/// [a]와 [b]가 겹치지 않고 가로로 [gap] 이상 떨어져 있다.
+void _expectSeparated(Rect a, Rect b, {double gap = 2}) {
+  expect(a.overlaps(b), isFalse, reason: '$a 와 $b 가 겹친다');
+  final d = a.right <= b.left ? b.left - a.right : a.left - b.right;
+  expect(d, greaterThanOrEqualTo(gap), reason: '$a 와 $b 사이가 너무 좁다');
+}
+
 void main() {
+  setUpAll(_loadPretendard);
+
   for (final scale in _scales) {
     group('글꼴 $scale배', () {
       testWidgets('하단바: 다섯 라벨이 모두 그려진다', (tester) async {
@@ -136,8 +161,14 @@ void main() {
             ),
           ),
         );
+        final rects = <Rect>[];
         for (final label in ['홈', '학식', '셔틀버스', '공지사항', '맵']) {
           expect(find.text(label), findsOneWidget);
+          rects.add(tester.getRect(find.text(label)));
+        }
+        // 이웃 라벨 사이에 최소 여백이 남는다.
+        for (var i = 0; i < rects.length - 1; i++) {
+          _expectSeparated(rects[i], rects[i + 1], gap: 6);
         }
         expect(tester.takeException(), isNull);
       });
@@ -163,6 +194,35 @@ void main() {
         expect(find.textContaining('일\n'), findsOneWidget);
         expect(find.textContaining('조식'), findsOneWidget);
         expect(tester.takeException(), isNull);
+
+        // 날짜 칩 7개가 서로 떨어져 있고 폭 안에 든다.
+        final days = [
+          for (final w in ['월', '화', '수', '목', '금', '토', '일'])
+            tester.getRect(
+              find.ancestor(
+                of: find.textContaining('$w\n'),
+                matching: find.byType(InkWell),
+              ),
+            ),
+        ];
+        for (var i = 0; i < days.length - 1; i++) {
+          _expectSeparated(days[i], days[i + 1], gap: 2);
+        }
+        expect(days.last.right, lessThanOrEqualTo(411));
+        // 끼니 탭 칩도 서로 떨어져 있다.
+        final tabs = [
+          for (final t in ['조식', '점심', '저녁'])
+            if (find.textContaining(t).evaluate().isNotEmpty)
+              tester.getRect(
+                find.ancestor(
+                  of: find.textContaining(t),
+                  matching: find.byType(InkWell),
+                ),
+              ),
+        ];
+        for (var i = 0; i < tabs.length - 1; i++) {
+          _expectSeparated(tabs[i], tabs[i + 1], gap: 2);
+        }
       });
 
       testWidgets('공지: 저장한 공지 칩이 온전하고 북마크는 카드 오른쪽 끝에 선다', (tester) async {
@@ -190,6 +250,14 @@ void main() {
         await tester.pumpAndSettle();
         expect(find.text('저장한 공지'), findsOneWidget);
         expect(tester.takeException(), isNull);
+        // 아이콘과 글자가 한 덩어리이고 글자는 한 줄이다.
+        final saved = tester.getRect(find.text('저장한 공지'));
+        final icon = tester.getRect(
+          find.byIcon(Icons.bookmark_border_rounded).first,
+        );
+        expect(icon.right, lessThanOrEqualTo(saved.left));
+        expect(saved.left - icon.right, lessThan(10));
+        expect(saved.height, lessThan(24 * 1.3));
 
         // 카드 안 북마크 버튼의 오른쪽 끝이 배지 길이와 무관하게 같다.
         final cards = find.byType(NoticeCard);
