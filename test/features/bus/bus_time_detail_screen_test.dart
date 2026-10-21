@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:go_router/go_router.dart';
 import 'package:handori/common/layout/root_shell.dart';
+import 'package:handori/features/bus/domain/usecase/nearest_shuttle_origin.dart';
 import 'package:handori/features/bus/presentation/provider/next_shuttle_provider.dart';
+import 'package:handori/features/empty_class/presentation/provider/user_location_provider.dart';
 import 'package:handori/features/bus/screen/bus_time_detail_screen.dart';
 
 /// [ShuttleClock]을 고정 시각으로 바꿔 요일·시각에 따른 표시를 검사한다.
@@ -15,7 +18,11 @@ class _FixedClock extends ShuttleClock {
 }
 
 void main() {
-  Future<void> pump(WidgetTester tester, DateTime now) async {
+  Future<void> pump(
+    WidgetTester tester,
+    DateTime now, {
+    Position? position,
+  }) async {
     tester.view.physicalSize = const Size(412, 1400);
     tester.view.devicePixelRatio = 1;
     addTearDown(tester.view.reset);
@@ -44,7 +51,10 @@ void main() {
     );
     await tester.pumpWidget(
       ProviderScope(
-        overrides: [shuttleClockProvider.overrideWith(() => _FixedClock(now))],
+        overrides: [
+          shuttleClockProvider.overrideWith(() => _FixedClock(now)),
+          userLocationProvider.overrideWith((ref) async => position),
+        ],
         child: MaterialApp.router(routerConfig: router),
       ),
     );
@@ -108,5 +118,25 @@ void main() {
     await pump(tester, DateTime.utc(2026, 10, 6, 6, 0));
     expect(find.text('09:00 출발'), findsOneWidget);
     expect(find.textContaining('분 뒤 출발'), findsNothing);
+  });
+
+  testWidgets('화면 진입 시 위치가 정왕역 근처면 정왕역 출발로 자동 선택된다', (tester) async {
+    await pump(
+      tester,
+      weekday,
+      position: Position(
+        latitude: NearestShuttleOrigin.stationLat,
+        longitude: NearestShuttleOrigin.stationLng,
+        timestamp: weekday,
+        accuracy: 1,
+        altitude: 0,
+        altitudeAccuracy: 1,
+        heading: 0,
+        headingAccuracy: 1,
+        speed: 0,
+        speedAccuracy: 1,
+      ),
+    );
+    expect(find.text('정왕역 → 한국공학대 정문'), findsOneWidget);
   });
 }
