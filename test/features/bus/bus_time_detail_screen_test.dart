@@ -4,7 +4,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:go_router/go_router.dart';
 import 'package:handori/common/layout/root_shell.dart';
-import 'package:handori/features/bus/domain/usecase/nearest_shuttle_origin.dart';
+import 'package:handori/features/bus/data/data_source/shuttle_schedule_data.dart';
 import 'package:handori/features/bus/presentation/provider/next_shuttle_provider.dart';
 import 'package:handori/features/empty_class/presentation/provider/user_location_provider.dart';
 import 'package:handori/features/bus/screen/bus_time_detail_screen.dart';
@@ -125,8 +125,8 @@ void main() {
       tester,
       weekday,
       position: Position(
-        latitude: NearestShuttleOrigin.stationLat,
-        longitude: NearestShuttleOrigin.stationLng,
+        latitude: ShuttleScheduleData.stops['jeongwang']!.lat!,
+        longitude: ShuttleScheduleData.stops['jeongwang']!.lng!,
         timestamp: weekday,
         accuracy: 1,
         altitude: 0,

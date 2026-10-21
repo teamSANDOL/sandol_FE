@@ -1,7 +1,8 @@
 import 'package:handori/features/bus/data/data_source/korean_public_holidays.dart';
 import 'package:handori/features/bus/domain/model/shuttle_schedule.dart';
 
-/// 셔틀버스 시간표 원본(하드코딩) 데이터 소스.
+/// 셔틀버스 시간표 원본(하드코딩) 데이터 소스. 서버도 기기 캐시도 못 쓸 때의
+/// 대체 경로다.
 ///
 /// 출발 시각은 가독성을 위해 HHMM 정수(예: 1015 → 10:15) 리스트로 정의하고,
 /// [_fixed] 헬퍼로 도메인 [ShuttleEntry]로 변환한다.
@@ -13,6 +14,19 @@ import 'package:handori/features/bus/domain/model/shuttle_schedule.dart';
 /// - 노선2(제2캠퍼스↔본교·정왕역): 평일·토요일 운행. 일/공휴일 미운행.
 class ShuttleScheduleData {
   const ShuttleScheduleData._();
+
+  /// 서버 `stops`를 못 받을 때 쓰는 정류장. 키는 서버 정류장 id.
+  ///
+  /// 좌표 출처 — 학교: 사용자 제공 Plus Code 8PQJ+VWR(정문 정류장),
+  /// 정왕역: OpenStreetMap(Nominatim) 버스 정류장 노드 '정왕역'.
+  static const Map<String, ShuttleStop> stops = {
+    'main_campus': ShuttleStop(
+      name: '한국공학대 정문',
+      lat: 37.3397375,
+      lng: 126.7322656,
+    ),
+    'jeongwang': ShuttleStop(name: '정왕역', lat: 37.3512712, lng: 126.7411157),
+  };
 
   /// 도착버스 탑승 시간대(17:00 이후) 승차 위치 안내.
   /// 정해진 시간표 없이 정왕역에 도착한 버스를 그대로 탑승한다.
@@ -104,9 +118,9 @@ class ShuttleScheduleData {
       .map((hhmm) => ShuttleEntry.fixed(ShuttleTime.fromHhmm(hhmm)))
       .toList(growable: false);
 
-  /// 날짜 → 요일 구분. 공휴일(대체공휴일 포함)과 일요일은
-  /// [ShuttleDayType.holiday], 토요일은 [ShuttleDayType.saturday].
-  /// 공휴일 목록에 없는 연도는 요일만으로 판정한다.
+  /// 날짜 → 요일 구분. 서버 `day_type`을 못 받을 때만 쓴다. 공휴일(대체공휴일
+  /// 포함)이면 [ShuttleDayType.holiday]. 공휴일 목록에 없는 연도는 요일만으로
+  /// 판정한다.
   static ShuttleDayType dayTypeOf(DateTime date) {
     // 목록 밖 연도는 요일만으로 판정한다. 목록이 만료되기 전에 알 수 있도록
     // shuttle_day_type_test 가 "지금 + 180일"이 목록 안인지 검사한다.
@@ -115,7 +129,7 @@ class ShuttleScheduleData {
       case DateTime.saturday:
         return ShuttleDayType.saturday;
       case DateTime.sunday:
-        return ShuttleDayType.holiday;
+        return ShuttleDayType.sunday;
       default:
         return ShuttleDayType.weekday;
     }
@@ -156,7 +170,9 @@ class ShuttleScheduleData {
     }
 
     // 노선2는 평일·토요일 운행.
-    if (dayType == ShuttleDayType.holiday) return null;
+    if (dayType == ShuttleDayType.sunday || dayType == ShuttleDayType.holiday) {
+      return null;
+    }
     switch (direction) {
       case ShuttleDirection.schoolToCampus2:
         return dayType == ShuttleDayType.saturday

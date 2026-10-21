@@ -7,13 +7,14 @@ part of 'shuttle_direction_provider.dart';
 // **************************************************************************
 
 String _$shuttleDirectionSelectionHash() =>
-    r'9b9a249e012e2f96e7887638c6c105ed8036cf1f';
+    r'32c33cc16e62d62a1e586b39589f5d0188f349fe';
 
 /// 노선1 방향 선택. 홈 카드와 셔틀 상세 화면이 공유한다.
 ///
 /// 위치를 얻으면 가까운 정류장을 출발지로 기본 선택하되, 사용자가 직접 바꾼
 /// 뒤에는 위치가 갱신돼도 되돌리지 않는다. 위치는 홈이 이미 요청하는
 /// [userLocationProvider]를 구독만 하므로 이 기능이 권한 창을 새로 띄우지 않는다.
+/// 정류장 좌표는 [shuttleStopsProvider](서버 `stops`, 없으면 내장)를 쓴다.
 ///
 /// Copied from [ShuttleDirectionSelection].
 @ProviderFor(ShuttleDirectionSelection)

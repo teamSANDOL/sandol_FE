@@ -6,7 +6,28 @@ part of 'next_shuttle_provider.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$shuttleTimetableHash() => r'c47a65afe30f082cba778427e5ded1790814deb3';
+String _$shuttleStopsHash() => r'8a75f96c9fae33e628e0c8652e845037fe0ddbf6';
+
+/// 서버 정류장 id → 정류장. 서버 것이 있으면 그것을, 없으면 내장 상수를 쓴다.
+///
+/// Copied from [shuttleStops].
+@ProviderFor(shuttleStops)
+final shuttleStopsProvider =
+    AutoDisposeProvider<Map<String, ShuttleStop>>.internal(
+      shuttleStops,
+      name: r'shuttleStopsProvider',
+      debugGetCreateSourceHash:
+          const bool.fromEnvironment('dart.vm.product')
+              ? null
+              : _$shuttleStopsHash,
+      dependencies: null,
+      allTransitiveDependencies: null,
+    );
+
+@Deprecated('Will be removed in 3.0. Use Ref instead')
+// ignore: unused_element
+typedef ShuttleStopsRef = AutoDisposeProviderRef<Map<String, ShuttleStop>>;
+String _$shuttleTimetableHash() => r'af2a6dda1e829d5f420e13af1b672f4699665143';
 
 /// Copied from Dart SDK
 class _SystemHash {
@@ -31,15 +52,8 @@ class _SystemHash {
 
 /// (노선·방향)별 [shuttleClockProvider] 기준 오늘 시간표. 미운행이면 null.
 ///
-/// 서버 데이터가 그 노선을 다루면 서버 것을, 아니면 내장 시간표를 쓴다.
-/// 다만 내장 시간표에 있는 구간 종류(수시운행·도착버스 탑승)를 서버 시간표가
-/// 하나라도 빠뜨리면 그 방향은 내장 시간표를 쓴다. 2026-10 운영 응답은 등교
-/// 「17:00~22:17 도착버스 탑승」을 `22:17 막차` 한 줄로만 줘서, 그대로 쓰면
-/// 저녁 등교 카드가 「22:17 출발」로 잘못 보인다. 서버가 구간을 주기 시작하면
-/// 이 조건은 저절로 풀린다.
-/// 공휴일 판정은 앱 공휴일 목록([ShuttleScheduleData.dayTypeOf])으로 한다.
-/// 서버 `day_type`은 trip이 어느 요일 구분에 속하는지만 알려 주고 오늘이
-/// 공휴일인지는 알려 주지 않기 때문이다.
+/// 서버 시간표가 있으면 서버가 정한 그날 구간을 그대로 쓰고, 없으면 내장
+/// 시간표를 앱 공휴일 목록([ShuttleScheduleData.dayTypeOf])으로 고른다.
 ///
 /// Copied from [shuttleTimetable].
 @ProviderFor(shuttleTimetable)
@@ -47,44 +61,23 @@ const shuttleTimetableProvider = ShuttleTimetableFamily();
 
 /// (노선·방향)별 [shuttleClockProvider] 기준 오늘 시간표. 미운행이면 null.
 ///
-/// 서버 데이터가 그 노선을 다루면 서버 것을, 아니면 내장 시간표를 쓴다.
-/// 다만 내장 시간표에 있는 구간 종류(수시운행·도착버스 탑승)를 서버 시간표가
-/// 하나라도 빠뜨리면 그 방향은 내장 시간표를 쓴다. 2026-10 운영 응답은 등교
-/// 「17:00~22:17 도착버스 탑승」을 `22:17 막차` 한 줄로만 줘서, 그대로 쓰면
-/// 저녁 등교 카드가 「22:17 출발」로 잘못 보인다. 서버가 구간을 주기 시작하면
-/// 이 조건은 저절로 풀린다.
-/// 공휴일 판정은 앱 공휴일 목록([ShuttleScheduleData.dayTypeOf])으로 한다.
-/// 서버 `day_type`은 trip이 어느 요일 구분에 속하는지만 알려 주고 오늘이
-/// 공휴일인지는 알려 주지 않기 때문이다.
+/// 서버 시간표가 있으면 서버가 정한 그날 구간을 그대로 쓰고, 없으면 내장
+/// 시간표를 앱 공휴일 목록([ShuttleScheduleData.dayTypeOf])으로 고른다.
 ///
 /// Copied from [shuttleTimetable].
 class ShuttleTimetableFamily extends Family<ShuttleTimetable?> {
   /// (노선·방향)별 [shuttleClockProvider] 기준 오늘 시간표. 미운행이면 null.
   ///
-  /// 서버 데이터가 그 노선을 다루면 서버 것을, 아니면 내장 시간표를 쓴다.
-  /// 다만 내장 시간표에 있는 구간 종류(수시운행·도착버스 탑승)를 서버 시간표가
-  /// 하나라도 빠뜨리면 그 방향은 내장 시간표를 쓴다. 2026-10 운영 응답은 등교
-  /// 「17:00~22:17 도착버스 탑승」을 `22:17 막차` 한 줄로만 줘서, 그대로 쓰면
-  /// 저녁 등교 카드가 「22:17 출발」로 잘못 보인다. 서버가 구간을 주기 시작하면
-  /// 이 조건은 저절로 풀린다.
-  /// 공휴일 판정은 앱 공휴일 목록([ShuttleScheduleData.dayTypeOf])으로 한다.
-  /// 서버 `day_type`은 trip이 어느 요일 구분에 속하는지만 알려 주고 오늘이
-  /// 공휴일인지는 알려 주지 않기 때문이다.
+  /// 서버 시간표가 있으면 서버가 정한 그날 구간을 그대로 쓰고, 없으면 내장
+  /// 시간표를 앱 공휴일 목록([ShuttleScheduleData.dayTypeOf])으로 고른다.
   ///
   /// Copied from [shuttleTimetable].
   const ShuttleTimetableFamily();
 
   /// (노선·방향)별 [shuttleClockProvider] 기준 오늘 시간표. 미운행이면 null.
   ///
-  /// 서버 데이터가 그 노선을 다루면 서버 것을, 아니면 내장 시간표를 쓴다.
-  /// 다만 내장 시간표에 있는 구간 종류(수시운행·도착버스 탑승)를 서버 시간표가
-  /// 하나라도 빠뜨리면 그 방향은 내장 시간표를 쓴다. 2026-10 운영 응답은 등교
-  /// 「17:00~22:17 도착버스 탑승」을 `22:17 막차` 한 줄로만 줘서, 그대로 쓰면
-  /// 저녁 등교 카드가 「22:17 출발」로 잘못 보인다. 서버가 구간을 주기 시작하면
-  /// 이 조건은 저절로 풀린다.
-  /// 공휴일 판정은 앱 공휴일 목록([ShuttleScheduleData.dayTypeOf])으로 한다.
-  /// 서버 `day_type`은 trip이 어느 요일 구분에 속하는지만 알려 주고 오늘이
-  /// 공휴일인지는 알려 주지 않기 때문이다.
+  /// 서버 시간표가 있으면 서버가 정한 그날 구간을 그대로 쓰고, 없으면 내장
+  /// 시간표를 앱 공휴일 목록([ShuttleScheduleData.dayTypeOf])으로 고른다.
   ///
   /// Copied from [shuttleTimetable].
   ShuttleTimetableProvider call({
@@ -118,29 +111,15 @@ class ShuttleTimetableFamily extends Family<ShuttleTimetable?> {
 
 /// (노선·방향)별 [shuttleClockProvider] 기준 오늘 시간표. 미운행이면 null.
 ///
-/// 서버 데이터가 그 노선을 다루면 서버 것을, 아니면 내장 시간표를 쓴다.
-/// 다만 내장 시간표에 있는 구간 종류(수시운행·도착버스 탑승)를 서버 시간표가
-/// 하나라도 빠뜨리면 그 방향은 내장 시간표를 쓴다. 2026-10 운영 응답은 등교
-/// 「17:00~22:17 도착버스 탑승」을 `22:17 막차` 한 줄로만 줘서, 그대로 쓰면
-/// 저녁 등교 카드가 「22:17 출발」로 잘못 보인다. 서버가 구간을 주기 시작하면
-/// 이 조건은 저절로 풀린다.
-/// 공휴일 판정은 앱 공휴일 목록([ShuttleScheduleData.dayTypeOf])으로 한다.
-/// 서버 `day_type`은 trip이 어느 요일 구분에 속하는지만 알려 주고 오늘이
-/// 공휴일인지는 알려 주지 않기 때문이다.
+/// 서버 시간표가 있으면 서버가 정한 그날 구간을 그대로 쓰고, 없으면 내장
+/// 시간표를 앱 공휴일 목록([ShuttleScheduleData.dayTypeOf])으로 고른다.
 ///
 /// Copied from [shuttleTimetable].
 class ShuttleTimetableProvider extends AutoDisposeProvider<ShuttleTimetable?> {
   /// (노선·방향)별 [shuttleClockProvider] 기준 오늘 시간표. 미운행이면 null.
   ///
-  /// 서버 데이터가 그 노선을 다루면 서버 것을, 아니면 내장 시간표를 쓴다.
-  /// 다만 내장 시간표에 있는 구간 종류(수시운행·도착버스 탑승)를 서버 시간표가
-  /// 하나라도 빠뜨리면 그 방향은 내장 시간표를 쓴다. 2026-10 운영 응답은 등교
-  /// 「17:00~22:17 도착버스 탑승」을 `22:17 막차` 한 줄로만 줘서, 그대로 쓰면
-  /// 저녁 등교 카드가 「22:17 출발」로 잘못 보인다. 서버가 구간을 주기 시작하면
-  /// 이 조건은 저절로 풀린다.
-  /// 공휴일 판정은 앱 공휴일 목록([ShuttleScheduleData.dayTypeOf])으로 한다.
-  /// 서버 `day_type`은 trip이 어느 요일 구분에 속하는지만 알려 주고 오늘이
-  /// 공휴일인지는 알려 주지 않기 때문이다.
+  /// 서버 시간표가 있으면 서버가 정한 그날 구간을 그대로 쓰고, 없으면 내장
+  /// 시간표를 앱 공휴일 목록([ShuttleScheduleData.dayTypeOf])으로 고른다.
   ///
   /// Copied from [shuttleTimetable].
   ShuttleTimetableProvider({
@@ -588,14 +567,18 @@ final shuttleClockProvider = NotifierProvider<ShuttleClock, DateTime>.internal(
 
 typedef _$ShuttleClock = Notifier<DateTime>;
 String _$shuttleScheduleSourceHash() =>
-    r'd1ae00146a43c8fe5ec9f9b9c9713f5a827fe7ae';
+    r'ee70f2278a14a16930a1827948aea26ee82763ab';
 
-/// 서버에서 받은 셔틀 시간표. null 이면 내장 시간표를 쓴다.
+/// 서버에서 받은 오늘(KST) 셔틀 시간표. null 이면 내장 시간표를 쓴다.
 ///
 /// 대체 순서는 서버 → 기기 캐시 → 내장 시간표다. 앱을 켜면 먼저 마지막 성공
-/// 응답(캐시)을 올리고, 이어서 서버에서 받아 바꾼다. 서버가 실패하거나 쓸 수
-/// 있는 노선이 없으면 캐시(없으면 내장)를 그대로 둔다. 시간표는 학기 단위로
-/// 바뀌므로 앱 실행마다 한 번만 받는다.
+/// 응답(캐시)을 올리고, 이어서 서버에서 받아 바꾼다. 서버가 실패(503 포함)하거나
+/// 형식이 계약과 다르면 캐시(없으면 내장)를 그대로 둔다. 응답은 날짜별이라
+/// [shuttleClockProvider]의 날짜가 바뀌면(자정) 다시 받는다.
+///
+/// 캐시 본문의 `version`으로 `If-None-Match`를 붙여 304면 캐시를 그대로 쓴다.
+/// 다만 version 은 날짜와 무관해 304 는 그날의 `day_type`·구간을 알려 주지
+/// 않으므로, 캐시 날짜가 오늘일 때만 붙인다. 다른 날 캐시면 조건 없이 받는다.
 ///
 /// Copied from [ShuttleScheduleSource].
 @ProviderFor(ShuttleScheduleSource)
