@@ -4,6 +4,7 @@ import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
+import 'package:handori/core/network/fallback_interceptor.dart';
 import 'package:handori/core/network/static_info_dio_provider.dart';
 import 'package:handori/core/utils/date_formatter.dart';
 import 'package:handori/core/utils/korea_time.dart';
@@ -98,7 +99,8 @@ class ShuttleClock extends _$ShuttleClock {
 ///
 /// 대체 순서는 서버 → 기기 캐시 → 내장 시간표다. 앱을 켜면 먼저 마지막 성공
 /// 응답(캐시)을 올리고, 이어서 서버에서 받아 바꾼다. 서버가 실패(503 포함)하거나
-/// 형식이 계약과 다르면 캐시(없으면 내장)를 그대로 둔다. 응답은 날짜별이라
+/// 형식이 계약과 다르면(운영이 아직 옛 형식) 대체 서버에 1회 묻고, 그래도 안
+/// 되면 캐시(없으면 내장)를 그대로 둔다. 응답은 날짜별이라
 /// [shuttleClockProvider]의 날짜가 바뀌면(자정) 다시 받는다.
 ///
 /// 캐시 본문의 `version`으로 `If-None-Match`를 붙여 304면 캐시를 그대로 쓴다.
@@ -134,23 +136,35 @@ class ShuttleScheduleSource extends _$ShuttleScheduleSource {
     // 구분만 맞춰 보고 valid_from/valid_to 는 다시 보지 않는다.
     try {
       final sameDay = cached?.date == today;
-      final res = await ref
-          .read(staticInfoDioProvider)
-          .get<String>(
-            '/static-info/bus/timetable',
-            queryParameters: {'date': today},
-            options: Options(
-              responseType: ResponseType.plain,
-              headers: {if (sameDay) 'If-None-Match': '"${cached!.version}"'},
-              // 304 는 오류가 아니라 "캐시 그대로"다.
-              validateStatus: (s) => s != null && (s == 304 || s ~/ 100 == 2),
-            ),
-          );
+      final dio = ref.read(staticInfoDioProvider);
+      final res = await dio.get<String>(
+        '/static-info/bus/timetable',
+        queryParameters: {'date': today},
+        options: Options(
+          responseType: ResponseType.plain,
+          headers: {if (sameDay) 'If-None-Match': '"${cached!.version}"'},
+          // 304 는 오류가 아니라 "캐시 그대로"다.
+          validateStatus: (s) => s != null && (s == 304 || s ~/ 100 == 2),
+        ),
+      );
       // 304: 오늘 날짜 캐시가 이미 올라가 있다.
       if (_date != today || res.statusCode == 304) return;
-      final body = res.data;
-      final remote = body == null ? null : RemoteShuttleSchedule.tryParse(body);
-      if (remote == null) return;
+      var body = res.data;
+      var remote = body == null ? null : RemoteShuttleSchedule.tryParse(body);
+      // 이미 인터셉터가 대체 서버로 보낸 응답이면(baseUrl 이 다름) 다시 묻지 않는다.
+      if (remote == null && res.requestOptions.baseUrl == dio.options.baseUrl) {
+        // 운영이 아직 옛 형식을 200 으로 주면 대체 서버에 1회 묻는다. version 은
+        // 내용 해시라 어느 서버에서 받은 캐시든 그대로 비교할 수 있다.
+        final retried = await dio.interceptors
+            .whereType<FallbackInterceptor>()
+            .firstOrNull
+            ?.retry(res.requestOptions);
+        if (_date != today) return;
+        final data = retried?.data;
+        body = data is String ? data : null;
+        remote = body == null ? null : RemoteShuttleSchedule.tryParse(body);
+      }
+      if (remote == null || body == null) return;
       state = remote;
       await _storage.write(key: cacheKey, value: body);
     } catch (_) {
