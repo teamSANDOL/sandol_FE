@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_naver_map/flutter_naver_map.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:geolocator/geolocator.dart';
@@ -72,6 +73,10 @@ class _MapScreenState extends ConsumerState<MapScreen> {
     target: NLatLng(37.34019, 126.7336),
     zoom: 17.0,
   );
+
+  /// 기본 확대에서 오른쪽 B동 말풍선과 겹치는 A동은 꼬리를 오른쪽에 붙여
+  /// 말풍선이 왼쪽으로 펼쳐지게 한다.
+  static const _tipRightBuilding = 'A동';
 
   /// 마커 아이콘 캐시. 항목은 플러그인이 만든 임시 파일 경로와 앵커·크기뿐이라
   /// 메모리는 수십 바이트 단위다. 화면과 함께 사라지므로 상한을 두지 않는다.
@@ -327,12 +332,14 @@ class _MapScreenState extends ConsumerState<MapScreen> {
         // 좌표 테이블에 없는 건물은 목록에만 나온다.
         if (!b.hasLocation) continue;
         final selected = b.className == _buildingName;
+        final tipRight = b.className == _tipRightBuilding;
         final key = 'b:${b.className}:${b.emptyCount}:$selected';
         final img =
             _iconCache[key] ??= await buildingMarkerIcon(
               b.className,
               b.emptyCount,
               selected: selected,
+              tipRight: tipRight,
             );
         if (gen != _markerGen) return;
         markers.add(
@@ -386,11 +393,17 @@ class _MapScreenState extends ConsumerState<MapScreen> {
       onPopInvokedWithResult: (didPop, _) {
         if (!didPop) _back();
       },
-      child: Scaffold(
-        backgroundColor: SandolColors.background,
-        resizeToAvoidBottomInset: false,
-        body: LayoutBuilder(
-          builder: (context, c) => _buildStack(c.maxHeight, refreshing),
+      // 앱바가 없어 이전 화면의 상태바 스타일이 남으므로 밝은 지도용으로 지정한다.
+      child: AnnotatedRegion<SystemUiOverlayStyle>(
+        value: SystemUiOverlayStyle.dark.copyWith(
+          statusBarColor: Colors.transparent,
+        ),
+        child: Scaffold(
+          backgroundColor: SandolColors.background,
+          resizeToAvoidBottomInset: false,
+          body: LayoutBuilder(
+            builder: (context, c) => _buildStack(c.maxHeight, refreshing),
+          ),
         ),
       ),
     );
