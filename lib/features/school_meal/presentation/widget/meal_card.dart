@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:handori/common/component/sandol_card.dart';
 import 'package:handori/common/component/sandol_chip.dart';
 import 'package:handori/core/design_system/sandol_tokens.dart';
+import 'package:handori/core/utils/keep_all.dart';
 import 'package:handori/features/school_meal/presentation/model/restaurant_menu.dart';
 import 'package:handori/features/school_meal/presentation/provider/selected_restaurant_id_notifier.dart';
 import 'package:handori/shared/widget/remote_image.dart';
@@ -335,7 +336,10 @@ class _MealMenuCard extends StatelessWidget {
                   Row(
                     children: [
                       Expanded(
-                        child: Text(menu.name, style: SandolTypography.caption),
+                        child: Text(
+                          menu.name.keepAll,
+                          style: SandolTypography.caption,
+                        ),
                       ),
                       if (price != null)
                         Text(
@@ -348,7 +352,7 @@ class _MealMenuCard extends StatelessWidget {
                     Text('오늘은 운영하지 않아요', style: SandolTypography.caption.muted)
                   else
                     for (final item in items)
-                      Text(item, style: SandolTypography.caption),
+                      Text(item.keepAll, style: SandolTypography.caption),
                 ],
               ),
             ),

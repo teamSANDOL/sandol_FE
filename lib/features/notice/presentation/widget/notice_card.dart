@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:handori/core/design_system/sandol_tokens.dart';
 import 'package:handori/core/utils/date_formatter.dart';
+import 'package:handori/core/utils/keep_all.dart';
 import 'package:handori/features/notice/domain/model/notice.dart';
 import 'package:handori/features/notice/presentation/widget/notice_style.dart';
 
@@ -72,7 +73,7 @@ class NoticeCard extends StatelessWidget {
             Padding(
               padding: const EdgeInsets.only(right: 8),
               child: Text(
-                notice.title,
+                notice.title.keepAll,
                 style: SandolTypography.caption.strong.copyWith(
                   color: NoticeColors.title,
                   height: 22 / 14,

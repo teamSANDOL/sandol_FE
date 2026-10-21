@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:handori/core/constants/app_colors.dart';
 import 'package:handori/core/utils/date_formatter.dart';
+import 'package:handori/core/utils/keep_all.dart';
 import 'package:handori/features/notice/domain/model/shuttle.dart';
 import 'package:handori/shared/widget/full_screen_image_viewer.dart';
 import 'package:handori/core/constants/app_radius.dart';
@@ -72,7 +73,7 @@ class ShuttleCard extends StatelessWidget {
                 const SizedBox(width: 6),
                 Expanded(
                   child: Text(
-                    shuttle.place,
+                    shuttle.place.keepAll,
                     style: textTheme.titleSmall?.copyWith(
                       fontWeight: FontWeight.w700,
                       color: Colors.black87,

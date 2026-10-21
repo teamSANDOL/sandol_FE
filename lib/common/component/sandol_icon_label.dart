@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:handori/core/design_system/sandol_assets.dart';
 import 'package:handori/core/design_system/sandol_tokens.dart';
+import 'package:handori/core/utils/keep_all.dart';
 
 /// 아이콘 + 글자 한 줄. 시계 · 정류장 · 출발 시각 · 안내 줄이 모두 이 모양이다.
 class SandolIconLabel extends StatelessWidget {
@@ -11,21 +12,27 @@ class SandolIconLabel extends StatelessWidget {
     required this.label,
     required this.style,
     this.gap = SandolSpacing.sm,
+    this.maxLines = 1,
   });
 
   /// ⓘ + 흐린 캡션. 보조 안내 문구에 쓴다.
   factory SandolIconLabel.note(String text, {Key? key}) => SandolIconLabel(
     key: key,
     icon: SvgPicture.asset(SandolAssets.info),
-    label: text,
+    // 안내 문구는 길어질 수 있어 말줄임 대신 어절 단위로 줄바꿈한다.
+    label: text.keepAll,
     style: SandolTypography.caption.muted,
     gap: 6,
+    maxLines: null,
   );
 
   final Widget icon;
   final String label;
   final TextStyle style;
   final double gap;
+
+  /// 한 줄 고정이 기본(말줄임). null이면 줄바꿈을 허용한다.
+  final int? maxLines;
 
   @override
   Widget build(BuildContext context) => Row(
@@ -37,8 +44,8 @@ class SandolIconLabel extends StatelessWidget {
         child: Text(
           label,
           style: style,
-          maxLines: 1,
-          overflow: TextOverflow.ellipsis,
+          maxLines: maxLines,
+          overflow: maxLines == null ? null : TextOverflow.ellipsis,
         ),
       ),
     ],

@@ -11,6 +11,7 @@ import 'package:handori/common/layout/root_shell.dart';
 import 'package:handori/core/design_system/sandol_assets.dart';
 import 'package:handori/core/design_system/sandol_tokens.dart';
 import 'package:handori/core/utils/date_formatter.dart';
+import 'package:handori/core/utils/keep_all.dart';
 import 'package:handori/core/utils/korea_time.dart';
 import 'package:handori/features/school_meal/domain/model/meal_type.dart';
 import 'package:handori/features/school_meal/domain/model/restaurant.dart';
@@ -400,7 +401,7 @@ class _RestaurantCard extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(menu.name, style: SandolTypography.headline),
+                      Text(menu.name.keepAll, style: SandolTypography.headline),
                       if (price != null)
                         Text(_won(price), style: SandolTypography.body.accent),
                     ],
@@ -423,7 +424,7 @@ class _RestaurantCard extends StatelessWidget {
               runSpacing: SandolSpacing.md,
               children: [
                 for (final item in slot.menu)
-                  Text(item, style: SandolTypography.caption),
+                  Text(item.keepAll, style: SandolTypography.caption),
               ],
             ),
           ),
@@ -442,7 +443,7 @@ class _Notice extends StatelessWidget {
   Widget build(BuildContext context) => Padding(
     padding: const EdgeInsets.symmetric(vertical: 60),
     child: Text(
-      message,
+      message.keepAll,
       textAlign: TextAlign.center,
       style: SandolTypography.caption.muted,
     ),

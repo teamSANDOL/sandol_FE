@@ -377,8 +377,8 @@ class _Pill extends StatelessWidget {
   Widget build(BuildContext context) {
     final fg = selected ? SandolColors.background : SandolColors.text;
     final pill = Container(
-      height: 30,
-      padding: const EdgeInsets.symmetric(horizontal: 12),
+      // 높이 고정 대신 세로 여백으로 30을 맞춰 글꼴이 커지면 함께 늘어난다.
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
       decoration: BoxDecoration(
         color: selected ? SandolColors.primary : SandolColors.background,
         borderRadius: BorderRadius.circular(30),

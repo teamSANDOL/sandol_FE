@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:handori/core/utils/keep_all.dart';
 import 'package:handori/features/empty_class/domain/model/class_period.dart';
 import 'package:handori/features/empty_class/model/class_model.dart';
 import 'package:handori/features/empty_class/presentation/provider/classroom_query_provider.dart';
@@ -125,6 +126,6 @@ void main() {
     phone(tester);
     await tester.pumpWidget(host(load: () async => throw Exception('x')));
     await tester.pumpAndSettle();
-    expect(find.text('빈 강의실 정보를 불러오지 못했어요'), findsOneWidget);
+    expect(find.text('빈 강의실 정보를 불러오지 못했어요'.keepAll), findsOneWidget);
   });
 }

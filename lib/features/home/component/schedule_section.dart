@@ -6,6 +6,7 @@ import 'package:handori/common/component/sandol_icon_label.dart';
 import 'package:handori/common/component/sandol_section.dart';
 import 'package:handori/core/design_system/sandol_assets.dart';
 import 'package:handori/core/design_system/sandol_tokens.dart';
+import 'package:handori/core/utils/keep_all.dart';
 import 'package:handori/features/home/model/schedule_event.dart';
 
 /// 홈 '주요일정' 섹션.
@@ -118,7 +119,7 @@ class _ScheduleCard extends StatelessWidget {
                         ),
                         const SizedBox(height: 10),
                         Text(
-                          event.title,
+                          event.title.keepAll,
                           style: SandolTypography.headline.onPrimary,
                           maxLines: 2,
                           overflow: TextOverflow.ellipsis,

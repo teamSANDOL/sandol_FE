@@ -9,6 +9,7 @@ import 'package:handori/common/component/sandol_icon_label.dart';
 import 'package:handori/core/design_system/sandol_assets.dart';
 import 'package:handori/core/design_system/sandol_tokens.dart';
 import 'package:handori/core/router/route_paths.dart';
+import 'package:handori/core/utils/keep_all.dart';
 import 'package:handori/features/auth/presentation/provider/auth_provider.dart';
 import 'package:handori/features/user/presentation/widget/confirm_dialog.dart';
 import 'package:handori/features/user/presentation/widget/withdraw_actions.dart';
@@ -83,7 +84,7 @@ class _WithdrawConfirmPageState extends ConsumerState<WithdrawConfirmPage> {
         ),
         const SizedBox(height: 14),
         Text(
-          '조금 더 함께하고 싶지만,\n아쉬운 마음으로 보내드릴게요. 언제든 다시 찾아주세요!',
+          '조금 더 함께하고 싶지만,\n아쉬운 마음으로 보내드릴게요. 언제든 다시 찾아주세요!'.keepAll,
           textAlign: TextAlign.center,
           style: SandolTypography.body,
         ),
@@ -180,7 +181,7 @@ class _NoticeBlock extends StatelessWidget {
                   spacing: SandolSpacing.sm,
                   children: [
                     Text('•', style: _style(red)),
-                    Expanded(child: Text(text, style: _style(red))),
+                    Expanded(child: Text(text.keepAll, style: _style(red))),
                   ],
                 ),
             ],

@@ -4,6 +4,7 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:handori/common/component/sandol_card.dart';
+import 'package:handori/core/utils/keep_all.dart';
 import 'package:handori/features/home/component/schedule_section.dart';
 import 'package:handori/features/home/model/schedule_event.dart';
 import 'package:handori/features/home/presentation/provider/home_static_provider.dart';
@@ -50,7 +51,7 @@ void main() {
       onClose: () => closed++,
       onDetail: () => detail++,
     );
-    expect(find.text('Techno Festival'), findsOneWidget);
+    expect(find.text('Techno Festival'.keepAll), findsOneWidget);
     expect(find.text('D-10'), findsOneWidget);
 
     await tester.tap(find.byTooltip('고정 해제'));
@@ -113,12 +114,12 @@ void main() {
       ),
     );
     await tester.pumpAndSettle();
-    expect(find.text('Techno Festival'), findsOneWidget);
+    expect(find.text('Techno Festival'.keepAll), findsOneWidget);
     expect(find.text('아직 고정한 스케줄이 없어요'), findsNothing);
 
     await tester.tap(find.byTooltip('고정 해제'));
     await tester.pumpAndSettle();
-    expect(find.text('Techno Festival'), findsNothing);
+    expect(find.text('Techno Festival'.keepAll), findsNothing);
     expect(find.text('주요일정'), findsOneWidget);
     expect(find.text('아직 고정한 스케줄이 없어요'), findsOneWidget);
   });

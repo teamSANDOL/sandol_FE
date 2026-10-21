@@ -9,6 +9,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:handori/common/component/app_bottom_nav.dart';
+import 'package:handori/common/component/sandol_section.dart';
 import 'package:handori/common/layout/root_shell.dart';
 import 'package:handori/core/network/fallback_interceptor.dart';
 import 'package:handori/core/utils/korea_time.dart';
@@ -150,6 +151,37 @@ void main() {
 
   for (final scale in _scales) {
     group('글꼴 $scale배', () {
+      testWidgets('섹션 제목: 글자가 제목 줄 안에 모두 들어간다(잘림 없음)', (tester) async {
+        _phone(tester);
+        const titles = ['주요일정', '학식', '셔틀버스', '빈 강의실'];
+        await tester.pumpWidget(
+          _scaled(
+            scale,
+            MaterialApp(
+              home: Scaffold(
+                body: Column(
+                  children: [
+                    for (final t in titles)
+                      SandolSection(title: t, child: const SizedBox()),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        );
+        for (final t in titles) {
+          final text = tester.getRect(find.text(t));
+          final row = tester.getRect(
+            find.ancestor(of: find.text(t), matching: find.byType(Row)).first,
+          );
+          // 제목 줄(Row)이 글자 높이만큼 늘어나 글자가 줄 밖으로 나가지 않는다.
+          expect(text.height, lessThanOrEqualTo(row.height), reason: t);
+          expect(text.top, greaterThanOrEqualTo(row.top), reason: t);
+          expect(text.bottom, lessThanOrEqualTo(row.bottom), reason: t);
+        }
+        expect(tester.takeException(), isNull);
+      });
+
       testWidgets('하단바: 다섯 라벨이 모두 그려진다', (tester) async {
         _phone(tester);
         await tester.pumpWidget(

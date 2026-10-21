@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:handori/core/router/route_paths.dart';
+import 'package:handori/core/utils/keep_all.dart';
 import 'package:handori/features/auth/domain/model/auth_session.dart';
 import 'package:handori/features/auth/presentation/provider/auth_provider.dart';
 import 'package:handori/features/user/presentation/page/user_page.dart';
@@ -88,6 +89,9 @@ void main() {
     // 로그아웃 아이콘 → 확인 다이얼로그
     await tester.tap(find.byTooltip('로그아웃'));
     await tester.pumpAndSettle();
-    expect(find.text('정말 로그아웃하시겠어요?\n언제든 다시 로그인할 수 있어요.'), findsOneWidget);
+    expect(
+      find.text('정말 로그아웃하시겠어요?\n언제든 다시 로그인할 수 있어요.'.keepAll),
+      findsOneWidget,
+    );
   });
 }

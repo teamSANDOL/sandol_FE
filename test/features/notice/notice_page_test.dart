@@ -4,6 +4,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:handori/common/layout/root_shell.dart';
 import 'package:handori/core/utils/date_formatter.dart';
+import 'package:handori/core/utils/keep_all.dart';
 import 'package:handori/features/notice/domain/model/notice.dart';
 import 'package:handori/features/notice/domain/model/shuttle.dart';
 import 'package:handori/features/notice/presentation/page/notice_page.dart';
@@ -122,7 +123,7 @@ void main() {
     }
     expect(find.text('총 123건'), findsOneWidget);
     expect(find.text('학사팀'), findsOneWidget);
-    expect(find.text('2026학년도 2학기 수강신청 안내'), findsOneWidget);
+    expect(find.text('2026학년도 2학기 수강신청 안내'.keepAll), findsOneWidget);
     expect(find.text('2026.10.05.'), findsNWidgets(2));
     expect(tester.takeException(), isNull);
 
@@ -130,7 +131,7 @@ void main() {
     await tester.tap(find.text('학사'));
     await tester.pumpAndSettle();
     expect(find.text('총 1건'), findsOneWidget);
-    expect(find.text('주차장 공사 안내'), findsNothing);
+    expect(find.text('주차장 공사 안내'.keepAll), findsNothing);
 
     // 검색: 일치하는 게 없으면 빈 안내
     await tester.tap(find.text('전체'));
@@ -140,7 +141,7 @@ void main() {
     expect(find.text('공지사항이 없습니다.'), findsOneWidget);
     await tester.enterText(find.byType(TextField), '주차');
     await tester.pumpAndSettle();
-    expect(find.text('주차장 공사 안내'), findsOneWidget);
+    expect(find.text('주차장 공사 안내'.keepAll), findsOneWidget);
 
     // 저장 후 '저장한 공지' 칩에 나타난다
     await tester.tap(find.byTooltip('저장'));
@@ -149,7 +150,7 @@ void main() {
     await tester.tap(find.text('저장한 공지'));
     await tester.pumpAndSettle();
     expect(find.text('총 1건'), findsOneWidget);
-    expect(find.text('주차장 공사 안내'), findsOneWidget);
+    expect(find.text('주차장 공사 안내'.keepAll), findsOneWidget);
 
     await tester.tap(find.text('생활관'));
     await tester.pumpAndSettle();

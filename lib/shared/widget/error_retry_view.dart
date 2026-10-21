@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:handori/core/constants/app_colors.dart';
+import 'package:handori/core/utils/keep_all.dart';
 
 /// 목록·트리를 못 불러왔을 때 공통으로 쓰는 오류 화면.
 ///
@@ -25,17 +26,20 @@ class ErrorRetryView extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Icon(Icons.wifi_off_rounded,
-                size: 40, color: AppColors.textMuted),
+            const Icon(
+              Icons.wifi_off_rounded,
+              size: 40,
+              color: AppColors.textMuted,
+            ),
             const SizedBox(height: 12),
             Text(
-              title,
+              title.keepAll,
               textAlign: TextAlign.center,
               style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600),
             ),
             const SizedBox(height: 4),
             Text(
-              subtitle,
+              subtitle.keepAll,
               textAlign: TextAlign.center,
               style: const TextStyle(
                 fontSize: 13,
