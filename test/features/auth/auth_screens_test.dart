@@ -14,7 +14,15 @@ import 'package:handori/features/auth/presentation/provider/auth_provider.dart';
 import 'package:handori/features/auth/presentation/widget/auth_scaffold.dart';
 import 'package:handori/features/auth/screen/login_screen.dart';
 import 'package:handori/features/auth/screen/signin_screen.dart';
+import 'package:handori/features/empty_class/presentation/provider/empty_class_provider.dart';
+import 'package:handori/features/home/model/schedule_event.dart';
+import 'package:handori/features/home/presentation/provider/home_static_provider.dart';
 import 'package:handori/features/home/screen/splash_screen.dart';
+import 'package:handori/features/organization/presentation/provider/organization_provider.dart';
+import 'package:handori/features/school_meal/domain/model/meal.dart';
+import 'package:handori/features/school_meal/domain/model/restaurant.dart';
+import 'package:handori/features/school_meal/presentation/provider/meal_list_notifier.dart';
+import 'package:handori/features/school_meal/presentation/provider/restaurant_list_notifier.dart';
 
 class _TestAuth extends AuthNotifier {
   _TestAuth([this.restoredSession]);
@@ -60,6 +68,7 @@ Future<GoRouter> host(
   Size size = const Size(412, 917),
   double textScale = 1,
   Future<AuthSession?>? session,
+  Future<ScheduleEvent?>? schedule,
 }) async {
   tester.view.physicalSize = size;
   tester.view.devicePixelRatio = 1;
@@ -88,7 +97,17 @@ Future<GoRouter> host(
   addTearDown(router.dispose);
   await tester.pumpWidget(
     ProviderScope(
-      overrides: [authNotifierProvider.overrideWith(() => _TestAuth(session))],
+      overrides: [
+        authNotifierProvider.overrideWith(() => _TestAuth(session)),
+        // 스플래시가 선로딩하는 홈 데이터. 테스트에선 네트워크 대신 빈 값.
+        homeScheduleProvider.overrideWith(
+          (_) => schedule ?? Future.value(null),
+        ),
+        restaurantListNotifierProvider.overrideWith(_EmptyRestaurants.new),
+        mealListNotifierProvider().overrideWith(_EmptyMeals.new),
+        emptyClassesProvider.overrideWith((_) async => []),
+        pinnedOrganizationUnitsProvider.overrideWith((_) async => []),
+      ],
       child: MaterialApp.router(
         theme: SandolTheme.light,
         debugShowCheckedModeBanner: false,
@@ -290,4 +309,29 @@ void main() {
     expect(find.text('HOME'), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
+
+  testWidgets('스플래시는 홈 데이터 선로딩이 끝나야 홈으로 간다', (tester) async {
+    final schedule = Completer<ScheduleEvent?>();
+    final router = await host(
+      tester,
+      initial: RoutePaths.splash,
+      session: Future.value(const AuthSession(accessToken: 'test-only')),
+      schedule: schedule.future,
+    );
+    await tester.pump(const Duration(seconds: 1));
+    expect(router.routeInformationProvider.value.uri.path, RoutePaths.splash);
+    schedule.complete(null);
+    await tester.pumpAndSettle();
+    expect(find.text('HOME'), findsOneWidget);
+  });
+}
+
+class _EmptyRestaurants extends RestaurantListNotifier {
+  @override
+  Future<List<Restaurant>> build() async => [];
+}
+
+class _EmptyMeals extends MealListNotifier {
+  @override
+  Future<List<Meal>> build({String? date}) async => [];
 }
