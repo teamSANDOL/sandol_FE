@@ -32,29 +32,6 @@ class MealRepositoryImpl implements MealRepository {
   }
 
   @override
-  Future<({List<Meal> items, int total})> getLatestMeals({
-    int page = 1,
-    int size = 50,
-    String? startDate,
-    String? endDate,
-    String? restaurantName,
-    MealType? mealType,
-  }) async {
-    final response = await _api.getLatestMeals(
-      page: page,
-      size: size,
-      startDate: startDate,
-      endDate: endDate,
-      restaurantName: restaurantName,
-      mealType: mealType?.name,
-    );
-    return (
-      items: response.data.map((e) => e.toDomain()).toList(),
-      total: response.meta.total,
-    );
-  }
-
-  @override
   Future<Meal> getMeal(int mealId) async {
     final response = await _api.getMeal(mealId);
     return response.data.toDomain();

@@ -12,16 +12,6 @@ abstract class MealRepository {
     MealType? mealType,
   });
 
-  /// 식당별 + 식사 유형별 최신 식사 1건씩
-  Future<({List<Meal> items, int total})> getLatestMeals({
-    int page,
-    int size,
-    String? startDate,
-    String? endDate,
-    String? restaurantName,
-    MealType? mealType,
-  });
-
   /// 단일 식사 조회
   Future<Meal> getMeal(int mealId);
 

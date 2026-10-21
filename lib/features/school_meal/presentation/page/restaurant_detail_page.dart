@@ -95,7 +95,7 @@ class _RestaurantDetailPageState extends ConsumerState<RestaurantDetailPage> {
                     (restaurants) => _Cards(
                       restaurants: restaurants,
                       mealType: _mealType,
-                      // 오늘은 date 없이 조회한다(전날·주말에 미리 등록된 최신 식단 포함).
+                      // 오늘은 date 없이 두면 notifier 가 오늘(KST)로 해석한다.
                       date:
                           _date == _today ? null : DateFormatter.isoDate(_date),
                     ),
