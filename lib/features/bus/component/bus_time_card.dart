@@ -25,20 +25,25 @@ class Bustimescreen extends ConsumerStatefulWidget {
 }
 
 class _BustimescreenState extends ConsumerState<Bustimescreen> {
+  /// 방향 띠의 짧은 정류장 이름(서버 정류장 id → 이름).
+  static const _shortName = {
+    'main_campus': '학교',
+    'jeongwang': '정왕역',
+    'campus2': '제2캠퍼스',
+  };
+
   @override
   Widget build(BuildContext context) {
-    // 홈 카드와 상세 화면이 방향을 공유한다(위치 기반 기본값 포함).
-    final selected = ref.watch(shuttleDirectionSelectionProvider);
-    final isReverse = selected == ShuttleDirection.jeongwangToSchool;
-    final from = isReverse ? '정왕역' : '학교';
-    final to = isReverse ? '학교' : '정왕역';
+    // 홈 카드와 상세 화면이 방향을 공유한다(위치 기반 기본값 포함). 상세에서
+    // 제2캠퍼스 방향을 고르면 홈도 그 방향이다. 띠에는 경유지를 적지 않는다.
+    final direction = ref.watch(shuttleDirectionSelectionProvider);
+    final from = _shortName[direction.origin]!;
+    final to = _shortName[direction.destination]!;
     // 출발 정류장 이름은 서버 `stops`(없으면 내장)를 따른다.
-    final stops = ref.watch(shuttleStopsProvider);
-    final stopName = stops[isReverse ? 'jeongwang' : 'main_campus']!.name;
+    final stopName = ref.watch(shuttleStopsProvider)[direction.origin]!.name;
 
-    // 상세 화면과 동일한 방향 매핑 → 동일한 다음 셔틀 결과.
-    final direction = selected;
-    const route = ShuttleRoute.route1;
+    // 상세 화면과 동일한 방향 → 동일한 다음 셔틀 결과.
+    final route = direction.route;
     final now = ref.watch(shuttleClockProvider);
     final next = ref.watch(
       nextShuttleProvider(route: route, direction: direction),
@@ -65,11 +70,7 @@ class _BustimescreenState extends ConsumerState<Bustimescreen> {
             onSwap:
                 () => ref
                     .read(shuttleDirectionSelectionProvider.notifier)
-                    .select(
-                      isReverse
-                          ? ShuttleDirection.schoolToJeongwang
-                          : ShuttleDirection.jeongwangToSchool,
-                    ),
+                    .select(direction.reversed),
             onRefresh: () => ref.read(shuttleClockProvider.notifier).refresh(),
           ),
           Padding(

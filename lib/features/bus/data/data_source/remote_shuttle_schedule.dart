@@ -82,10 +82,6 @@ class RemoteShuttleSchedule {
       }
     }
     if (seen.length != 6) return null;
-    // 노선2는 두 방향 id를 하나로 묶어 순서가 섞이므로 다시 정렬한다.
-    for (final list in entries.values) {
-      list.sort((a, b) => a.time.minutesOfDay.compareTo(b.time.minutesOfDay));
-    }
 
     final source = json['source'];
     return RemoteShuttleSchedule._(
@@ -113,14 +109,14 @@ class RemoteShuttleSchedule {
     );
   }
 
-  /// 서버 방향 id(고정 6개) → 앱 방향. 정왕역 경유편(`campus2_from_station`·
-  /// `campus2_to_station`)은 같은 쪽 노선2 방향에 묶는다.
-  // ponytail: 노선2 화면이 생겨 정왕역 경유편을 따로 보여야 하면 ShuttleDirection 을 늘린다.
+  /// 서버 방향 id(고정 6개) → 앱 방향(1:1). 구간은 서버가 시작 시각 오름차순으로 준다.
   static ShuttleDirection? _directionOf(String id) => switch (id) {
     'main_out' => ShuttleDirection.schoolToJeongwang,
     'main_in' => ShuttleDirection.jeongwangToSchool,
-    'campus2_out' || 'campus2_from_station' => ShuttleDirection.schoolToCampus2,
-    'campus2_in' || 'campus2_to_station' => ShuttleDirection.campus2ToSchool,
+    'campus2_out' => ShuttleDirection.schoolToCampus2,
+    'campus2_in' => ShuttleDirection.campus2ToSchool,
+    'campus2_from_station' => ShuttleDirection.jeongwangToCampus2,
+    'campus2_to_station' => ShuttleDirection.campus2ToJeongwang,
     _ => null,
   };
 

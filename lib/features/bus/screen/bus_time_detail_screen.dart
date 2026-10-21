@@ -9,7 +9,10 @@ import 'package:handori/common/component/sandol_icon_button.dart';
 import 'package:handori/common/layout/root_shell.dart';
 import 'package:handori/core/design_system/sandol_assets.dart';
 import 'package:handori/core/design_system/sandol_tokens.dart';
+import 'package:handori/core/utils/keep_all.dart';
 import 'package:handori/features/bus/domain/model/shuttle_schedule.dart';
+import 'package:handori/features/bus/domain/usecase/next_shuttle_calculator.dart';
+import 'package:handori/features/bus/domain/usecase/shuttle_transfer.dart';
 import 'package:handori/features/bus/presentation/provider/next_shuttle_provider.dart';
 import 'package:handori/features/bus/presentation/provider/shuttle_direction_provider.dart';
 import 'package:handori/features/empty_class/presentation/provider/user_location_provider.dart';
@@ -28,9 +31,6 @@ class BusTimeDetailScreen extends ConsumerStatefulWidget {
 }
 
 class _BusTimeDetailScreenState extends ConsumerState<BusTimeDetailScreen> {
-  /// 노선1(정왕역 ↔ 본교)만 다룬다. 기본은 하교 방향.
-  static const _route = ShuttleRoute.route1;
-
   @override
   void initState() {
     super.initState();
@@ -65,12 +65,13 @@ class _BusTimeDetailScreenState extends ConsumerState<BusTimeDetailScreen> {
     final direction = ref.watch(shuttleDirectionSelectionProvider);
     final now = ref.watch(shuttleClockProvider);
     final next = ref.watch(
-      nextShuttleProvider(route: _route, direction: direction),
+      nextShuttleProvider(route: direction.route, direction: direction),
     );
     final timetable = ref.watch(
-      shuttleTimetableProvider(route: _route, direction: direction),
+      shuttleTimetableProvider(route: direction.route, direction: direction),
     );
     final stops = ref.watch(shuttleStopsProvider);
+    final transfers = ref.watch(shuttleTransfersProvider(direction: direction));
     final needsReview =
         ref.watch(shuttleScheduleSourceProvider)?.needsReview ?? false;
 
@@ -112,11 +113,19 @@ class _BusTimeDetailScreenState extends ConsumerState<BusTimeDetailScreen> {
                 ),
                 const SizedBox(height: SandolSpacing.xl),
                 _NextBusCard(next: next, onRefresh: _refresh),
+                if (transfers != null) ...[
+                  const SizedBox(height: SandolSpacing.xl),
+                  _TransferCard(
+                    school: stops['main_campus']!.name,
+                    connections: transfers,
+                  ),
+                ],
                 const SizedBox(height: 48),
                 _TimetableHeader(
                   route:
                       '${stops[direction.origin]!.name} → '
-                      '${stops[direction.destination]!.name}',
+                      '${stops[direction.destination]!.name}'
+                      '${direction.viaSchool ? ' (${stops['main_campus']!.name} 경유)' : ''}',
                 ),
                 const SizedBox(height: 12),
                 _TimetableCard(
@@ -134,28 +143,8 @@ class _BusTimeDetailScreenState extends ConsumerState<BusTimeDetailScreen> {
   }
 }
 
-// ── 노선1 정류장 ──────────────────────────────────────────────────────────────
-
-/// 방향 → 서버 정류장 id. 이름·안내는 [shuttleStopsProvider]에서 찾는다.
-extension on ShuttleDirection {
-  ShuttleDirection get reversed => switch (this) {
-    ShuttleDirection.schoolToJeongwang => ShuttleDirection.jeongwangToSchool,
-    ShuttleDirection.jeongwangToSchool => ShuttleDirection.schoolToJeongwang,
-    _ => this,
-  };
-
-  String get origin => switch (this) {
-    ShuttleDirection.jeongwangToSchool => _Stop.station,
-    _ => _Stop.school,
-  };
-
-  String get destination => reversed.origin;
-}
-
-abstract final class _Stop {
-  static const school = 'main_campus';
-  static const station = 'jeongwang';
-}
+/// 고를 수 있는 정류장(서버 정류장 id). 이름·안내는 [shuttleStopsProvider]에서 찾는다.
+const _stopIds = ['main_campus', 'jeongwang', 'campus2'];
 
 // ── 출발 · 도착 카드 (2158:1281) ─────────────────────────────────────────────
 
@@ -175,8 +164,8 @@ class _RouteCard extends StatelessWidget {
   /// 가운데 구분선 줄의 높이. 교환 버튼이 이 줄 안에서 선 위에 걸친다.
   static const double _swapRowHeight = 36.58;
 
-  /// 출발지(또는 도착지)를 골라 방향을 정한다. 정왕역 노선은 정류장이 둘뿐이라
-  /// 한쪽을 고르면 반대쪽은 자동으로 정해진다.
+  /// 출발지(또는 도착지)를 골라 방향을 정한다. 반대쪽과 같은 정류장을 고르면
+  /// 출발·도착을 맞바꿔 같은 정류장끼리의 조합은 생기지 않는다.
   Future<void> _pickStop(BuildContext context, {required bool origin}) async {
     final picked = await showModalBottomSheet<String>(
       context: context,
@@ -192,12 +181,11 @@ class _RouteCard extends StatelessWidget {
           ),
     );
     if (picked == null) return;
-    final toStation = origin ? picked == _Stop.school : picked == _Stop.station;
-    onSelect(
-      toStation
-          ? ShuttleDirection.schoolToJeongwang
-          : ShuttleDirection.jeongwangToSchool,
-    );
+    final next =
+        origin
+            ? ShuttleDirection.between(picked, direction.destination)
+            : ShuttleDirection.between(direction.origin, picked);
+    onSelect(next ?? direction.reversed);
   }
 
   @override
@@ -239,6 +227,8 @@ class _RouteCard extends StatelessWidget {
             icon: SandolAssets.busStopFlag,
             label: '도착',
             name: stops[direction.destination]!.name,
+            note:
+                direction.viaSchool ? '${stops['main_campus']!.name} 경유' : null,
             gap: SandolSpacing.xs,
             button: SandolAssets.busChevronButton,
             onTap: () => _pickStop(context, origin: false),
@@ -265,7 +255,7 @@ class _StopRow extends StatelessWidget {
   final String label;
   final String name;
 
-  /// 승차 위치 안내(서버 `boarding_note`). 출발 정류장에만 붙인다.
+  /// 이름 아래 작은 안내. 출발은 승차 위치(서버 `boarding_note`), 도착은 경유지.
   final String? note;
   final double gap;
   final String button;
@@ -334,7 +324,7 @@ class _StopPickerSheet extends StatelessWidget {
         children: [
           Text(title, style: SandolTypography.title),
           const SizedBox(height: SandolSpacing.sm),
-          for (final stop in const [_Stop.school, _Stop.station])
+          for (final stop in _stopIds)
             InkWell(
               borderRadius: SandolMetrics.radius,
               onTap: () => Navigator.pop(context, stop),
@@ -432,6 +422,49 @@ class _NextBusCard extends StatelessWidget {
       ),
     );
   }
+}
+
+// ── 본교 환승 (정왕역 ↔ 제2캠퍼스) ─────────────────────────────────────────
+
+/// 직행편 말고 본교에서 갈아타는 연결. 소요시간이 추정이라 '예상'으로 적는다.
+class _TransferCard extends StatelessWidget {
+  const _TransferCard({required this.school, required this.connections});
+
+  /// 본교 정류장 이름.
+  final String school;
+  final List<ShuttleConnection> connections;
+
+  @override
+  Widget build(BuildContext context) => SandolCard(
+    child: Padding(
+      padding: const EdgeInsets.all(SandolMetrics.cardInset),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        spacing: SandolSpacing.sm,
+        children: [
+          Text(
+            '$school에서 갈아타기 (예상)'.keepAll,
+            style: SandolTypography.body.strong,
+          ),
+          if (connections.isEmpty)
+            Text('오늘 환승 가능한 편이 없어요', style: SandolTypography.body.muted)
+          else
+            for (final c in connections)
+              Text(
+                '${c.departure.label} 출발'
+                        '${c.first.isSegment ? ' (${NextShuttleCalculator.segmentName(c.first)})' : ''}'
+                        ' → 본교 ${c.transfer.label} 환승 출발'
+                    .keepAll,
+                style: SandolTypography.body,
+              ),
+          Text(
+            '환승 시간은 교통 상황에 따라 달라질 수 있어요'.keepAll,
+            style: SandolTypography.caption.inactive,
+          ),
+        ],
+      ),
+    ),
+  );
 }
 
 // ── 전체 시간표 (2156:511 · 2156:514) ────────────────────────────────────────

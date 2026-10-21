@@ -158,14 +158,7 @@ Future<void> _settle() async {
 }
 
 ShuttleTimetable? _timetable(RemoteShuttleSchedule s, ShuttleDirection d) =>
-    s.timetableFor(
-      route:
-          d == ShuttleDirection.jeongwangToSchool ||
-                  d == ShuttleDirection.schoolToJeongwang
-              ? ShuttleRoute.route1
-              : ShuttleRoute.route2,
-      direction: d,
-    );
+    s.timetableFor(route: d.route, direction: d);
 
 void main() {
   setUp(() => _setKst(DateTime.utc(2026, 10, 22, 10))); // 목요일
@@ -192,22 +185,16 @@ void main() {
       expect(down.map((e) => e.time.label), ['10:05', '22:40']);
     });
 
-    test('정왕역 경유편은 같은 쪽 노선2 방향에 시각순으로 묶는다', () {
+    test('방향 id 6개를 앱 방향 6개에 1:1로 옮긴다', () {
       final s = RemoteShuttleSchedule.tryParse(_weekday)!;
-      expect(
-        _timetable(
-          s,
-          ShuttleDirection.schoolToCampus2,
-        )!.entries.map((e) => e.time.label),
-        ['08:55', '10:00'],
-      );
-      expect(
-        _timetable(
-          s,
-          ShuttleDirection.campus2ToSchool,
-        )!.entries.map((e) => e.time.label),
-        ['09:40'],
-      );
+      List<String>? labels(ShuttleDirection d) =>
+          _timetable(s, d)?.entries.map((e) => e.time.label).toList();
+      expect(labels(ShuttleDirection.schoolToCampus2), ['10:00']);
+      expect(labels(ShuttleDirection.jeongwangToCampus2), ['08:55']);
+      expect(labels(ShuttleDirection.campus2ToSchool), ['09:40']);
+      expect(labels(ShuttleDirection.campus2ToJeongwang), isNull); // 빈 방향
+      expect(ShuttleDirection.jeongwangToCampus2.viaSchool, isTrue);
+      expect(ShuttleDirection.jeongwangToCampus2.route, ShuttleRoute.route2);
     });
 
     test('빈 방향(segments: [])은 운행 없음', () {

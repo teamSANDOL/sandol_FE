@@ -18,7 +18,8 @@ class ShuttleScheduleData {
   /// 서버 `stops`를 못 받을 때 쓰는 정류장. 키는 서버 정류장 id.
   ///
   /// 좌표 출처 — 학교: 사용자 제공 Plus Code 8PQJ+VWR(정문 정류장),
-  /// 정왕역: OpenStreetMap(Nominatim) 버스 정류장 노드 '정왕역'.
+  /// 정왕역: OpenStreetMap(Nominatim) 버스 정류장 노드 '정왕역',
+  /// 제2캠퍼스: 사용자 제공 Plus Code 8MJR+77.
   static const Map<String, ShuttleStop> stops = {
     'main_campus': ShuttleStop(
       name: '한국공학대 정문',
@@ -26,6 +27,7 @@ class ShuttleScheduleData {
       lng: 126.7322656,
     ),
     'jeongwang': ShuttleStop(name: '정왕역', lat: 37.3512712, lng: 126.7411157),
+    'campus2': ShuttleStop(name: '제2캠퍼스', lat: 37.3306875, lng: 126.6906875),
   };
 
   /// 도착버스 탑승 시간대(17:00 이후) 승차 위치 안내.
@@ -78,15 +80,21 @@ class ShuttleScheduleData {
     ]),
   ];
 
-  // ── 노선2: 본교 → 제2캠퍼스 ─────────────────────────────────────────────
-  // 평일 첫 2회(08:55, 09:00)는 정왕역 출발.
+  // ── 노선2: 본교 → 제2캠퍼스 · 평일 ──────────────────────────────────────
   static final List<ShuttleEntry> _route2ToCampusWeekday = _fixed([
-    855, 900, 1000, 1100, 1200, 1300, //
+    1000, 1100, 1200, 1300, //
     1400, 1500, 1600, 1700, 1800, 1900,
   ]);
 
-  // 토요일: 정왕역 → 본교 → 제2캠퍼스.
-  static final List<ShuttleEntry> _route2ToCampusSaturday = _fixed([
+  // ── 노선2: 정왕역 → 본교 → 제2캠퍼스 ───────────────────────────────────
+  // 평일 첫 2회는 정왕역 출발.
+  static final List<ShuttleEntry> _route2FromStationWeekday = _fixed([
+    855,
+    900,
+  ]);
+
+  // 토요일.
+  static final List<ShuttleEntry> _route2FromStationSaturday = _fixed([
     845,
     850,
     900,
@@ -95,15 +103,15 @@ class ShuttleScheduleData {
     915,
   ]);
 
-  // ── 노선2: 제2캠퍼스 → 본교 ─────────────────────────────────────────────
-  // 평일 17:40 편은 오이도역 경유.
+  // ── 노선2: 제2캠퍼스 → 본교 · 평일 ──────────────────────────────────────
+  // 17:40 편은 오이도역 경유.
   static final List<ShuttleEntry> _route2FromCampusWeekday = _fixed([
     940, 1030, 1130, 1230, 1330, 1430, //
     1530, 1630, 1740, 1830, 1930,
   ]);
 
-  // 토요일: 제2캠퍼스 → 본교 → 정왕역.
-  static final List<ShuttleEntry> _route2FromCampusSaturday = _fixed([
+  // ── 노선2: 제2캠퍼스 → 본교 → 정왕역 · 토요일 ──────────────────────────
+  static final List<ShuttleEntry> _route2ToStationSaturday = _fixed([
     1630,
     1645,
     1925,
@@ -173,17 +181,17 @@ class ShuttleScheduleData {
     if (dayType == ShuttleDayType.sunday || dayType == ShuttleDayType.holiday) {
       return null;
     }
-    switch (direction) {
-      case ShuttleDirection.schoolToCampus2:
-        return dayType == ShuttleDayType.saturday
-            ? _route2ToCampusSaturday
-            : _route2ToCampusWeekday;
-      case ShuttleDirection.campus2ToSchool:
-        return dayType == ShuttleDayType.saturday
-            ? _route2FromCampusSaturday
-            : _route2FromCampusWeekday;
-      default:
-        return null;
-    }
+    final saturday = dayType == ShuttleDayType.saturday;
+    return switch (direction) {
+      ShuttleDirection.schoolToCampus2 =>
+        saturday ? null : _route2ToCampusWeekday,
+      ShuttleDirection.campus2ToSchool =>
+        saturday ? null : _route2FromCampusWeekday,
+      ShuttleDirection.jeongwangToCampus2 =>
+        saturday ? _route2FromStationSaturday : _route2FromStationWeekday,
+      ShuttleDirection.campus2ToJeongwang =>
+        saturday ? _route2ToStationSaturday : null,
+      _ => null,
+    };
   }
 }

@@ -546,6 +546,148 @@ class _UpcomingShuttlesProviderElement
       (origin as UpcomingShuttlesProvider).direction;
 }
 
+String _$shuttleTransfersHash() => r'4dfda7b88319346b86dcad5f1180a3f9eb711c2a';
+
+/// 정왕역 ↔ 제2캠퍼스 방향의 본교 환승 연결(최대 3개). 본교를 거치지 않는
+/// 방향이면 null.
+///
+/// Copied from [shuttleTransfers].
+@ProviderFor(shuttleTransfers)
+const shuttleTransfersProvider = ShuttleTransfersFamily();
+
+/// 정왕역 ↔ 제2캠퍼스 방향의 본교 환승 연결(최대 3개). 본교를 거치지 않는
+/// 방향이면 null.
+///
+/// Copied from [shuttleTransfers].
+class ShuttleTransfersFamily extends Family<List<ShuttleConnection>?> {
+  /// 정왕역 ↔ 제2캠퍼스 방향의 본교 환승 연결(최대 3개). 본교를 거치지 않는
+  /// 방향이면 null.
+  ///
+  /// Copied from [shuttleTransfers].
+  const ShuttleTransfersFamily();
+
+  /// 정왕역 ↔ 제2캠퍼스 방향의 본교 환승 연결(최대 3개). 본교를 거치지 않는
+  /// 방향이면 null.
+  ///
+  /// Copied from [shuttleTransfers].
+  ShuttleTransfersProvider call({required ShuttleDirection direction}) {
+    return ShuttleTransfersProvider(direction: direction);
+  }
+
+  @override
+  ShuttleTransfersProvider getProviderOverride(
+    covariant ShuttleTransfersProvider provider,
+  ) {
+    return call(direction: provider.direction);
+  }
+
+  static const Iterable<ProviderOrFamily>? _dependencies = null;
+
+  @override
+  Iterable<ProviderOrFamily>? get dependencies => _dependencies;
+
+  static const Iterable<ProviderOrFamily>? _allTransitiveDependencies = null;
+
+  @override
+  Iterable<ProviderOrFamily>? get allTransitiveDependencies =>
+      _allTransitiveDependencies;
+
+  @override
+  String? get name => r'shuttleTransfersProvider';
+}
+
+/// 정왕역 ↔ 제2캠퍼스 방향의 본교 환승 연결(최대 3개). 본교를 거치지 않는
+/// 방향이면 null.
+///
+/// Copied from [shuttleTransfers].
+class ShuttleTransfersProvider
+    extends AutoDisposeProvider<List<ShuttleConnection>?> {
+  /// 정왕역 ↔ 제2캠퍼스 방향의 본교 환승 연결(최대 3개). 본교를 거치지 않는
+  /// 방향이면 null.
+  ///
+  /// Copied from [shuttleTransfers].
+  ShuttleTransfersProvider({required ShuttleDirection direction})
+    : this._internal(
+        (ref) =>
+            shuttleTransfers(ref as ShuttleTransfersRef, direction: direction),
+        from: shuttleTransfersProvider,
+        name: r'shuttleTransfersProvider',
+        debugGetCreateSourceHash:
+            const bool.fromEnvironment('dart.vm.product')
+                ? null
+                : _$shuttleTransfersHash,
+        dependencies: ShuttleTransfersFamily._dependencies,
+        allTransitiveDependencies:
+            ShuttleTransfersFamily._allTransitiveDependencies,
+        direction: direction,
+      );
+
+  ShuttleTransfersProvider._internal(
+    super._createNotifier, {
+    required super.name,
+    required super.dependencies,
+    required super.allTransitiveDependencies,
+    required super.debugGetCreateSourceHash,
+    required super.from,
+    required this.direction,
+  }) : super.internal();
+
+  final ShuttleDirection direction;
+
+  @override
+  Override overrideWith(
+    List<ShuttleConnection>? Function(ShuttleTransfersRef provider) create,
+  ) {
+    return ProviderOverride(
+      origin: this,
+      override: ShuttleTransfersProvider._internal(
+        (ref) => create(ref as ShuttleTransfersRef),
+        from: from,
+        name: null,
+        dependencies: null,
+        allTransitiveDependencies: null,
+        debugGetCreateSourceHash: null,
+        direction: direction,
+      ),
+    );
+  }
+
+  @override
+  AutoDisposeProviderElement<List<ShuttleConnection>?> createElement() {
+    return _ShuttleTransfersProviderElement(this);
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return other is ShuttleTransfersProvider && other.direction == direction;
+  }
+
+  @override
+  int get hashCode {
+    var hash = _SystemHash.combine(0, runtimeType.hashCode);
+    hash = _SystemHash.combine(hash, direction.hashCode);
+
+    return _SystemHash.finish(hash);
+  }
+}
+
+@Deprecated('Will be removed in 3.0. Use Ref instead')
+// ignore: unused_element
+mixin ShuttleTransfersRef on AutoDisposeProviderRef<List<ShuttleConnection>?> {
+  /// The parameter `direction` of this provider.
+  ShuttleDirection get direction;
+}
+
+class _ShuttleTransfersProviderElement
+    extends AutoDisposeProviderElement<List<ShuttleConnection>?>
+    with ShuttleTransfersRef {
+  _ShuttleTransfersProviderElement(super.provider);
+
+  @override
+  ShuttleDirection get direction =>
+      (origin as ShuttleTransfersProvider).direction;
+}
+
 String _$shuttleClockHash() => r'a8f6b0c7df02cab8a24d6bd09e2c028468ebd726';
 
 /// 셔틀 계산의 기준 시각(KST).
@@ -567,13 +709,14 @@ final shuttleClockProvider = NotifierProvider<ShuttleClock, DateTime>.internal(
 
 typedef _$ShuttleClock = Notifier<DateTime>;
 String _$shuttleScheduleSourceHash() =>
-    r'ee70f2278a14a16930a1827948aea26ee82763ab';
+    r'7c6a09c79ed1a5fe1190f6458fd3a1255fa8f35b';
 
 /// 서버에서 받은 오늘(KST) 셔틀 시간표. null 이면 내장 시간표를 쓴다.
 ///
 /// 대체 순서는 서버 → 기기 캐시 → 내장 시간표다. 앱을 켜면 먼저 마지막 성공
 /// 응답(캐시)을 올리고, 이어서 서버에서 받아 바꾼다. 서버가 실패(503 포함)하거나
-/// 형식이 계약과 다르면 캐시(없으면 내장)를 그대로 둔다. 응답은 날짜별이라
+/// 형식이 계약과 다르면(운영이 아직 옛 형식) 대체 서버에 1회 묻고, 그래도 안
+/// 되면 캐시(없으면 내장)를 그대로 둔다. 응답은 날짜별이라
 /// [shuttleClockProvider]의 날짜가 바뀌면(자정) 다시 받는다.
 ///
 /// 캐시 본문의 `version`으로 `If-None-Match`를 붙여 304면 캐시를 그대로 쓴다.
