@@ -5,6 +5,13 @@ plugins {
     id("kotlin-android")
     // The Flutter Gradle Plugin must be applied after the Android and Kotlin Gradle plugins.
     id("dev.flutter.flutter-gradle-plugin")
+    id("com.google.gms.google-services") apply false
+}
+
+// Firebase 프로젝트 설정(google-services.json, gitignore)이 있을 때만 적용한다.
+// 없으면 Firebase 초기화가 실패해 푸시만 꺼지고 앱은 정상 빌드·실행된다. (docs/PUSH.md)
+if (file("google-services.json").exists()) {
+    apply(plugin = "com.google.gms.google-services")
 }
 
 // ── 릴리즈 서명 ──────────────────────────────────────────────────────────────
@@ -37,6 +44,8 @@ android {
     ndkVersion = flutter.ndkVersion
 
     compileOptions {
+        // flutter_local_notifications 가 요구한다.
+        isCoreLibraryDesugaringEnabled = true
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11
     }
@@ -107,4 +116,8 @@ if (!hasReleaseKeystore) {
 
 flutter {
     source = "../.."
+}
+
+dependencies {
+    coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.5")
 }

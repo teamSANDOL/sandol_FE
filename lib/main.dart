@@ -8,6 +8,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:handori/core/constants/app_colors.dart';
 import 'package:handori/core/constants/app_radius.dart';
 import 'package:handori/core/error/app_error_handler.dart';
+import 'package:handori/core/push/push_service.dart';
 import 'package:handori/core/router/app_router.dart';
 import 'package:handori/features/auth/presentation/provider/auth_provider.dart';
 import 'package:handori/features/bus/presentation/provider/next_shuttle_provider.dart';
@@ -60,6 +61,8 @@ class _MyAppState extends ConsumerState<MyApp> with WidgetsBindingObserver {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
+    // 기다리지 않는다. 스플래시가 종료 상태 알림 확인까지만 기다린다.
+    ref.read(pushServiceProvider).init();
   }
 
   @override
