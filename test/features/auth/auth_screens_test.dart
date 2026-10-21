@@ -282,7 +282,7 @@ void main() {
           w.image is AssetImage &&
           (w.image as AssetImage).assetName == SandolAssets.splashPoster,
     );
-    expect(tester.getSize(image).aspectRatio, closeTo(412 / 733, .001));
+    expect(tester.getSize(image).aspectRatio, closeTo(1080 / 1920, .001));
     await tester.pump(const Duration(seconds: 3));
     expect(router.routeInformationProvider.value.uri.path, RoutePaths.splash);
     restored.complete(const AuthSession(accessToken: 'test-only'));

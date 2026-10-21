@@ -46,7 +46,7 @@ class _SplashscreenState extends ConsumerState<Splashscreen> {
     child: Scaffold(
       backgroundColor: SandolColors.background,
       body: Center(
-        // Figma의 412×733 원본 자산. 세로 중앙 정렬과 종횡비를 유지한다.
+        // Figma 원본 1080×1920 자산. 시안의 412×733 배치처럼 세로 중앙 정렬하고 종횡비를 유지한다.
         child: Image.asset(
           SandolAssets.splashPoster,
           width: MediaQuery.sizeOf(context).width,
