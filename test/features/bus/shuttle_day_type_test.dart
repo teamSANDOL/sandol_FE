@@ -19,7 +19,7 @@ void main() {
       );
       expect(
         ShuttleScheduleData.dayTypeOf(DateTime(2026, 9, 13)),
-        ShuttleDayType.holiday,
+        ShuttleDayType.sunday,
       );
     });
 

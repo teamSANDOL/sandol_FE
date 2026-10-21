@@ -70,6 +70,9 @@ class _BusTimeDetailScreenState extends ConsumerState<BusTimeDetailScreen> {
     final timetable = ref.watch(
       shuttleTimetableProvider(route: _route, direction: direction),
     );
+    final stops = ref.watch(shuttleStopsProvider);
+    final needsReview =
+        ref.watch(shuttleScheduleSourceProvider)?.needsReview ?? false;
 
     return Scaffold(
       backgroundColor: SandolColors.background,
@@ -103,20 +106,25 @@ class _BusTimeDetailScreenState extends ConsumerState<BusTimeDetailScreen> {
               children: [
                 _RouteCard(
                   direction: direction,
+                  stops: stops,
                   onSwap: () => _select(direction.reversed),
                   onSelect: _select,
                 ),
                 const SizedBox(height: SandolSpacing.xl),
                 _NextBusCard(next: next, onRefresh: _refresh),
                 const SizedBox(height: 48),
-                _TimetableHeader(direction: direction),
+                _TimetableHeader(
+                  route:
+                      '${stops[direction.origin]!.name} → '
+                      '${stops[direction.destination]!.name}',
+                ),
                 const SizedBox(height: 12),
                 _TimetableCard(
                   timetable: timetable,
                   nowMinutes: now.hour * 60 + now.minute,
                 ),
                 const SizedBox(height: SandolSpacing.lg),
-                _FooterNote(lastUpdated: now),
+                _FooterNote(lastUpdated: now, needsReview: needsReview),
               ],
             ),
           ),
@@ -128,6 +136,7 @@ class _BusTimeDetailScreenState extends ConsumerState<BusTimeDetailScreen> {
 
 // ── 노선1 정류장 ──────────────────────────────────────────────────────────────
 
+/// 방향 → 서버 정류장 id. 이름·안내는 [shuttleStopsProvider]에서 찾는다.
 extension on ShuttleDirection {
   ShuttleDirection get reversed => switch (this) {
     ShuttleDirection.schoolToJeongwang => ShuttleDirection.jeongwangToSchool,
@@ -144,8 +153,8 @@ extension on ShuttleDirection {
 }
 
 abstract final class _Stop {
-  static const school = '한국공학대 정문';
-  static const station = '정왕역';
+  static const school = 'main_campus';
+  static const station = 'jeongwang';
 }
 
 // ── 출발 · 도착 카드 (2158:1281) ─────────────────────────────────────────────
@@ -153,11 +162,13 @@ abstract final class _Stop {
 class _RouteCard extends StatelessWidget {
   const _RouteCard({
     required this.direction,
+    required this.stops,
     required this.onSwap,
     required this.onSelect,
   });
 
   final ShuttleDirection direction;
+  final Map<String, ShuttleStop> stops;
   final VoidCallback onSwap;
   final ValueChanged<ShuttleDirection> onSelect;
 
@@ -176,6 +187,7 @@ class _RouteCard extends StatelessWidget {
       builder:
           (_) => _StopPickerSheet(
             title: origin ? '출발 정류장' : '도착 정류장',
+            stops: stops,
             selected: origin ? direction.origin : direction.destination,
           ),
     );
@@ -198,7 +210,8 @@ class _RouteCard extends StatelessWidget {
           child: _StopRow(
             icon: SandolAssets.busStopPin,
             label: '출발',
-            name: direction.origin,
+            name: stops[direction.origin]!.name,
+            note: stops[direction.origin]!.boardingNote,
             gap: SandolSpacing.sm,
             button: SandolAssets.busPinButton,
             onTap: () => _pickStop(context, origin: true),
@@ -225,7 +238,7 @@ class _RouteCard extends StatelessWidget {
           child: _StopRow(
             icon: SandolAssets.busStopFlag,
             label: '도착',
-            name: direction.destination,
+            name: stops[direction.destination]!.name,
             gap: SandolSpacing.xs,
             button: SandolAssets.busChevronButton,
             onTap: () => _pickStop(context, origin: false),
@@ -242,6 +255,7 @@ class _StopRow extends StatelessWidget {
     required this.icon,
     required this.label,
     required this.name,
+    this.note,
     required this.gap,
     required this.button,
     required this.onTap,
@@ -250,6 +264,9 @@ class _StopRow extends StatelessWidget {
   final String icon;
   final String label;
   final String name;
+
+  /// 승차 위치 안내(서버 `boarding_note`). 출발 정류장에만 붙인다.
+  final String? note;
   final double gap;
   final String button;
   final VoidCallback onTap;
@@ -275,6 +292,8 @@ class _StopRow extends StatelessWidget {
                 color: SandolColors.textSecondary,
               ),
             ),
+            if (note case final String note)
+              Text(note, style: SandolTypography.caption.inactive),
           ],
         ),
       ),
@@ -288,9 +307,16 @@ class _StopRow extends StatelessWidget {
 }
 
 class _StopPickerSheet extends StatelessWidget {
-  const _StopPickerSheet({required this.title, required this.selected});
+  const _StopPickerSheet({
+    required this.title,
+    required this.stops,
+    required this.selected,
+  });
 
   final String title;
+  final Map<String, ShuttleStop> stops;
+
+  /// 선택된 정류장 id.
   final String selected;
 
   @override
@@ -315,7 +341,7 @@ class _StopPickerSheet extends StatelessWidget {
               child: Padding(
                 padding: const EdgeInsets.symmetric(vertical: 12),
                 child: Text(
-                  stop,
+                  stops[stop]!.name,
                   style:
                       stop == selected
                           ? SandolTypography.body.strong.accent
@@ -411,9 +437,10 @@ class _NextBusCard extends StatelessWidget {
 // ── 전체 시간표 (2156:511 · 2156:514) ────────────────────────────────────────
 
 class _TimetableHeader extends StatelessWidget {
-  const _TimetableHeader({required this.direction});
+  const _TimetableHeader({required this.route});
 
-  final ShuttleDirection direction;
+  /// `출발 → 도착` 정류장 이름.
+  final String route;
 
   @override
   Widget build(BuildContext context) => ConstrainedBox(
@@ -425,10 +452,7 @@ class _TimetableHeader extends StatelessWidget {
       spacing: SandolSpacing.sm,
       children: [
         const Text('전체 시간표', style: SandolTypography.title),
-        Text(
-          '${direction.origin} → ${direction.destination}',
-          style: SandolTypography.body.muted,
-        ),
+        Text(route, style: SandolTypography.body.muted),
       ],
     ),
   );
@@ -588,16 +612,20 @@ class _SegmentNote extends StatelessWidget {
 // ── 안내 (2156:625) ──────────────────────────────────────────────────────────
 
 class _FooterNote extends StatelessWidget {
-  const _FooterNote({required this.lastUpdated});
+  const _FooterNote({required this.lastUpdated, required this.needsReview});
 
   final DateTime lastUpdated;
+
+  /// 서버가 최신 시간표 검증에 실패해 직전 정상본을 주는 중인지.
+  final bool needsReview;
 
   @override
   Widget build(BuildContext context) {
     final hh = lastUpdated.hour.toString().padLeft(2, '0');
     final mm = lastUpdated.minute.toString().padLeft(2, '0');
+    final review = needsReview ? '\n최신 시간표를 확인 중이라 실제와 다를 수 있어요.' : '';
     return Text(
-      '시간표는 학교 사정에 따라 변경될 수 있어요.\n마지막 업데이트 • 오늘 $hh:$mm',
+      '시간표는 학교 사정에 따라 변경될 수 있어요.$review\n마지막 업데이트 • 오늘 $hh:$mm',
       textAlign: TextAlign.center,
       style: SandolTypography.caption.inactive,
     );

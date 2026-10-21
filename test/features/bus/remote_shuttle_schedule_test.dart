@@ -6,266 +6,400 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:handori/core/network/static_info_dio_provider.dart';
+import 'package:handori/core/utils/korea_time.dart';
 import 'package:handori/features/bus/data/data_source/remote_shuttle_schedule.dart';
 import 'package:handori/features/bus/domain/model/shuttle_schedule.dart';
+import 'package:handori/features/bus/domain/usecase/next_shuttle_calculator.dart';
 import 'package:handori/features/bus/presentation/provider/next_shuttle_provider.dart';
 
-/// 운영 응답 형식(static-info `ShuttleTrip`)을 줄인 trip.
-Map<String, Object?> _trip(
-  String origin,
-  String destination,
-  String time, {
-  String dayType = '평일',
-  String? end,
-  String? note,
-  String? boardingPlace,
-}) => {
-  'place': '26년 셔틀버스 시간표 (2학기)',
-  'route': '정왕역 ↔ 본교',
-  'direction': '$origin → $destination',
-  'origin': origin,
-  'via': <String>[],
-  'destination': destination,
-  'day_type': dayType,
-  'day_note': null,
-  'departure_time': time,
-  'departure_time_end': end,
-  'valid_from': '09-01',
-  'valid_to': '12-22',
-  'period_note': null,
-  'boarding_place': boardingPlace,
+/// 계약(2026-10-22) 예시를 바탕으로 만든 응답. [segments]로 방향별 구간을
+/// 바꾸고, 주지 않은 방향은 `segments: []`(운행 없음)다.
+String _response({
+  String date = '2026-10-22',
+  String dayType = 'weekday',
+  String version = 'v1',
+  bool needsReview = false,
+  double? stationLat = 37.3512712,
+  Map<String, List<Map<String, Object?>>> segments = const {},
+}) {
+  Map<String, Object?> dir(String id, String from, String to) => {
+    'id': id,
+    'from': from,
+    'to': to,
+    'via': id.endsWith('station') ? ['main_campus'] : <String>[],
+    'segments': segments[id] ?? const [],
+  };
+  return jsonEncode({
+    'date': date,
+    'day_type': dayType,
+    'holiday_name': dayType == 'holiday' ? '임시공휴일' : null,
+    'version': version,
+    'valid_from': '2026-09-01',
+    'valid_to': '2026-12-22',
+    'source': {
+      'title': '26년 셔틀버스 시간표 (2학기) 9.1 ~ 12.22',
+      'pdf_url': 'https://example.com/a.pdf',
+      'parsed_at': '2026-10-21T00:00:00+00:00',
+      'origin': 'pdf',
+      'needs_review': needsReview,
+    },
+    'stops': [
+      {
+        'id': 'main_campus',
+        'name': '한국공학대 정문',
+        'lat': 37.3397375,
+        'lng': 126.7322656,
+        'boarding_note': '본교 출발은 산융관 앞 정류장',
+      },
+      {
+        'id': 'jeongwang',
+        'name': '정왕역',
+        'lat': stationLat,
+        'lng': stationLat == null ? null : 126.7411157,
+        'boarding_note': '정왕역 출발은 꽃집 앞',
+      },
+      {
+        'id': 'campus2',
+        'name': '제2캠퍼스',
+        'lat': null,
+        'lng': null,
+        'boarding_note': null,
+      },
+    ],
+    'routes': [
+      {
+        'id': 'main',
+        'name': '정왕역 ↔ 본교',
+        'directions': [
+          dir('main_out', 'main_campus', 'jeongwang'),
+          dir('main_in', 'jeongwang', 'main_campus'),
+        ],
+      },
+      {
+        'id': 'campus2',
+        'name': '제2캠퍼스 ↔ 본교·정왕역',
+        'directions': [
+          dir('campus2_out', 'main_campus', 'campus2'),
+          dir('campus2_in', 'campus2', 'main_campus'),
+          dir('campus2_from_station', 'jeongwang', 'campus2'),
+          dir('campus2_to_station', 'campus2', 'jeongwang'),
+        ],
+      },
+    ],
+    'notes': ['소요시간 10분'],
+  });
+}
+
+Map<String, Object?> _fixed(String time, [String? note]) => {
+  'type': 'fixed',
+  'time': time,
   'note': note,
 };
 
-String _body(List<Map<String, Object?>> trips) =>
-    jsonEncode({'sources': const [], 'trips': trips});
+Map<String, Object?> _range(String type, String start, String end) => {
+  'type': type,
+  'start': start,
+  'end': end,
+  'note': null,
+};
 
-/// 노선1 양방향이 있는 응답. 서버 순서는 정렬돼 있지 않다.
-final _route1Body = _body([
-  _trip('본교', '정왕역', '10:20'),
-  _trip('본교', '정왕역', '10:05'),
-  _trip('본교', '정왕역', '17:00', end: '18:00', note: '수시운행 (17:00~18:00)'),
-  _trip('정왕역', '본교', '08:40', end: '10:00', note: '수시운행'),
-  _trip(
-    '정왕역',
-    '본교',
-    '17:00',
-    end: '22:17',
-    note: '도착버스 탑승',
-    boardingPlace: '파리바게뜨 건너편',
-  ),
-]);
+/// 평일 노선1 양방향 + 노선2 두 갈래가 있는 응답.
+final _weekday = _response(
+  segments: {
+    'main_in': [
+      _range('frequent', '08:40', '10:00'),
+      _fixed('10:00'),
+      _range('arrival_board', '17:00', '22:17'),
+    ],
+    'main_out': [_fixed('10:05'), _fixed('22:40', '막차')],
+    'campus2_out': [_fixed('10:00')],
+    'campus2_from_station': [_fixed('08:55')],
+    'campus2_in': [_fixed('09:40')],
+  },
+);
 
-/// 정해진 응답 하나를 돌려주는 어댑터. [status]가 200이 아니면 서버 오류.
+/// 요청마다 [handler]로 응답을 정하고 받은 요청을 [requests]에 남기는 어댑터.
 class _FakeAdapter implements HttpClientAdapter {
-  _FakeAdapter(this.body, {this.status = 200});
-  final String body;
-  final int status;
+  _FakeAdapter(this.handler);
+  final (int, String) Function(RequestOptions) handler;
+  final requests = <RequestOptions>[];
 
   @override
   Future<ResponseBody> fetch(
     RequestOptions options,
     Stream<Uint8List>? requestStream,
     Future<void>? cancelFuture,
-  ) async => ResponseBody.fromString(
-    body,
-    status,
-    headers: {
-      Headers.contentTypeHeader: [Headers.jsonContentType],
-    },
-  );
+  ) async {
+    requests.add(options);
+    final (status, body) = handler(options);
+    return ResponseBody.fromString(
+      body,
+      status,
+      headers: {
+        Headers.contentTypeHeader: [Headers.jsonContentType],
+      },
+    );
+  }
 
   @override
   void close({bool force = false}) {}
 }
 
-/// 기준 시각 고정: 2026-10-06(화) 18:00.
-class _FixedClock extends ShuttleClock {
-  @override
-  DateTime build() => DateTime.utc(2026, 10, 6, 18);
+/// KST [kst] 벽시계를 [KoreaTime.clock]에 넣는다(테스트가 끝나면 되돌린다).
+void _setKst(DateTime kst) =>
+    KoreaTime.clock = () => kst.subtract(KoreaTime.offset);
+
+Future<void> _settle() async {
+  // 캐시 읽기 → 요청 → 캐시 쓰기가 끝날 때까지 이벤트 큐를 비운다.
+  for (var i = 0; i < 20; i++) {
+    await Future<void>.delayed(Duration.zero);
+  }
 }
 
+ShuttleTimetable? _timetable(RemoteShuttleSchedule s, ShuttleDirection d) =>
+    s.timetableFor(
+      route:
+          d == ShuttleDirection.jeongwangToSchool ||
+                  d == ShuttleDirection.schoolToJeongwang
+              ? ShuttleRoute.route1
+              : ShuttleRoute.route2,
+      direction: d,
+    );
+
 void main() {
+  setUp(() => _setKst(DateTime.utc(2026, 10, 22, 10))); // 목요일
+  tearDown(() => KoreaTime.clock = DateTime.now);
+
   group('RemoteShuttleSchedule.tryParse', () {
-    test('trip을 방향·요일별로 묶고 시각순으로 정렬한다', () {
-      final s = RemoteShuttleSchedule.tryParse(_route1Body)!;
-      expect(s.routes, {ShuttleRoute.route1});
+    test('세 종류 구간을 도메인 항목으로 옮기고 정류장 안내를 붙인다', () {
+      final s = RemoteShuttleSchedule.tryParse(_weekday)!;
+      expect(s.date, '2026-10-22');
+      expect(s.dayType, ShuttleDayType.weekday);
+      expect(s.version, 'v1');
+      expect(s.needsReview, isFalse);
 
-      final down =
-          s
-              .timetableFor(
-                route: ShuttleRoute.route1,
-                direction: ShuttleDirection.schoolToJeongwang,
-                dayType: ShuttleDayType.weekday,
-              )!
-              .entries;
-      expect(down.map((e) => e.time.label), ['10:05', '10:20', '17:00']);
-      expect(down.first.type, ShuttleEntryType.fixed);
-      // 종료 시각이 있으면 수시운행 구간.
-      expect(down.last.type, ShuttleEntryType.flexible);
-      expect(down.last.endTime, const ShuttleTime(18, 0));
+      final up = _timetable(s, ShuttleDirection.jeongwangToSchool)!.entries;
+      expect(up.map((e) => e.type), [
+        ShuttleEntryType.flexible,
+        ShuttleEntryType.fixed,
+        ShuttleEntryType.arrivalBoarding,
+      ]);
+      expect(up.last.endTime, const ShuttleTime(22, 17));
+      expect(up.last.boardingNote, '정왕역 출발은 꽃집 앞');
+
+      final down = _timetable(s, ShuttleDirection.schoolToJeongwang)!.entries;
+      expect(down.map((e) => e.time.label), ['10:05', '22:40']);
     });
 
-    test('비고에 도착버스가 있으면 도착버스 탑승, 승차 위치를 안내한다', () {
-      final up =
-          RemoteShuttleSchedule.tryParse(_route1Body)!
-              .timetableFor(
-                route: ShuttleRoute.route1,
-                direction: ShuttleDirection.jeongwangToSchool,
-                dayType: ShuttleDayType.weekday,
-              )!
-              .entries;
-      expect(up.first.type, ShuttleEntryType.flexible);
-      expect(up.last.type, ShuttleEntryType.arrivalBoarding);
-      expect(up.last.boardingNote, '파리바게뜨 건너편에서 도착 버스 탑승');
-    });
-
-    test('평일 trip만 있으면 토요일·공휴일은 미운행', () {
-      final s = RemoteShuttleSchedule.tryParse(_route1Body)!;
-      for (final day in [ShuttleDayType.saturday, ShuttleDayType.holiday]) {
-        expect(
-          s.timetableFor(
-            route: ShuttleRoute.route1,
-            direction: ShuttleDirection.schoolToJeongwang,
-            dayType: day,
-          ),
-          isNull,
-        );
-      }
-    });
-
-    test('토요일·경유 trip은 제2캠퍼스 노선 요일로 들어간다', () {
-      final s =
-          RemoteShuttleSchedule.tryParse(
-            _body([
-              _trip('정왕역', '제2캠퍼스', '08:45', dayType: '토요일'),
-              _trip('제2캠퍼스', '정왕역', '16:30', dayType: '토요일'),
-            ]),
-          )!;
-      expect(s.routes, {ShuttleRoute.route2});
+    test('정왕역 경유편은 같은 쪽 노선2 방향에 시각순으로 묶는다', () {
+      final s = RemoteShuttleSchedule.tryParse(_weekday)!;
       expect(
-        s
-            .timetableFor(
-              route: ShuttleRoute.route2,
-              direction: ShuttleDirection.schoolToCampus2,
-              dayType: ShuttleDayType.saturday,
-            )!
-            .entries
-            .single
-            .time,
-        const ShuttleTime(8, 45),
+        _timetable(
+          s,
+          ShuttleDirection.schoolToCampus2,
+        )!.entries.map((e) => e.time.label),
+        ['08:55', '10:00'],
+      );
+      expect(
+        _timetable(
+          s,
+          ShuttleDirection.campus2ToSchool,
+        )!.entries.map((e) => e.time.label),
+        ['09:40'],
       );
     });
 
-    test('한 방향만 있는 노선은 쓰지 않는다(파싱 누락 의심)', () {
-      // 운영 응답처럼 제2캠퍼스 노선이 한 방향으로만 올 때.
-      final s =
-          RemoteShuttleSchedule.tryParse(
-            _route1Body.replaceFirst(
-              '"trips":[',
-              '"trips":[${jsonEncode(_trip('본교', '제2캠퍼스', '08:55'))},',
-            ),
-          )!;
-      expect(s.routes, {ShuttleRoute.route1});
+    test('빈 방향(segments: [])은 운행 없음', () {
+      final s = RemoteShuttleSchedule.tryParse(_response())!;
+      final t = _timetable(s, ShuttleDirection.schoolToJeongwang);
+      expect(t, isNull);
+      expect(
+        NextShuttleCalculator.calculate(
+          t,
+          DateTime.utc(2026, 10, 22, 10),
+        ).status,
+        ShuttleStatus.notOperating,
+      );
     });
 
-    test('빈 응답·잘못된 형식은 null', () {
-      expect(RemoteShuttleSchedule.tryParse(_body([])), isNull);
+    test('정류장 이름·좌표·안내를 읽고 좌표 null 은 그대로 둔다', () {
+      final s = RemoteShuttleSchedule.tryParse(_response())!;
+      expect(s.stops['main_campus']!.boardingNote, '본교 출발은 산융관 앞 정류장');
+      expect(s.stops['campus2']!.lat, isNull);
+    });
+
+    test('계약과 다른 형식은 통째로 버린다', () {
       expect(RemoteShuttleSchedule.tryParse('not json'), isNull);
-      expect(RemoteShuttleSchedule.tryParse('{"trips": 3}'), isNull);
+      expect(RemoteShuttleSchedule.tryParse('{"trips": []}'), isNull);
+      expect(
+        RemoteShuttleSchedule.tryParse(_response(dayType: 'friday')),
+        isNull,
+      );
+      expect(
+        RemoteShuttleSchedule.tryParse(
+          _response(
+            segments: {
+              'main_in': [_range('shuttle', '08:40', '10:00')],
+            },
+          ),
+        ),
+        isNull,
+      );
+      // 방향 하나가 빠짐.
+      final json = jsonDecode(_weekday) as Map<String, Object?>;
+      ((json['routes'] as List).last as Map)['directions'] =
+          (((json['routes'] as List).last as Map)['directions'] as List)
+              .take(3)
+              .toList();
+      expect(RemoteShuttleSchedule.tryParse(jsonEncode(json)), isNull);
     });
   });
 
-  group('ShuttleScheduleSource 대체 순서', () {
-    Future<ProviderContainer> load(_FakeAdapter adapter) async {
+  group('ShuttleScheduleSource', () {
+    late _FakeAdapter adapter;
+
+    Future<ProviderContainer> load(
+      (int, String) Function(RequestOptions) h,
+    ) async {
+      adapter = _FakeAdapter(h);
       final dio = Dio(BaseOptions(baseUrl: 'https://prod.example.com'))
         ..httpClientAdapter = adapter;
       final container = ProviderContainer(
-        overrides: [
-          staticInfoDioProvider.overrideWithValue(dio),
-          shuttleClockProvider.overrideWith(_FixedClock.new),
-        ],
+        overrides: [staticInfoDioProvider.overrideWithValue(dio)],
       );
       addTearDown(container.dispose);
       container.listen(shuttleScheduleSourceProvider, (_, _) {});
-      // 캐시 읽기 → 요청 → 캐시 쓰기가 끝날 때까지 이벤트 큐를 비운다.
-      for (var i = 0; i < 20; i++) {
-        await Future<void>.delayed(Duration.zero);
-      }
+      await _settle();
       return container;
     }
 
-    test('서버 성공: 서버 시간표를 쓰고 캐시에 저장한다', () async {
+    Future<String?> cache() =>
+        const FlutterSecureStorage().read(key: ShuttleScheduleSource.cacheKey);
+
+    test('서버 성공: 오늘 날짜로 받아 쓰고 캐시에 저장한다', () async {
       FlutterSecureStorage.setMockInitialValues({});
-      final c = await load(_FakeAdapter(_route1Body));
-      expect(c.read(shuttleScheduleSourceProvider)?.routes, {
-        ShuttleRoute.route1,
+      final c = await load((_) => (200, _weekday));
+      final req = adapter.requests.single;
+      expect(req.queryParameters['date'], '2026-10-22');
+      expect(req.headers['If-None-Match'], isNull);
+      expect(c.read(shuttleScheduleSourceProvider)?.version, 'v1');
+      expect(await cache(), _weekday);
+    });
+
+    test('같은 날 캐시: If-None-Match 를 붙이고 304 면 캐시를 쓴다', () async {
+      FlutterSecureStorage.setMockInitialValues({
+        ShuttleScheduleSource.cacheKey: _weekday,
       });
+      final c = await load((_) => (304, ''));
+      expect(adapter.requests.single.headers['If-None-Match'], '"v1"');
+      expect(c.read(shuttleScheduleSourceProvider)?.version, 'v1');
+      expect(await cache(), _weekday);
+    });
+
+    test('다른 날 캐시: version 이 같아도 조건 없이 받는다', () async {
+      FlutterSecureStorage.setMockInitialValues({
+        ShuttleScheduleSource.cacheKey: _response(date: '2026-10-21'),
+      });
+      final c = await load((_) => (200, _weekday));
+      expect(adapter.requests.single.headers['If-None-Match'], isNull);
+      expect(c.read(shuttleScheduleSourceProvider)?.date, '2026-10-22');
+    });
+
+    test('서버가 공휴일이라 하면 앱 공휴일 목록과 달라도 서버를 따른다', () async {
+      // 10/22 는 앱 목록상 평일이지만 서버가 임시공휴일로 확정한 경우.
+      FlutterSecureStorage.setMockInitialValues({});
+      final c = await load((_) => (200, _response(dayType: 'holiday')));
       expect(
-        await const FlutterSecureStorage().read(
-          key: ShuttleScheduleSource.cacheKey,
+        c.read(shuttleScheduleSourceProvider)?.dayType,
+        ShuttleDayType.holiday,
+      );
+      expect(
+        c.read(
+          shuttleTimetableProvider(
+            route: ShuttleRoute.route1,
+            direction: ShuttleDirection.schoolToJeongwang,
+          ),
         ),
-        _route1Body,
+        isNull,
       );
     });
 
-    test('서버 실패: 캐시를 쓴다', () async {
+    test('503: 같은 날 캐시를 쓴다', () async {
       FlutterSecureStorage.setMockInitialValues({
-        ShuttleScheduleSource.cacheKey: _route1Body,
+        ShuttleScheduleSource.cacheKey: _weekday,
       });
-      final c = await load(_FakeAdapter('', status: 503));
-      expect(c.read(shuttleScheduleSourceProvider)?.routes, {
-        ShuttleRoute.route1,
-      });
+      final c = await load((_) => (503, '{"detail":"timetable_unavailable"}'));
+      expect(c.read(shuttleScheduleSourceProvider)?.version, 'v1');
     });
 
-    test('서버 빈 응답: 캐시를 덮어쓰지 않는다', () async {
+    test('실패 + 다른 날 캐시: 요일 구분이 같을 때만 쓴다', () async {
+      // 10/21(수) 평일 캐시 → 10/22(목) 평일에 쓴다.
       FlutterSecureStorage.setMockInitialValues({
-        ShuttleScheduleSource.cacheKey: _route1Body,
+        ShuttleScheduleSource.cacheKey: _response(date: '2026-10-21'),
       });
-      final c = await load(_FakeAdapter(_body([])));
+      var c = await load((_) => (503, ''));
       expect(c.read(shuttleScheduleSourceProvider), isNotNull);
-      expect(
-        await const FlutterSecureStorage().read(
-          key: ShuttleScheduleSource.cacheKey,
-        ),
-        _route1Body,
-      );
-    });
 
-    test('서버 실패 + 캐시 없음: 내장 시간표(null)', () async {
-      FlutterSecureStorage.setMockInitialValues({});
-      final c = await load(_FakeAdapter('', status: 503));
+      // 10/24(토) 캐시 → 평일인 오늘엔 쓰지 않고 내장 시간표로.
+      FlutterSecureStorage.setMockInitialValues({
+        ShuttleScheduleSource.cacheKey: _response(
+          date: '2026-10-24',
+          dayType: 'saturday',
+        ),
+      });
+      c = await load((_) => (503, ''));
       expect(c.read(shuttleScheduleSourceProvider), isNull);
     });
 
-    test('서버가 도착버스 구간을 빠뜨린 방향만 내장 시간표를 쓴다', () async {
-      // 운영 응답 형태: 등교는 22:17 막차 한 줄, 하교는 수시운행 포함.
+    test('실패 + 캐시 없음: 내장 시간표', () async {
+      FlutterSecureStorage.setMockInitialValues({});
+      final c = await load((_) => (500, ''));
+      expect(c.read(shuttleScheduleSourceProvider), isNull);
+      expect(
+        c
+            .read(
+              shuttleTimetableProvider(
+                route: ShuttleRoute.route1,
+                direction: ShuttleDirection.jeongwangToSchool,
+              ),
+            )!
+            .entries
+            .last
+            .type,
+        ShuttleEntryType.arrivalBoarding,
+      );
+    });
+
+    test('형식 불일치 응답은 캐시를 덮어쓰지 않는다', () async {
+      FlutterSecureStorage.setMockInitialValues({
+        ShuttleScheduleSource.cacheKey: _weekday,
+      });
+      final c = await load((_) => (200, '{"trips": []}'));
+      expect(c.read(shuttleScheduleSourceProvider)?.version, 'v1');
+      expect(await cache(), _weekday);
+    });
+
+    test('자정을 넘기면 새 날짜로 다시 받는다', () async {
       FlutterSecureStorage.setMockInitialValues({});
       final c = await load(
-        _FakeAdapter(
-          _body([
-            _trip('정왕역', '본교', '08:40', end: '10:00', note: '수시운행'),
-            _trip('정왕역', '본교', '22:17', note: '막차'),
-            _trip('본교', '정왕역', '17:00', end: '18:00', note: '수시운행'),
-            _trip('본교', '정왕역', '23:59'),
-          ]),
-        ),
+        (o) => (200, _response(date: o.queryParameters['date'] as String)),
       );
-      List<ShuttleEntry> entries(ShuttleDirection d) =>
-          c
-              .read(
-                shuttleTimetableProvider(
-                  route: ShuttleRoute.route1,
-                  direction: d,
-                ),
-              )!
-              .entries;
+      _setKst(DateTime.utc(2026, 10, 23, 0, 1));
+      c.read(shuttleClockProvider.notifier).refresh();
+      await _settle();
+      expect(adapter.requests.map((r) => r.queryParameters['date']), [
+        '2026-10-22',
+        '2026-10-23',
+      ]);
+      expect(c.read(shuttleScheduleSourceProvider)?.date, '2026-10-23');
+    });
 
-      final up = entries(ShuttleDirection.jeongwangToSchool);
-      expect(up.last.type, ShuttleEntryType.arrivalBoarding); // 내장
-      final down = entries(ShuttleDirection.schoolToJeongwang);
-      expect(down.map((e) => e.time.label), ['17:00', '23:59']); // 서버
+    test('서버 정류장 좌표가 없으면 내장 대신 판정에서 빠진다', () async {
+      FlutterSecureStorage.setMockInitialValues({});
+      final c = await load((_) => (200, _response(stationLat: null)));
+      final stops = c.read(shuttleStopsProvider);
+      expect(stops['jeongwang']!.lat, isNull);
+      expect(stops['main_campus']!.name, '한국공학대 정문');
     });
   });
 }

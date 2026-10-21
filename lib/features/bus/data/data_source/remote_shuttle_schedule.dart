@@ -2,75 +2,109 @@ import 'dart:convert';
 
 import 'package:handori/features/bus/domain/model/shuttle_schedule.dart';
 
-/// static-info `GET /static-info/bus/timetable` 응답을 도메인 시간표로 바꾼 것.
+/// static-info `GET /static-info/bus/timetable?date=` 응답(하루치)을 도메인
+/// 시간표로 바꾼 것.
 ///
-/// 서버는 오늘(KST) 운행 기간에 해당하는 trip만 주고 중복도 걸러 준다. 앱은
-/// trip 하나를 [ShuttleEntry] 하나로 옮기기만 하고, 계산·표시는 내장 시간표와
-/// 같은 [ShuttleTimetable] 경로를 탄다.
-///
-/// 노선 단위로 채택한다: 한 노선의 두 방향이 모두 응답에 있어야 그 노선을
-/// 서버 데이터로 쓰고([routes]), 한 방향만 있으면 파싱이 덜 된 것으로 보고
-/// 그 노선은 내장 시간표를 쓴다.
+/// 서버가 그날의 요일 구분(`day_type`, 공휴일 포함)과 방향별 구간을 확정해
+/// 주므로 앱은 구간 하나를 [ShuttleEntry] 하나로 옮기기만 한다. 계산·표시는
+/// 내장 시간표와 같은 [ShuttleTimetable] 경로를 탄다.
 class RemoteShuttleSchedule {
-  final Map<
-    (ShuttleRoute, ShuttleDirection, ShuttleDayType),
-    List<ShuttleEntry>
-  >
-  _entries;
+  /// 응답이 가리키는 날짜(`YYYY-MM-DD`, KST).
+  final String date;
+  final ShuttleDayType dayType;
 
-  /// 서버 데이터로 쓰는 노선. 여기 없는 노선은 내장 시간표를 쓴다.
-  final Set<ShuttleRoute> routes;
+  /// 시간표 내용 해시. 날짜와 무관하다(`If-None-Match`에 쓴다).
+  final String version;
 
-  const RemoteShuttleSchedule._(this._entries, this.routes);
+  /// 최신 파싱이 검증에 실패해 직전 정상본을 내보내는 중인지.
+  final bool needsReview;
 
-  /// 응답 본문(JSON 문자열)을 해석한다. 형식이 틀렸거나 쓸 수 있는 노선이
-  /// 하나도 없으면(빈 응답 포함) null.
+  /// 서버 정류장 id → 정류장.
+  final Map<String, ShuttleStop> stops;
+
+  final Map<ShuttleDirection, List<ShuttleEntry>> _entries;
+
+  const RemoteShuttleSchedule._({
+    required this.date,
+    required this.dayType,
+    required this.version,
+    required this.needsReview,
+    required this.stops,
+    required Map<ShuttleDirection, List<ShuttleEntry>> entries,
+  }) : _entries = entries;
+
+  /// 응답 본문(JSON 문자열)을 해석한다. 계약과 형식이 다르면(방향 6개 중
+  /// 하나라도 없거나, 모르는 구간 종류·시각 형식 포함) null. 일부만 쓰면
+  /// 구간을 빠뜨린 시간표가 정시편처럼 보일 수 있어 통째로 버린다.
   static RemoteShuttleSchedule? tryParse(String body) {
-    final Object? json;
     try {
-      json = jsonDecode(body);
+      return _parse(jsonDecode(body));
     } on FormatException {
       return null;
+    } on TypeError {
+      // 필드 타입이 계약과 다름(예: segments 가 리스트가 아님).
+      return null;
     }
-    if (json is! Map || json['trips'] is! List) return null;
+  }
 
-    final grouped =
-        <
-          (ShuttleRoute, ShuttleDirection, ShuttleDayType),
-          List<ShuttleEntry>
-        >{};
-    for (final trip in (json['trips'] as List).whereType<Map>()) {
-      final direction = _directionOf(trip['origin'], trip['destination']);
-      final entry = _entryOf(trip);
-      if (direction == null || entry == null) continue;
-      for (final day in _dayTypesOf(trip['day_type'])) {
-        grouped
-            .putIfAbsent((_routeOf(direction), direction, day), () => [])
-            .add(entry);
+  static RemoteShuttleSchedule? _parse(Object? json) {
+    if (json is! Map) return null;
+    final date = json['date'];
+    final version = json['version'];
+    final dayType = _dayTypeOf(json['day_type']);
+    if (date is! String || version is! String || dayType == null) return null;
+
+    final stops = <String, ShuttleStop>{
+      for (final s in (json['stops'] as List).cast<Map>())
+        s['id'] as String: ShuttleStop(
+          name: s['name'] as String,
+          lat: (s['lat'] as num?)?.toDouble(),
+          lng: (s['lng'] as num?)?.toDouble(),
+          boardingNote: s['boarding_note'] as String?,
+        ),
+    };
+
+    final entries = <ShuttleDirection, List<ShuttleEntry>>{};
+    final seen = <String>{};
+    for (final route in (json['routes'] as List).cast<Map>()) {
+      for (final d in (route['directions'] as List).cast<Map>()) {
+        final id = d['id'] as String;
+        final direction = _directionOf(id);
+        if (direction == null) return null;
+        seen.add(id);
+        final stopNote = stops[d['from']]?.boardingNote;
+        final list = entries.putIfAbsent(direction, () => []);
+        for (final seg in (d['segments'] as List).cast<Map>()) {
+          final entry = _entryOf(seg, stopNote);
+          if (entry == null) return null;
+          list.add(entry);
+        }
       }
     }
-    for (final list in grouped.values) {
+    if (seen.length != 6) return null;
+    // 노선2는 두 방향 id를 하나로 묶어 순서가 섞이므로 다시 정렬한다.
+    for (final list in entries.values) {
       list.sort((a, b) => a.time.minutesOfDay.compareTo(b.time.minutesOfDay));
     }
 
-    final present = {for (final key in grouped.keys) key.$2};
-    final routes = {
-      for (final route in ShuttleRoute.values)
-        if (_directionsOf(route).every(present.contains)) route,
-    };
-    if (routes.isEmpty) return null;
-    return RemoteShuttleSchedule._(grouped, routes);
+    final source = json['source'];
+    return RemoteShuttleSchedule._(
+      date: date,
+      dayType: dayType,
+      version: version,
+      needsReview: source is Map && source['needs_review'] == true,
+      stops: stops,
+      entries: entries,
+    );
   }
 
-  /// [route]가 [routes]에 있을 때만 의미가 있다. 해당 요일 trip이 없으면
-  /// 미운행(null).
+  /// 그날 운행이 없으면(`segments: []`) 미운행(null).
   ShuttleTimetable? timetableFor({
     required ShuttleRoute route,
     required ShuttleDirection direction,
-    required ShuttleDayType dayType,
   }) {
-    final entries = _entries[(route, direction, dayType)];
-    if (entries == null) return null;
+    final entries = _entries[direction];
+    if (entries == null || entries.isEmpty) return null;
     return ShuttleTimetable(
       route: route,
       direction: direction,
@@ -79,65 +113,50 @@ class RemoteShuttleSchedule {
     );
   }
 
-  /// 출발지·도착지 → 방향. 경유지(via)는 보지 않는다. 서버 정류장 이름은
-  /// `정왕역`·`본교`·`제2캠퍼스` 셋이다(static-info `SHUTTLE_DIRECTIONS`).
-  /// 화면 표기(`한국공학대 정문` 등)는 앱이 따로 정한다.
-  static ShuttleDirection? _directionOf(Object? origin, Object? destination) =>
-      switch ((origin, destination)) {
-        ('정왕역', '본교') => ShuttleDirection.jeongwangToSchool,
-        ('본교', '정왕역') => ShuttleDirection.schoolToJeongwang,
-        // 토요일 '정왕역 → 본교 → 제2캠퍼스'도 제2캠퍼스행으로 묶는다.
-        (_, '제2캠퍼스') => ShuttleDirection.schoolToCampus2,
-        ('제2캠퍼스', _) => ShuttleDirection.campus2ToSchool,
-        _ => null,
-      };
-
-  static ShuttleRoute _routeOf(ShuttleDirection d) => switch (d) {
-    ShuttleDirection.jeongwangToSchool ||
-    ShuttleDirection.schoolToJeongwang => ShuttleRoute.route1,
-    ShuttleDirection.schoolToCampus2 ||
-    ShuttleDirection.campus2ToSchool => ShuttleRoute.route2,
+  /// 서버 방향 id(고정 6개) → 앱 방향. 정왕역 경유편(`campus2_from_station`·
+  /// `campus2_to_station`)은 같은 쪽 노선2 방향에 묶는다.
+  // ponytail: 노선2 화면이 생겨 정왕역 경유편을 따로 보여야 하면 ShuttleDirection 을 늘린다.
+  static ShuttleDirection? _directionOf(String id) => switch (id) {
+    'main_out' => ShuttleDirection.schoolToJeongwang,
+    'main_in' => ShuttleDirection.jeongwangToSchool,
+    'campus2_out' || 'campus2_from_station' => ShuttleDirection.schoolToCampus2,
+    'campus2_in' || 'campus2_to_station' => ShuttleDirection.campus2ToSchool,
+    _ => null,
   };
 
-  static List<ShuttleDirection> _directionsOf(ShuttleRoute r) =>
-      ShuttleDirection.values.where((d) => _routeOf(d) == r).toList();
-
-  /// 서버 `day_type` → 앱 요일 구분. 앱은 일요일과 공휴일을 [ShuttleDayType.holiday]
-  /// 하나로 보므로 `일요일`·`공휴일` trip은 둘 다 그날에 쓰인다.
-  // ponytail: 일요일·공휴일 운행표가 서로 달라지면 ShuttleDayType 을 나눠야 한다.
-  static List<ShuttleDayType> _dayTypesOf(Object? dayType) => switch (dayType) {
-    '평일' => const [ShuttleDayType.weekday],
-    '토요일' => const [ShuttleDayType.saturday],
-    '주말' => const [ShuttleDayType.saturday, ShuttleDayType.holiday],
-    '일요일' || '공휴일' => const [ShuttleDayType.holiday],
-    _ => const [],
+  static ShuttleDayType? _dayTypeOf(Object? raw) => switch (raw) {
+    'weekday' => ShuttleDayType.weekday,
+    'saturday' => ShuttleDayType.saturday,
+    'sunday' => ShuttleDayType.sunday,
+    'holiday' => ShuttleDayType.holiday,
+    _ => null,
   };
 
-  /// trip → 시간표 항목. 종료 시각이 있으면 구간 항목이고, 비고에
-  /// '도착버스'가 있으면 도착버스 탑승, 아니면 수시운행이다.
-  static ShuttleEntry? _entryOf(Map<dynamic, dynamic> trip) {
-    final start = _timeOf(trip['departure_time']);
-    if (start == null) return null;
-    final end = _timeOf(trip['departure_time_end']);
-    if (end == null || end.minutesOfDay <= start.minutesOfDay) {
-      return ShuttleEntry.fixed(start);
+  /// 구간 → 시간표 항목. 도착버스 탑승의 승차 안내는 출발 정류장
+  /// `boarding_note`, 없으면 구간 `note`를 쓴다.
+  static ShuttleEntry? _entryOf(Map<dynamic, dynamic> seg, String? stopNote) {
+    if (seg['type'] == 'fixed') {
+      final time = _timeOf(seg['time']);
+      return time == null ? null : ShuttleEntry.fixed(time);
     }
-    final note = trip['note'];
-    if (note is String && note.contains('도착버스')) {
-      final place = trip['boarding_place'];
-      return ShuttleEntry.arrivalBoarding(
+    final start = _timeOf(seg['start']);
+    final end = _timeOf(seg['end']);
+    if (start == null || end == null) return null;
+    return switch (seg['type']) {
+      'frequent' => ShuttleEntry.flexible(start, end),
+      'arrival_board' => ShuttleEntry.arrivalBoarding(
         start,
         end,
-        boardingNote: place is String ? '$place에서 도착 버스 탑승' : '도착 버스 탑승',
-      );
-    }
-    return ShuttleEntry.flexible(start, end);
+        boardingNote: stopNote ?? seg['note'] as String? ?? '도착 버스 탑승',
+      ),
+      _ => null,
+    };
   }
 
   /// "HH:MM" → [ShuttleTime]. 형식이 다르면 null.
   static ShuttleTime? _timeOf(Object? raw) {
     if (raw is! String) return null;
-    final m = RegExp(r'^(\d{1,2}):(\d{2})$').firstMatch(raw.trim());
+    final m = RegExp(r'^(\d{2}):(\d{2})$').firstMatch(raw);
     if (m == null) return null;
     final hour = int.parse(m.group(1)!);
     final minute = int.parse(m.group(2)!);

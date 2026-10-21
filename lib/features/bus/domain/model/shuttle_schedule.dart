@@ -23,8 +23,28 @@ enum ShuttleDirection {
   campus2ToSchool,
 }
 
-/// 요일 구분. 공휴일은 [holiday]로 취급(운행 없음).
-enum ShuttleDayType { weekday, saturday, holiday }
+/// 요일 구분. 서버 `day_type`과 같은 네 가지다. 학교 시간표의 "주말" 표는
+/// [saturday]·[sunday] 양쪽에, "공휴일" 표는 [holiday]에 쓰인다.
+enum ShuttleDayType { weekday, saturday, sunday, holiday }
+
+/// 셔틀 정류장. 서버 `stops` 한 항목, 서버를 못 받으면 내장 상수.
+class ShuttleStop {
+  final String name;
+
+  /// 좌표. 모르면 null 이고, 그 정류장은 가까운 출발지 판정에서 빠진다.
+  final double? lat;
+  final double? lng;
+
+  /// 승차 위치 안내(예: "정왕역 출발은 꽃집 앞").
+  final String? boardingNote;
+
+  const ShuttleStop({
+    required this.name,
+    this.lat,
+    this.lng,
+    this.boardingNote,
+  });
+}
 
 /// 시간표 한 항목의 종류.
 enum ShuttleEntryType {

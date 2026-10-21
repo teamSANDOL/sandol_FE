@@ -32,7 +32,9 @@ class _BustimescreenState extends ConsumerState<Bustimescreen> {
     final isReverse = selected == ShuttleDirection.jeongwangToSchool;
     final from = isReverse ? '정왕역' : '학교';
     final to = isReverse ? '학교' : '정왕역';
-    final stopName = isReverse ? '정왕역 버스 정류장' : '정문 버스 정류장';
+    // 출발 정류장 이름은 서버 `stops`(없으면 내장)를 따른다.
+    final stops = ref.watch(shuttleStopsProvider);
+    final stopName = stops[isReverse ? 'jeongwang' : 'main_campus']!.name;
 
     // 상세 화면과 동일한 방향 매핑 → 동일한 다음 셔틀 결과.
     final direction = selected;
