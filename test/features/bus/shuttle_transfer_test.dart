@@ -5,32 +5,29 @@ import 'package:handori/features/bus/domain/usecase/shuttle_transfer.dart';
 
 /// 내장 시간표로 [direction]의 본교 환승 연결을 "출발→환승" 문자열로.
 List<String> _connections(ShuttleDirection direction, DateTime now) {
-  final (first, second, ride) = ShuttleTransfer.legsOf(direction)!;
+  final (first, second) = ShuttleTransfer.legsOf(direction)!;
   ShuttleTimetable? leg(ShuttleDirection d) => ShuttleScheduleData.timetableFor(
     route: d.route,
     direction: d,
     dayType: ShuttleScheduleData.dayTypeOf(now),
   );
   return [
-    for (final c in ShuttleTransfer.connections(
-      leg(first),
-      leg(second),
-      now,
-      rideMinutes: ride,
-    ))
-      '${c.departure.label}→${c.transfer.label}',
+    for (final c in ShuttleTransfer.connections(leg(first), leg(second), now))
+      '${c.departure.label}→${c.transfer.label}'
+          '${c.tighter.isEmpty ? '' : ' 빠듯함 ${c.tighter.map((t) => t.label).join(',')}'}',
   ];
 }
 
 void main() {
   // 2026-10-06(화) 평일.
-  test('평일 정왕역 → 제2캠퍼스: 수시운행 구간에서 타도 연결하고, 같은 환승편은 늦은 출발을 남긴다', () {
+  test('평일 정왕역 → 제2캠퍼스: 20분 간격 기준, 수시운행 구간 연결, 빠듯한 편 분리', () {
     expect(
       _connections(
         ShuttleDirection.jeongwangToCampus2,
         DateTime.utc(2026, 10, 6, 8),
       ),
-      ['08:40→10:00', '10:50→11:00', '11:50→12:00'],
+      // 10:30 → 11:00(30분)이 안전 연결이고, 10:50 은 빠듯함.
+      ['08:40→10:00', '10:30→11:00 빠듯함 10:50', '11:30→12:00 빠듯함 11:50'],
     );
     // 수시운행 중(09:00)이면 지금 타는 것으로 본다.
     expect(
@@ -56,6 +53,7 @@ void main() {
         ShuttleDirection.campus2ToJeongwang,
         DateTime.utc(2026, 10, 6, 9),
       ),
+      // 09:40 → 10:00 은 정확히 20분이라 안전 연결에 든다.
       ['09:40→10:00', '10:30→10:50', '11:30→11:50'],
     );
   });

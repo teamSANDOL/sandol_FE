@@ -2,40 +2,47 @@ import 'package:handori/features/bus/domain/model/shuttle_schedule.dart';
 
 /// 본교 환승 연결 하나. [first]는 1구간 항목(정시편이면 [departure]가 그 시각,
 /// 수시운행·도착버스 구간이면 그 구간 안에서 타는 시각), [transfer]는 본교에서
-/// 갈아탈 2구간 출발 시각.
+/// 갈아탈 2구간 출발 시각. [tighter]는 같은 [transfer]로 이어지지만 간격이
+/// [ShuttleTransfer.safeGapMinutes]보다 짧은 1구간 정시편("빠듯함").
 typedef ShuttleConnection =
-    ({ShuttleEntry first, ShuttleTime departure, ShuttleTime transfer});
+    ({
+      ShuttleEntry first,
+      ShuttleTime departure,
+      ShuttleTime transfer,
+      List<ShuttleTime> tighter,
+    });
 
 /// 정왕역 ↔ 제2캠퍼스를 본교에서 갈아타 가는 연결을 계산하는 순수 로직.
 class ShuttleTransfer {
   const ShuttleTransfer._();
 
-  /// 정왕역 ↔ 본교 소요시간(분). 학교 시간표 PDF 각주 "소요시간 10분".
-  static const int stationMinutes = 10;
+  /// 1구간 출발 → 2구간 출발 최소 간격(분). 이동과 환승을 합친 안전 여유로,
+  /// 양방향 공통이다.
+  // ponytail: 사용자가 정한 안전 여유값(정왕역↔본교 10분 + 여유, 본교↔제2캠퍼스는
+  // 원문에 소요시간이 없음). 서버가 구간 소요시간을 주면 방향별로 바꾼다.
+  static const int safeGapMinutes = 20;
 
-  /// 본교 ↔ 제2캠퍼스 소요시간(분).
-  // ponytail: 원문에 근거 없는 추정값이다. 서버 데이터에 소요시간이 생기면 그 값으로 바꾼다.
-  static const int campus2Minutes = 15;
+  /// "빠듯함"으로라도 보여 줄 최소 간격(분). 이보다 짧으면 갈아탈 수 없다고 본다.
+  // ponytail: 정왕역↔본교 소요시간(시간표 각주 10분)을 그대로 쓴 하한.
+  static const int tightGapMinutes = 10;
 
-  /// [direction](정왕역 ↔ 제2캠퍼스)의 1구간·2구간 방향과 1구간 소요시간.
-  /// 본교를 거치지 않는 방향이면 null.
-  static (ShuttleDirection, ShuttleDirection, int)? legsOf(
+  /// [direction](정왕역 ↔ 제2캠퍼스)의 1구간·2구간 방향. 본교를 거치지 않는
+  /// 방향이면 null.
+  static (ShuttleDirection, ShuttleDirection)? legsOf(
     ShuttleDirection direction,
   ) => switch (direction) {
     ShuttleDirection.jeongwangToCampus2 => (
       ShuttleDirection.jeongwangToSchool,
       ShuttleDirection.schoolToCampus2,
-      stationMinutes,
     ),
     ShuttleDirection.campus2ToJeongwang => (
       ShuttleDirection.campus2ToSchool,
       ShuttleDirection.schoolToJeongwang,
-      campus2Minutes,
     ),
     _ => null,
   };
 
-  /// [now] 이후 1구간 [first]를 타고 [rideMinutes] 뒤 본교에 내려 2구간
+  /// [now] 이후 1구간 [first]로 출발해 [safeGapMinutes] 뒤 이후의 첫 2구간
   /// [second]로 갈아타는 연결을 환승 시각순으로 최대 [count]개.
   ///
   /// 1구간 수시운행·도착버스 구간은 구간 안 아무 때나 탈 수 있다고 보고, 지금
@@ -45,12 +52,11 @@ class ShuttleTransfer {
     ShuttleTimetable? first,
     ShuttleTimetable? second,
     DateTime now, {
-    required int rideMinutes,
     int count = 3,
   }) {
     if (first == null || second == null) return const [];
     final nowMinutes = now.hour * 60 + now.minute;
-    final byTransfer = <int, ShuttleConnection>{};
+    final byTransfer = <int, (ShuttleEntry, int)>{};
     for (final entry in first.entries) {
       final start = entry.time.minutesOfDay;
       final end = entry.endTime?.minutesOfDay;
@@ -62,17 +68,30 @@ class ShuttleTransfer {
         if (start < nowMinutes) continue;
         depart = start;
       }
-      final transfer = _firstDeparture(second, depart + rideMinutes);
-      if (transfer == null) continue;
-      byTransfer[transfer] = (
-        first: entry,
-        departure: ShuttleTime(depart ~/ 60, depart % 60),
-        transfer: ShuttleTime(transfer ~/ 60, transfer % 60),
-      );
+      final transfer = _firstDeparture(second, depart + safeGapMinutes);
+      if (transfer != null) byTransfer[transfer] = (entry, depart);
     }
     final keys = byTransfer.keys.toList()..sort();
-    return [for (final k in keys.take(count)) byTransfer[k]!];
+    return [
+      for (final transfer in keys.take(count))
+        if (byTransfer[transfer] case (final entry, final depart))
+          (
+            first: entry,
+            departure: _time(depart),
+            transfer: _time(transfer),
+            tighter: [
+              for (final e in first.entries)
+                if (!e.isSegment &&
+                    e.time.minutesOfDay > depart &&
+                    transfer - e.time.minutesOfDay >= tightGapMinutes)
+                  e.time,
+            ],
+          ),
+    ];
   }
+
+  static ShuttleTime _time(int minutes) =>
+      ShuttleTime(minutes ~/ 60, minutes % 60);
 
   /// [minutes] 이후 [t]에서 탈 수 있는 가장 이른 시각(분). 수시운행·도착버스
   /// 구간 안이면 그 시각 바로. 없으면 null.

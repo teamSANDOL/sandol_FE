@@ -212,15 +212,32 @@ ShuttleTimetable? shuttleTimetable(
 ///
 /// 기준 시각으로 [shuttleTimetableProvider]에서 다음 셔틀을 계산한다.
 /// 갱신은 `ref.read(shuttleClockProvider.notifier).refresh()`로 한다.
+///
+/// 정왕역 ↔ 제2캠퍼스는 직행이 남아 있지 않아도 본교 환승 연결이 있으면
+/// "운행 종료"·"운행 안함" 대신 가장 빠른 환승편을 안내한다.
 @riverpod
 NextShuttle nextShuttle(
   Ref ref, {
   required ShuttleRoute route,
   required ShuttleDirection direction,
 }) {
-  return NextShuttleCalculator.calculate(
+  final direct = NextShuttleCalculator.calculate(
     ref.watch(shuttleTimetableProvider(route: route, direction: direction)),
     ref.watch(shuttleClockProvider),
+  );
+  if (direct.isActive) return direct;
+  final transfers = ref.watch(shuttleTransfersProvider(direction: direction));
+  if (transfers == null || transfers.isEmpty) return direct;
+  final c = transfers.first;
+  return NextShuttle(
+    // 남은 분이 없으니 머리글은 statusLabel 이고, 강조색(운행 중)으로 보인다.
+    status: ShuttleStatus.upcoming,
+    // 그날 직행편이 원래 없으면(미운행) "직행 없음", 다 지났으면 "직행 종료".
+    statusLabel:
+        direct.status == ShuttleStatus.notOperating
+            ? '직행 없음 · 환승 이용'
+            : '직행 종료 · 환승 이용',
+    subText: '${c.departure.label} 출발 → 본교 ${c.transfer.label} 환승',
   );
 }
 
@@ -246,13 +263,12 @@ List<ShuttleConnection>? shuttleTransfers(
 }) {
   final legs = ShuttleTransfer.legsOf(direction);
   if (legs == null) return null;
-  final (first, second, ride) = legs;
+  final (first, second) = legs;
   ShuttleTimetable? leg(ShuttleDirection d) =>
       ref.watch(shuttleTimetableProvider(route: d.route, direction: d));
   return ShuttleTransfer.connections(
     leg(first),
     leg(second),
     ref.watch(shuttleClockProvider),
-    rideMinutes: ride,
   );
 }
