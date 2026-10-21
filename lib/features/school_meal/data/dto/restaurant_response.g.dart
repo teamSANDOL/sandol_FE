@@ -84,6 +84,7 @@ RestaurantResponse _$RestaurantResponseFromJson(Map<String, dynamic> json) =>
                 json['dinner_time'] as Map<String, dynamic>,
               ),
       owner: (json['owner'] as num?)?.toInt(),
+      imageUrl: json['image_url'] as String?,
     );
 
 Map<String, dynamic> _$RestaurantResponseToJson(RestaurantResponse instance) =>
@@ -100,4 +101,5 @@ Map<String, dynamic> _$RestaurantResponseToJson(RestaurantResponse instance) =>
       'lunch_time': instance.lunchTime,
       'dinner_time': instance.dinnerTime,
       'owner': instance.owner,
+      'image_url': instance.imageUrl,
     };

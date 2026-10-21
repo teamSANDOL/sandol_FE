@@ -5,6 +5,7 @@ import 'package:handori/common/component/sandol_chip.dart';
 import 'package:handori/core/design_system/sandol_tokens.dart';
 import 'package:handori/features/school_meal/presentation/model/restaurant_menu.dart';
 import 'package:handori/features/school_meal/presentation/provider/selected_restaurant_id_notifier.dart';
+import 'package:handori/shared/widget/remote_image.dart';
 
 /// 스와이프 판정 최소 가로 속도(px/s). 이보다 느린 드래그는 무시한다.
 const _kSwipeVelocity = 200.0;
@@ -186,6 +187,7 @@ class _MealMenuCard extends StatelessWidget {
     final slot = findCurrentOrNextSlot(menu.slots);
     final price = slot?.price;
     final photo = menu.photoAsset;
+    final photoUrl = menu.photoUrlFor(slot);
     final items = slot?.menu ?? const <String>[];
 
     return SandolCard(
@@ -195,8 +197,11 @@ class _MealMenuCard extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         spacing: SandolSpacing.xs,
         children: [
-          if (photo != null)
-            Image.asset(photo, height: _photoHeight, fit: BoxFit.cover),
+          if (photo != null || photoUrl != null)
+            SizedBox(
+              height: _photoHeight,
+              child: RemoteImage(url: photoUrl, asset: photo),
+            ),
           ColoredBox(
             color: SandolColors.background,
             child: Padding(
@@ -211,10 +216,7 @@ class _MealMenuCard extends StatelessWidget {
                   Row(
                     children: [
                       Expanded(
-                        child: Text(
-                          menu.name,
-                          style: SandolTypography.caption,
-                        ),
+                        child: Text(menu.name, style: SandolTypography.caption),
                       ),
                       if (price != null)
                         Text(

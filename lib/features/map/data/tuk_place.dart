@@ -1,5 +1,6 @@
 import 'package:json_annotation/json_annotation.dart';
 import 'package:handori/core/constants/api_constants.dart';
+import 'package:handori/core/utils/remote_url.dart';
 
 part 'tuk_place.g.dart';
 
@@ -55,7 +56,7 @@ class TukPlace {
     discountInfo: discountInfo,
     images: [
       for (final img in images)
-        TukPlaceImage(url: base.resolve(img.url).toString()),
+        TukPlaceImage(url: resolveRemoteUrl(img.url, base)),
     ],
   );
 
@@ -63,7 +64,7 @@ class TukPlace {
   /// (아직 안 풀렸다면) static-info 호스트 기준으로 풀어 준다.
   List<String> get imageUrls => [
     for (final img in images)
-      Uri.parse(ApiConstants.staticInfoBaseUrl).resolve(img.url).toString(),
+      resolveRemoteUrl(img.url, Uri.parse(ApiConstants.staticInfoBaseUrl)),
   ];
 }
 

@@ -13,12 +13,16 @@ class MenuSlot {
   final List<String> menu; // 메뉴 항목
   final int? price;
 
+  /// 이 끼니 메뉴 사진(서버 `image_url`). 없으면 null.
+  final String? imageUrl;
+
   const MenuSlot({
     required this.mealType,
     required this.label,
     required this.timeRange,
     required this.menu,
     this.price,
+    this.imageUrl,
   });
 
   bool get isOperated => timeRange.isNotEmpty && menu.isNotEmpty;
@@ -38,8 +42,12 @@ class RestaurantMenu {
   String? get location =>
       restaurant.locationLabel ?? _lookupByName(_kLocationFallback, name);
 
-  /// 홈 카드 머리 사진. API에 사진이 없어 식당명으로 앱 에셋을 찾는다.
+  /// 식당 사진 대체용 앱 에셋. 서버 사진이 없을 때 식당명으로 찾는다.
   String? get photoAsset => _lookupByName(_kPhoto, name);
+
+  /// 서버 사진 주소. [slot] 메뉴 사진이 있으면 그것을, 없으면 식당 사진.
+  /// 둘 다 없으면 null 이고 화면은 [photoAsset]을 쓴다.
+  String? photoUrlFor(MenuSlot? slot) => slot?.imageUrl ?? restaurant.imageUrl;
 }
 
 /// 현재 시각이 어느 식사 시간대에 속하는지 기준으로 노출 우선순위를 정한다.
@@ -210,6 +218,7 @@ List<RestaurantMenu> buildRestaurantMenus(
           timeRange: _formatRange(time),
           menu: meal?.menu ?? const [],
           price: restaurant.price,
+          imageUrl: meal?.imageUrl,
         ),
       );
     }

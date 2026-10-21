@@ -38,6 +38,10 @@ class Restaurant {
   final TimeRange? dinnerTime;
   final int? owner;
 
+  /// 식당 사진 주소(절대 주소로 풀린 값). 서버 `image_url`이 없으면 null 이고,
+  /// 그때 화면은 식당 이름으로 찾은 앱 에셋을 쓴다.
+  final String? imageUrl;
+
   const Restaurant({
     required this.id,
     required this.name,
@@ -51,6 +55,7 @@ class Restaurant {
     this.lunchTime,
     this.dinnerTime,
     this.owner,
+    this.imageUrl,
   });
 
   /// 위치 표기용 문자열 (예: "E동")
