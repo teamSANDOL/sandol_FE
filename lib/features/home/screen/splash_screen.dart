@@ -75,7 +75,8 @@ class _SplashscreenState extends ConsumerState<Splashscreen> {
     }
   }
 
-  /// 세션을 복원하고, 로그인 상태면 홈 데이터까지 받은 뒤 넘어간다.
+  /// 세션을 복원하고, 로그인 상태이거나 둘러보기 기록이 7일 안이면 홈 데이터까지
+  /// 받은 뒤 홈으로, 아니면 로그인 화면으로 넘어간다.
   Future<void> _navigateNext() async {
     final session = await ref
         .read(authNotifierProvider.future)
@@ -86,9 +87,12 @@ class _SplashscreenState extends ConsumerState<Splashscreen> {
             return null;
           },
         );
-    if (session != null && mounted) await _preloadHome();
+    final toHome =
+        session != null ||
+        await ref.read(guestAccessStorageProvider).isActive();
+    if (toHome && mounted) await _preloadHome();
     if (!mounted) return;
-    context.go(session != null ? RoutePaths.home : RoutePaths.login);
+    context.go(toHome ? RoutePaths.home : RoutePaths.login);
   }
 
   /// 실패한 섹션은 홈에서 각자 오류·재시도를 보여 주므로 여기선 기다리기만 한다.

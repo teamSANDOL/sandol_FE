@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:handori/core/constants/api_constants.dart';
+import 'package:handori/features/auth/data/guest_access_storage.dart';
 import 'package:handori/features/auth/data/repository/auth_repository_impl.dart';
 import 'package:handori/features/auth/data/token_storage.dart';
 import 'package:handori/features/auth/domain/model/auth_session.dart';
@@ -23,6 +24,11 @@ AuthRepository authRepository(Ref ref) {
     redirectUri: ApiConstants.authRedirectUri,
   );
 }
+
+/// "로그인 없이 둘러보기" 기록 (7일 유지).
+final guestAccessStorageProvider = Provider<GuestAccessStorage>(
+  (ref) => GuestAccessStorage(const FlutterSecureStorage()),
+);
 
 // ── 세션 상태 ────────────────────────────────────────────────────────────────
 // AsyncData(null) = 비로그인, AsyncData(session) = 로그인됨.
@@ -75,6 +81,7 @@ class AuthNotifier extends _$AuthNotifier {
           .read(authRepositoryProvider)
           .login(useKakao: useKakao, signUp: signUp, rememberMe: rememberMe);
       state = AsyncData(session);
+      await ref.read(guestAccessStorageProvider).clear();
       return true;
     } on FlutterAppAuthUserCancelledException {
       state = previous;
@@ -87,6 +94,7 @@ class AuthNotifier extends _$AuthNotifier {
 
   Future<void> logout() async {
     await ref.read(authRepositoryProvider).logout();
+    await ref.read(guestAccessStorageProvider).clear();
     state = const AsyncData(null);
   }
 

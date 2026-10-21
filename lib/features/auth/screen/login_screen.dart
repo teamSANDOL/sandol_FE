@@ -28,6 +28,12 @@ class _LoginscreenState extends ConsumerState<Loginscreen> {
     if (success && mounted) context.go(RoutePaths.home);
   }
 
+  /// 둘러보기를 고른 시각을 남기고(7일간 시작 때 로그인 화면 생략) 홈으로 간다.
+  Future<void> _browseAsGuest() async {
+    await ref.read(guestAccessStorageProvider).start();
+    if (mounted) context.go(RoutePaths.home);
+  }
+
   @override
   Widget build(BuildContext context) {
     ref.listen(authNotifierProvider, (previous, next) {
@@ -67,21 +73,17 @@ class _LoginscreenState extends ConsumerState<Loginscreen> {
                 _SocialButton(
                   asset: SandolAssets.google,
                   label: 'Google로 로그인',
-                  onPressed:
-                      busy
-                          ? null
-                          : () =>
-                              showAuthNotice(context, 'Google 로그인은 준비 중이에요.'),
+                  onPressed: busy
+                      ? null
+                      : () => showAuthNotice(context, 'Google 로그인은 준비 중이에요.'),
                 ),
                 const SizedBox(width: SandolSpacing.md),
                 _SocialButton(
                   asset: SandolAssets.apple,
                   label: 'Apple로 로그인',
-                  onPressed:
-                      busy
-                          ? null
-                          : () =>
-                              showAuthNotice(context, 'Apple 로그인은 준비 중이에요.'),
+                  onPressed: busy
+                      ? null
+                      : () => showAuthNotice(context, 'Apple 로그인은 준비 중이에요.'),
                 ),
               ],
             ),
@@ -134,7 +136,7 @@ class _LoginscreenState extends ConsumerState<Loginscreen> {
             ),
             _TextAction(
               label: '로그인 없이 둘러보기',
-              onPressed: busy ? null : () => context.go(RoutePaths.home),
+              onPressed: busy ? null : _browseAsGuest,
             ),
           ] else ...[
             SandolButton(
