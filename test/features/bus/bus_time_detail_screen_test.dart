@@ -60,7 +60,7 @@ void main() {
     expect(find.text('정왕역'), findsOneWidget);
     expect(find.text('한국공학대 정문 → 정왕역'), findsOneWidget);
 
-    expect(find.text('2분 후 출발'), findsOneWidget);
+    expect(find.text('2분 뒤 출발'), findsOneWidget);
     expect(find.text('10:05 출발'), findsOneWidget);
 
     expect(find.text('09시'), findsOneWidget);
@@ -83,7 +83,7 @@ void main() {
 
     expect(find.text('정왕역 → 한국공학대 정문'), findsOneWidget);
     // 등교는 10:10 편이 다음 → 7분
-    expect(find.text('7분 후 출발'), findsOneWidget);
+    expect(find.text('7분 뒤 출발'), findsOneWidget);
     expect(find.textContaining('도착버스 탑승'), findsOneWidget);
   });
 
@@ -102,5 +102,11 @@ void main() {
     await pump(tester, DateTime.utc(2026, 10, 4, 10, 0)); // 일요일
     expect(find.text('운행 안함'), findsOneWidget);
     expect(find.text('오늘은 셔틀을 운행하지 않아요'), findsOneWidget);
+  });
+
+  testWidgets('20분보다 먼 출발은 출발 시각으로 보여준다', (tester) async {
+    await pump(tester, DateTime.utc(2026, 10, 6, 6, 0));
+    expect(find.text('09:00 출발'), findsOneWidget);
+    expect(find.textContaining('분 뒤 출발'), findsNothing);
   });
 }
