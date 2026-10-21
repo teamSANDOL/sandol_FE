@@ -11,23 +11,18 @@ class NoticeCard extends StatelessWidget {
     required this.notice,
     required this.saved,
     required this.onToggleSaved,
+    this.isNew = false,
     this.onTap,
     super.key,
   });
 
-  /// 올라온 지 이 일수 안이면 NEW 배지를 단다.
-  static const newWithinDays = 7;
-
   final Notice notice;
   final bool saved;
+
+  /// NEW 배지 여부. 기준은 [NoticeSeen.isNew] 가 정한다.
+  final bool isNew;
   final VoidCallback onToggleSaved;
   final VoidCallback? onTap;
-
-  bool get _isNew {
-    final created = DateTime.tryParse(notice.createdAt);
-    return created != null &&
-        DateTime.now().difference(created).inDays < newWithinDays;
-  }
 
   @override
   Widget build(BuildContext context) => Material(
@@ -56,7 +51,7 @@ class NoticeCard extends StatelessWidget {
                       Flexible(
                         child: _Badge(notice.author, SandolColors.primary),
                       ),
-                      if (_isNew) const _Badge('NEW', NoticeColors.badgeNew),
+                      if (isNew) const _Badge('NEW', NoticeColors.badgeNew),
                     ],
                   ),
                 ),
