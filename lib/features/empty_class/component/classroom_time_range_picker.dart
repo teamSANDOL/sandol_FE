@@ -8,7 +8,7 @@ import 'package:handori/features/empty_class/domain/model/classroom_query.dart';
 import 'package:handori/features/empty_class/presentation/provider/classroom_query_provider.dart';
 import 'package:handori/core/constants/app_radius.dart';
 
-/// 조회 구간 선택기. 홈 카드와 상세 지도의 시간 설정 시트가 같이 쓴다.
+/// 조회 구간 선택기. 홈 카드와 맵 탭의 시간 설정 시트가 같이 쓴다.
 ///
 /// 지금부터 그날 마지막 정각(22:00)까지를 1시간 칸으로 깔고 두 손잡이로
 /// 구간을 잡는다. 값은 [classroomQueryControllerProvider] 하나에 저장되므로
@@ -149,7 +149,7 @@ class _OutlinedThumbShape extends RangeSliderThumbShape {
   }
 }
 
-/// 시간 설정 바텀시트. 상세 지도 헤더의 설정 아이콘에서 연다.
+/// 시간 설정 바텀시트. 맵 탭 빈 강의실 현황의 '시간 선택'에서 연다.
 Future<void> showClassroomTimeSheet(BuildContext context) {
   return showModalBottomSheet<void>(
     context: context,

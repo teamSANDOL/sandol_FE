@@ -3,9 +3,9 @@ import 'package:handori/common/layout/root_shell.dart';
 import 'package:handori/core/router/route_paths.dart';
 import 'package:handori/features/auth/screen/login_screen.dart';
 import 'package:handori/features/bus/screen/bus_time_detail_screen.dart';
-import 'package:handori/features/empty_class/screen/empty_detail_screen.dart';
 import 'package:handori/features/home/screen/home_screen.dart';
 import 'package:handori/features/home/screen/splash_screen.dart';
+import 'package:handori/features/map/screen/map_screen.dart';
 import 'package:handori/features/notice/domain/model/notice.dart';
 import 'package:handori/features/notice/presentation/page/notice_detail_page.dart';
 import 'package:handori/features/notice/presentation/page/notice_page.dart';
@@ -113,13 +113,10 @@ final appRouter = GoRouter(
           ],
         ),
 
-        // 4 · 빈 강의실
+        // 4 · 맵 (교내시설 · TUK 월드 · 빈 강의실)
         StatefulShellBranch(
           routes: [
-            GoRoute(
-              path: RoutePaths.emptyClass,
-              builder: (_, _) => const EmptyDetailScreen(),
-            ),
+            GoRoute(path: RoutePaths.map, builder: (_, _) => const MapScreen()),
           ],
         ),
       ],

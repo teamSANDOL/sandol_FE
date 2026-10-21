@@ -27,7 +27,7 @@ class AppBottomNav extends StatelessWidget {
     (label: '학식', icon: SandolAssets.navMeal, activeIcon: null),
     (label: '셔틀버스', icon: SandolAssets.navBus, activeIcon: null),
     (label: '공지사항', icon: SandolAssets.navNotice, activeIcon: null),
-    (label: '빈 강의실', icon: SandolAssets.navEmptyClass, activeIcon: null),
+    (label: '맵', icon: SandolAssets.navMap, activeIcon: null),
   ];
 
   @override

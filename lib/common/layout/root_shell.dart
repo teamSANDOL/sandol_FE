@@ -18,7 +18,7 @@ class RootShell extends StatelessWidget {
   static const mealBranch = 1;
   static const busBranch = 2;
   static const noticeBranch = 3;
-  static const emptyClassBranch = 4;
+  static const mapBranch = 4;
 
   final StatefulNavigationShell navigationShell;
 
