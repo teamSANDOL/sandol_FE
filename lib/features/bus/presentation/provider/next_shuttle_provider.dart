@@ -142,6 +142,11 @@ class ShuttleScheduleSource extends _$ShuttleScheduleSource {
 /// (노선·방향)별 [shuttleClockProvider] 기준 오늘 시간표. 미운행이면 null.
 ///
 /// 서버 데이터가 그 노선을 다루면 서버 것을, 아니면 내장 시간표를 쓴다.
+/// 다만 내장 시간표에 있는 구간 종류(수시운행·도착버스 탑승)를 서버 시간표가
+/// 하나라도 빠뜨리면 그 방향은 내장 시간표를 쓴다. 2026-10 운영 응답은 등교
+/// 「17:00~22:17 도착버스 탑승」을 `22:17 막차` 한 줄로만 줘서, 그대로 쓰면
+/// 저녁 등교 카드가 「22:17 출발」로 잘못 보인다. 서버가 구간을 주기 시작하면
+/// 이 조건은 저절로 풀린다.
 /// 공휴일 판정은 앱 공휴일 목록([ShuttleScheduleData.dayTypeOf])으로 한다.
 /// 서버 `day_type`은 trip이 어느 요일 구분에 속하는지만 알려 주고 오늘이
 /// 공휴일인지는 알려 주지 않기 때문이다.
@@ -154,20 +159,29 @@ ShuttleTimetable? shuttleTimetable(
   final dayType = ShuttleScheduleData.dayTypeOf(
     ref.watch(shuttleClockProvider),
   );
-  final remote = ref.watch(shuttleScheduleSourceProvider);
-  if (remote != null && remote.routes.contains(route)) {
-    return remote.timetableFor(
-      route: route,
-      direction: direction,
-      dayType: dayType,
-    );
-  }
-  return ShuttleScheduleData.timetableFor(
+  final builtIn = ShuttleScheduleData.timetableFor(
     route: route,
     direction: direction,
     dayType: dayType,
   );
+  final remote = ref.watch(shuttleScheduleSourceProvider);
+  if (remote == null || !remote.routes.contains(route)) return builtIn;
+  final fromServer = remote.timetableFor(
+    route: route,
+    direction: direction,
+    dayType: dayType,
+  );
+  // ponytail: 학교가 구간 운행을 실제로 없애면 내장 시간표를 갱신할 때까지
+  // 지난 내장 시간표가 쓰인다. 내장 시간표는 학기마다 갱신 대상이다.
+  return _segmentTypes(fromServer).containsAll(_segmentTypes(builtIn))
+      ? fromServer
+      : builtIn;
 }
+
+Set<ShuttleEntryType> _segmentTypes(ShuttleTimetable? t) => {
+  for (final e in t?.entries ?? const <ShuttleEntry>[])
+    if (e.isSegment) e.type,
+};
 
 /// (노선·방향)별 [shuttleClockProvider] 기준 다음 셔틀 정보.
 ///

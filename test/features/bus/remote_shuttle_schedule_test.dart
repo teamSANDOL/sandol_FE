@@ -79,6 +79,12 @@ class _FakeAdapter implements HttpClientAdapter {
   void close({bool force = false}) {}
 }
 
+/// 기준 시각 고정: 2026-10-06(화) 18:00.
+class _FixedClock extends ShuttleClock {
+  @override
+  DateTime build() => DateTime.utc(2026, 10, 6, 18);
+}
+
 void main() {
   group('RemoteShuttleSchedule.tryParse', () {
     test('trip을 방향·요일별로 묶고 시각순으로 정렬한다', () {
@@ -175,7 +181,10 @@ void main() {
       final dio = Dio(BaseOptions(baseUrl: 'https://prod.example.com'))
         ..httpClientAdapter = adapter;
       final container = ProviderContainer(
-        overrides: [staticInfoDioProvider.overrideWithValue(dio)],
+        overrides: [
+          staticInfoDioProvider.overrideWithValue(dio),
+          shuttleClockProvider.overrideWith(_FixedClock.new),
+        ],
       );
       addTearDown(container.dispose);
       container.listen(shuttleScheduleSourceProvider, (_, _) {});
@@ -228,6 +237,35 @@ void main() {
       FlutterSecureStorage.setMockInitialValues({});
       final c = await load(_FakeAdapter('', status: 503));
       expect(c.read(shuttleScheduleSourceProvider), isNull);
+    });
+
+    test('서버가 도착버스 구간을 빠뜨린 방향만 내장 시간표를 쓴다', () async {
+      // 운영 응답 형태: 등교는 22:17 막차 한 줄, 하교는 수시운행 포함.
+      FlutterSecureStorage.setMockInitialValues({});
+      final c = await load(
+        _FakeAdapter(
+          _body([
+            _trip('정왕역', '본교', '08:40', end: '10:00', note: '수시운행'),
+            _trip('정왕역', '본교', '22:17', note: '막차'),
+            _trip('본교', '정왕역', '17:00', end: '18:00', note: '수시운행'),
+            _trip('본교', '정왕역', '23:59'),
+          ]),
+        ),
+      );
+      List<ShuttleEntry> entries(ShuttleDirection d) =>
+          c
+              .read(
+                shuttleTimetableProvider(
+                  route: ShuttleRoute.route1,
+                  direction: d,
+                ),
+              )!
+              .entries;
+
+      final up = entries(ShuttleDirection.jeongwangToSchool);
+      expect(up.last.type, ShuttleEntryType.arrivalBoarding); // 내장
+      final down = entries(ShuttleDirection.schoolToJeongwang);
+      expect(down.map((e) => e.time.label), ['17:00', '23:59']); // 서버
     });
   });
 }
