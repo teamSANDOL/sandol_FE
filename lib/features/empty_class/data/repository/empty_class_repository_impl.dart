@@ -7,8 +7,8 @@ import 'package:handori/features/empty_class/model/class_model.dart';
 class EmptyClassRepositoryImpl implements EmptyClassRepository {
   final ClassroomApi _api;
 
-  /// 건물별 전체 강의실 수. 학기 단위로만 바뀌므로 인스턴스 수명 동안 캐시.
-  Map<String, int>? _totals;
+  /// 건물별 전체 강의실(정렬됨). 학기 단위로만 바뀌므로 인스턴스 수명 동안 캐시.
+  Map<String, List<String>>? _rooms;
 
   EmptyClassRepositoryImpl(this._api);
 
@@ -20,26 +20,27 @@ class EmptyClassRepositoryImpl implements EmptyClassRepository {
         startTime: query.startTime,
         endTime: query.endTime,
       ),
-      _loadTotals(),
+      _loadRooms(),
     ]);
     final available = results[0] as List;
-    final totals = results[1] as Map<String, int>;
+    final allRooms = results[1] as Map<String, List<String>>;
 
     final list = <EmptyClass>[];
     for (final item in available) {
       final rooms = List<String>.from(item.emptyClassrooms)..sort();
-      final total = totals[item.building] ?? 0;
+      final all = allRooms[item.building] ?? const <String>[];
       final loc = buildingLocations[item.building];
       list.add(
         EmptyClass(
           className: item.building,
           classCount: '${rooms.length}',
-          trafficIcon: _trafficIcon(rooms.length, total),
+          trafficIcon: _trafficIcon(rooms.length, all.length),
           classIcons: buildingIcon(item.building),
           classList: rooms,
           latitude: loc?.latitude,
           longitude: loc?.longitude,
-          totalCount: total,
+          totalCount: all.length,
+          allRooms: all,
         ),
       );
     }
@@ -47,19 +48,20 @@ class EmptyClassRepositoryImpl implements EmptyClassRepository {
     // 조회 구간에 빈 강의실이 하나도 없는 건물은 응답에서 빠진다.
     // 전체 목록에 있는 건물이면 0개로 채워 목록에서 사라지지 않게 한다.
     final present = list.map((e) => e.className).toSet();
-    for (final entry in totals.entries) {
+    for (final entry in allRooms.entries) {
       if (present.contains(entry.key)) continue;
       final loc = buildingLocations[entry.key];
       list.add(
         EmptyClass(
           className: entry.key,
           classCount: '0',
-          trafficIcon: _trafficIcon(0, entry.value),
+          trafficIcon: _trafficIcon(0, entry.value.length),
           classIcons: buildingIcon(entry.key),
           classList: const [],
           latitude: loc?.latitude,
           longitude: loc?.longitude,
-          totalCount: entry.value,
+          totalCount: entry.value.length,
+          allRooms: entry.value,
         ),
       );
     }
@@ -71,16 +73,16 @@ class EmptyClassRepositoryImpl implements EmptyClassRepository {
     return list;
   }
 
-  Future<Map<String, int>> _loadTotals() async {
-    final cached = _totals;
+  Future<Map<String, List<String>>> _loadRooms() async {
+    final cached = _rooms;
     if (cached != null) return cached;
     try {
       final rows = await _api.getClassrooms();
-      return _totals = {
-        for (final r in rows) r.building: r.classrooms.toSet().length,
+      return _rooms = {
+        for (final r in rows) r.building: r.classrooms.toSet().toList()..sort(),
       };
     } catch (_) {
-      // 전체 목록 실패는 치명적이지 않다 — 비율 배지만 못 그린다.
+      // 전체 목록 실패는 치명적이지 않다 — 비율 배지와 수업예정 호실만 못 그린다.
       return const {};
     }
   }

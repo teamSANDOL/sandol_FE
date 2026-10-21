@@ -19,6 +19,10 @@ class EmptyClass {
   /// 건물 전체 강의실 수 (시간표에 등장하는 강의실 기준). 모르면 0.
   final int totalCount;
 
+  /// 건물 전체 강의실 (정렬됨). [classList]에 없으면 조회 구간에 수업이 있다.
+  /// 전체 목록을 못 불러왔으면 비어 있다.
+  final List<String> allRooms;
+
   const EmptyClass({
     required this.className,
     required this.classCount,
@@ -28,6 +32,7 @@ class EmptyClass {
     required this.latitude,
     required this.longitude,
     this.totalCount = 0,
+    this.allRooms = const [],
   });
 
   int get emptyCount => int.tryParse(classCount.trim()) ?? classList.length;
