@@ -43,11 +43,6 @@
 		<string>mailto</string>
 		<string>https</string>
 	</array>
-	<key>NSAppTransportSecurity</key>
-	<dict>
-		<key>NSAllowsArbitraryLoads</key>
-		<true/>
-	</dict>
 	<key>NSLocationAlwaysUsageDescription</key>
 	<string>지도에서 현재 위치를 확인하기 위해 필요합니다.</string>
 	<key>NSLocationWhenInUseUsageDescription</key>

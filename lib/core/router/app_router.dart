@@ -2,8 +2,6 @@ import 'package:go_router/go_router.dart';
 import 'package:handori/common/layout/root_shell.dart';
 import 'package:handori/core/router/route_paths.dart';
 import 'package:handori/features/auth/screen/login_screen.dart';
-import 'package:handori/features/auth/screen/signin_screen.dart';
-import 'package:handori/features/auth/presentation/widget/auth_scaffold.dart';
 import 'package:handori/features/bus/screen/bus_time_detail_screen.dart';
 import 'package:handori/features/empty_class/screen/empty_detail_screen.dart';
 import 'package:handori/features/home/screen/home_screen.dart';
@@ -23,17 +21,6 @@ final appRouter = GoRouter(
   routes: [
     // ── 셸 밖: 스플래시 · 로그인 (바텀네비 없음) ──────────────────
     GoRoute(path: RoutePaths.splash, builder: (_, _) => const Splashscreen()),
-    // 실제 계정 생성 API 연결 전까지 회원가입 제출은 안내로 처리한다.
-    GoRoute(
-      path: RoutePaths.signIn,
-      builder:
-          (_, state) => Signinscreen(
-            initialLanguage:
-                state.extra is AuthLanguage
-                    ? state.extra as AuthLanguage
-                    : AuthLanguage.ko,
-          ),
-    ),
     GoRoute(path: RoutePaths.login, builder: (_, _) => const Loginscreen()),
     // 유저 상세(설정): 시안대로 바텀네비 없이 전체 화면으로 띄운다.
     GoRoute(

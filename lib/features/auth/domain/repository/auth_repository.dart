@@ -5,7 +5,14 @@ abstract class AuthRepository {
   /// [useKakao] 가 true 면 Keycloak 화면을 건너뛰고 카카오 로그인으로 직행한다
   /// (`kc_idp_hint=kakao`). 사용자가 취소하면
   /// [FlutterAppAuthUserCancelledException] 이 던져진다.
-  Future<AuthSession> login({bool useKakao = false});
+  /// [signUp] 이 true 면 Keycloak 회원가입 화면으로 연다(`prompt=create`).
+  /// [rememberMe] 가 false 면 오프라인 토큰을 요청하지 않고 세션을 메모리에만
+  /// 둔다 — 앱을 완전히 종료하면 로그아웃 상태가 된다.
+  Future<AuthSession> login({
+    bool useKakao = false,
+    bool signUp = false,
+    bool rememberMe = true,
+  });
 
   /// 저장된 세션을 복원한다. 액세스 토큰이 만료됐으면 리프레시를 시도한다.
   /// - 리프레시 토큰이 만료/폐기됐으면 세션을 지우고 null 을 반환한다.
