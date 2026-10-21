@@ -62,12 +62,18 @@ class AuthNotifier extends _$AuthNotifier {
 
   /// 로그인 성공 시 true. 사용자가 브라우저를 닫는 등 취소하면 이전 상태를
   /// 유지하고 false, 그 외 실패는 AsyncError 상태로 두고 false 를 반환한다.
-  Future<bool> login({bool useKakao = false}) async {
+  /// 옵션은 [AuthRepository.login] 참고.
+  Future<bool> login({
+    bool useKakao = false,
+    bool signUp = false,
+    bool rememberMe = true,
+  }) async {
     final previous = state;
     state = const AsyncLoading();
     try {
-      final session =
-          await ref.read(authRepositoryProvider).login(useKakao: useKakao);
+      final session = await ref
+          .read(authRepositoryProvider)
+          .login(useKakao: useKakao, signUp: signUp, rememberMe: rememberMe);
       state = AsyncData(session);
       return true;
     } on FlutterAppAuthUserCancelledException {

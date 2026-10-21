@@ -45,6 +45,9 @@ class AuthRepositoryImpl implements AuthRepository {
   /// offline_access 스코프가 붙어 있어야 한다(기본 realm 설정은 Default).
   static const _scopes = ['openid', 'profile', 'email', 'offline_access'];
 
+  /// "로그인 상태 유지" 해제 시. 오프라인 토큰을 요청하지 않는다.
+  static const _sessionScopes = ['openid', 'profile', 'email'];
+
   /// 일시적 실패 후 이 시간 동안은 재시도하지 않는다. 요청마다 리프레시가
   /// 나가 서버를 두드리는 일을 막는다.
   static const _retryBackoff = Duration(seconds: 15);
@@ -56,6 +59,11 @@ class AuthRepositoryImpl implements AuthRepository {
   final _sessionController = StreamController<AuthSession?>.broadcast();
   Future<AuthSession?>? _inflightRefresh;
   DateTime? _retryNotBefore;
+
+  /// 현재 세션이 "로그인 상태 유지"로 시작됐는지. 리프레시도 같은 스코프와
+  /// 저장 방식을 따라야 한다(원래 없던 offline_access 를 요청하면 거절된다).
+  /// 앱 재시작 뒤 디스크에서 읽힌 세션은 늘 유지 세션이므로 기본값은 true.
+  bool _rememberMe = true;
 
   /// 세션 세대. 로그인·로그아웃·탈퇴마다 올라간다. 리프레시는 시작할 때의
   /// 세대를 기억했다가 응답이 왔을 때 세대가 바뀌어 있으면 결과를 버린다.
@@ -97,14 +105,30 @@ class AuthRepositoryImpl implements AuthRepository {
   Stream<AuthSession?> get sessionChanges => _sessionController.stream;
 
   @override
-  Future<AuthSession> login({bool useKakao = false}) async {
+  Future<AuthSession> login({
+    bool useKakao = false,
+    bool signUp = false,
+    bool rememberMe = true,
+  }) async {
     _generation++;
+    // 로그아웃해도 브라우저(Custom Tab/ASWebAuthenticationSession)에는
+    // Keycloak SSO 쿠키가 남는다. 그대로 두면 다음 로그인이 비밀번호 없이
+    // 끝나므로, 명시적 로그아웃·탈퇴·비유지 로그인 뒤에는 prompt=login 으로
+    // 재인증을 요구한다. Keycloak 은 이 값을 카카오 IdP 로도 전달한다.
+    final forceLogin = await _storage.readForceLogin();
     final response = await _appAuth.authorizeAndExchangeCode(
       AuthorizationTokenRequest(
         _clientId,
         _redirectUri,
         serviceConfiguration: _serviceConfiguration,
-        scopes: _scopes,
+        scopes: rememberMe ? _scopes : _sessionScopes,
+        // prompt=create: Keycloak 회원가입 화면으로 바로 연다(Keycloak 18+).
+        // Keycloak 은 prompt 값이 정확히 'create' 일 때만 인식한다.
+        promptValues: signUp
+            ? const ['create']
+            : forceLogin
+                ? const ['login']
+                : null,
         // Keycloak 전용: 카카오 IdP 로 직행해 Keycloak 로그인 화면을 건너뛴다.
         // alias 는 대소문자 구분 — 프로덕션 realm 에 'Kakao' 로 등록되어 있다.
         additionalParameters:
@@ -113,7 +137,10 @@ class AuthRepositoryImpl implements AuthRepository {
     );
     final session = _toSession(response);
     _retryNotBefore = null;
-    await _storage.save(session);
+    _rememberMe = rememberMe;
+    await _storage.save(session, persist: rememberMe);
+    // 유지하지 않는 세션은 앱 종료로 조용히 끝나므로 로그아웃과 같이 다룬다.
+    await _storage.writeForceLogin(!rememberMe);
     return session;
   }
 
@@ -150,6 +177,7 @@ class AuthRepositoryImpl implements AuthRepository {
     // 서버 호출 전에 세대를 올려, 진행 중이던 리프레시가 그 사이 끝나도
     // 결과를 버리게 한다.
     _generation++;
+    await _storage.writeForceLogin(true);
     final saved = await _storage.read();
     // 서버 세션 종료는 베스트 에포트: 실패해도 로컬 로그아웃은 진행한다.
     final refreshToken = saved?.refreshToken;
@@ -201,6 +229,7 @@ class AuthRepositoryImpl implements AuthRepository {
     _generation++;
     if (session == null) {
       // 이미 세션이 없으면 지울 계정 접근 권한도 없다 — 로컬만 정리.
+      await _storage.writeForceLogin(true);
       await _storage.clear();
       _generation++;
       return;
@@ -218,6 +247,7 @@ class AuthRepositoryImpl implements AuthRepository {
         headers: {'Authorization': 'Bearer ${session.accessToken}'},
       ),
     );
+    await _storage.writeForceLogin(true);
     await _storage.clear();
     _generation++;
   }
@@ -265,7 +295,7 @@ class AuthRepositoryImpl implements AuthRepository {
           _redirectUri,
           serviceConfiguration: _serviceConfiguration,
           refreshToken: refreshToken,
-          scopes: _scopes,
+          scopes: _rememberMe ? _scopes : _sessionScopes,
         ),
       );
       if (generation != _generation) {
@@ -295,7 +325,7 @@ class AuthRepositoryImpl implements AuthRepository {
         email: saved.email ?? _emailFromJwt(response.idToken),
       );
       _retryNotBefore = null;
-      await _storage.save(session);
+      await _storage.save(session, persist: _rememberMe);
       _sessionController.add(session);
       return session;
     } catch (e) {

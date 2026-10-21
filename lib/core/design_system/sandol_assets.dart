@@ -2,13 +2,10 @@
 abstract final class SandolAssets {
   static const _base = 'assets/design_system/auth';
   static const welcomeLogo = '$_base/welcome_logo.png'; // 2142:2366
-  static const loginLogo = '$_base/login_logo.png'; // 2143:2553
-  static const signupMascot = '$_base/signup_mascot.png'; // 2143:2686
   static const kakao = '$_base/kakao.png'; // 2143:2412
   static const google = '$_base/google.png'; // 2143:2490
   static const apple = '$_base/apple.png'; // 2195:509
   static const backArrow = '$_base/back_arrow.svg'; // 2080:191
-  static const selectArrow = '$_base/select_arrow.svg'; // 2143:2648
   static const dividerLeft = '$_base/divider_left.svg'; // 2142:2400
   static const dividerRight = '$_base/divider_right.svg'; // 2142:2402
   // VIDEO fill(2219:447)의 정지 프레임. 원본 MP4 확보 후 영상으로 교체한다.

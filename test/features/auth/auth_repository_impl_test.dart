@@ -18,6 +18,23 @@ import 'package:handori/features/auth/domain/model/auth_session.dart';
 class _FakeAppAuthPlatform extends FlutterAppAuthPlatform {
   int tokenCalls = 0;
   Future<TokenResponse> Function(TokenRequest request)? onToken;
+  final List<AuthorizationTokenRequest> authorizeRequests = [];
+
+  @override
+  Future<AuthorizationTokenResponse> authorizeAndExchangeCode(
+      AuthorizationTokenRequest request) async {
+    authorizeRequests.add(request);
+    return AuthorizationTokenResponse(
+      'login-access',
+      'login-refresh',
+      DateTime.now().add(const Duration(minutes: 5)),
+      null,
+      'Bearer',
+      null,
+      null,
+      null,
+    );
+  }
 
   @override
   Future<TokenResponse> token(TokenRequest request) {
@@ -353,5 +370,70 @@ void main() {
 
     expect(await repo.restoreSession(), isNull);
     expect(await storage.read(), isNull);
+  });
+
+  group('로그인 옵션', () {
+    List<String>? lastPrompt() => platform.authorizeRequests.last.promptValues;
+
+    test('첫 로그인은 SSO 를 그대로 쓰고, 로그아웃 뒤에는 prompt=login', () async {
+      await repo.login();
+      expect(lastPrompt(), isNull);
+      await repo.logout();
+      await repo.login(useKakao: true);
+      expect(lastPrompt(), ['login']);
+      expect(platform.authorizeRequests.last.additionalParameters,
+          {'kc_idp_hint': 'Kakao'},
+          reason: '카카오 경로에도 prompt=login 이 함께 간다');
+      // 유지 로그인에 성공하면 표시를 지운다.
+      await repo.login();
+      expect(lastPrompt(), isNull);
+    });
+
+    test('탈퇴 뒤 다음 로그인도 재인증을 요구한다', () async {
+      await repo.login();
+      await repo.deleteAccount();
+      await repo.login();
+      expect(lastPrompt(), ['login']);
+    });
+
+    test('회원가입은 prompt=create 만 보낸다', () async {
+      await repo.logout();
+      await repo.login(signUp: true);
+      expect(lastPrompt(), ['create']);
+    });
+
+    test('유지하면 offline_access 를 요청하고 디스크에 저장한다', () async {
+      await repo.login();
+      expect(platform.authorizeRequests.last.scopes, contains('offline_access'));
+      final reopened = TokenStorage(const FlutterSecureStorage());
+      expect((await reopened.read())?.accessToken, 'login-access');
+    });
+
+    test('유지하지 않으면 메모리에만 두고, 앱 재시작 뒤엔 비로그인', () async {
+      await storage.save(expiredSession());
+      await repo.login(rememberMe: false);
+      expect(platform.authorizeRequests.last.scopes,
+          isNot(contains('offline_access')));
+      expect(await repo.getValidAccessToken(), 'login-access');
+      // 새 프로세스 = 새 TokenStorage. 이전 유지 세션도 지워져 있어야 한다.
+      final reopened = TokenStorage(const FlutterSecureStorage());
+      expect(await reopened.read(), isNull);
+      expect(await reopened.readForceLogin(), isTrue,
+          reason: '비유지 세션은 조용히 끝나므로 다음 로그인에 재인증');
+    });
+
+    test('비유지 세션의 리프레시도 같은 스코프로, 메모리에만 저장한다', () async {
+      await repo.login(rememberMe: false);
+      await storage.save(expiredSession(), persist: false);
+      List<String>? refreshScopes;
+      platform.onToken = (request) async {
+        refreshScopes = request.scopes;
+        return okResponse();
+      };
+      expect((await repo.restoreSession())?.accessToken, 'new-access');
+      expect(refreshScopes, isNot(contains('offline_access')));
+      final reopened = TokenStorage(const FlutterSecureStorage());
+      expect(await reopened.read(), isNull);
+    });
   });
 }

@@ -2,7 +2,6 @@ abstract class RoutePaths {
   // ── 셸 밖 (바텀네비 없음) ────────────────────────────────────
   static const splash = '/';
   static const login = '/login';
-  static const signIn = '/sign-in';
   static const user = '/user';
   static const withdraw = '/user/withdraw';
   static const withdrawConfirm = '/user/withdraw/confirm';

@@ -13,6 +13,10 @@ class TokenStorage {
   static const _kUsername = 'auth_username';
   static const _kEmail = 'auth_email';
 
+  /// 명시적 로그아웃·탈퇴 뒤 다음 로그인에 재인증을 요구하는 표시.
+  /// [clear] 로 지우지 않는다 — 로그아웃 뒤에도 남아 있어야 한다.
+  static const _kForceLogin = 'auth_force_login';
+
   final FlutterSecureStorage _storage;
   AuthSession? _cached;
   bool _loaded = false;
@@ -71,7 +75,15 @@ class TokenStorage {
     _kEmail,
   ];
 
-  Future<void> save(AuthSession session) async {
+  /// [persist] 가 false 면("로그인 상태 유지" 해제) 디스크의 세션을 지우고
+  /// 메모리에만 둔다. 앱 프로세스가 끝나면 세션도 사라진다.
+  Future<void> save(AuthSession session, {bool persist = true}) async {
+    if (!persist) {
+      await _deleteAll();
+      _cached = session;
+      _loaded = true;
+      return;
+    }
     await Future.wait([
       _storage.write(key: _kAccessToken, value: session.accessToken),
       _writeOrDelete(_kRefreshToken, session.refreshToken),
@@ -96,11 +108,32 @@ class TokenStorage {
   /// 로그아웃·탈퇴. 삭제 실패는 그대로 올려 호출자가 알게 한다(메모리만
   /// 비로그인이고 디스크에 토큰이 남는 불일치를 숨기지 않는다).
   Future<void> clear() async {
-    await Future.wait([
-      for (final key in _allKeys) _storage.delete(key: key),
-    ]);
+    await _deleteAll();
     _cached = null;
     _loaded = true;
+  }
+
+  Future<void> _deleteAll() => Future.wait([
+        for (final key in _allKeys) _storage.delete(key: key),
+      ]);
+
+  /// 다음 로그인에 재인증(prompt=login)이 필요한지. 읽기 실패 시 안전한 쪽(true).
+  Future<bool> readForceLogin() async {
+    try {
+      return await _storage.read(key: _kForceLogin) == 'true';
+    } catch (e) {
+      debugPrint('보안 저장소 읽기 실패, 재인증 요구로 진행: $e');
+      return true;
+    }
+  }
+
+  /// 베스트 에포트: 실패해도 로그인·로그아웃 자체는 막지 않는다.
+  Future<void> writeForceLogin(bool value) async {
+    try {
+      await _writeOrDelete(_kForceLogin, value ? 'true' : null);
+    } catch (e) {
+      debugPrint('보안 저장소 쓰기 실패(재인증 표시): $e');
+    }
   }
 
   static DateTime? _parseDateTime(String? raw) =>
