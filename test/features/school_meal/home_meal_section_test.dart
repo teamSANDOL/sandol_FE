@@ -145,4 +145,23 @@ void main() {
     expect(taps, 1);
     expect(selectedId(), 1);
   });
+
+  testWidgets('옆 카드는 PageView 폭 밖에 그려지지 않는다', (tester) async {
+    await pump(tester);
+    final clip = tester.widget<ClipRect>(
+      find.ancestor(of: find.byType(PageView), matching: find.byType(ClipRect)),
+    );
+    final size = tester.getSize(find.byType(PageView));
+    final rect = clip.clipper!.getClip(size);
+    // 가로는 PageView 폭 그대로, 세로는 그림자만큼만 넓다.
+    expect((rect.left, rect.right), (0, size.width));
+    expect(rect.top, lessThan(0));
+    expect(rect.bottom, greaterThan(size.height));
+    // 정지 상태에서 옆(B) 카드는 PageView 오른쪽 경계 밖에 놓인다.
+    final viewRight = tester.getTopRight(find.byType(PageView)).dx;
+    expect(
+      tester.getTopLeft(find.text('B식당 메뉴0', skipOffstage: false)).dx,
+      greaterThanOrEqualTo(viewRight),
+    );
+  });
 }

@@ -199,41 +199,61 @@ class _HomeMealSectionState extends ConsumerState<HomeMealSection> {
               child: SizedBox(height: height ?? 0, child: child),
             );
           },
-          child: PageView.builder(
-            controller: _controller,
-            // 카드 그림자가 잘리지 않게 하고, 이웃 카드 높이를 미리 재도록
-            // 양옆 한 화면만큼 미리 빌드한다.
-            clipBehavior: Clip.none,
-            allowImplicitScrolling: true,
-            scrollCacheExtent: const ScrollCacheExtent.viewport(1),
-            itemCount: menus.length,
-            onPageChanged: (index) {
-              if (!_animating) _select(index);
-            },
-            itemBuilder: (context, index) {
-              final menu = menus[index];
-              return OverflowBox(
-                alignment: Alignment.topCenter,
-                minHeight: 0,
-                maxHeight: double.infinity,
-                child: _HeightReporter(
-                  onHeight: (h) => _setHeight(menu.restaurant.id, h),
-                  child: GestureDetector(
-                    onTap: () {
-                      // 상세 페이지가 동일한 식당으로 진입하도록 선택 ID를 확정한다.
-                      _select(index);
-                      widget.onTap?.call();
-                    },
-                    child: _MealMenuCard(menu: menu),
+          child: ClipRect(
+            // 가로는 PageView 폭에서 잘라 옆 카드가 여백 밖에 비치지 않게 하고,
+            // 세로는 카드 그림자가 잘리지 않게 여유를 둔다.
+            clipper: const _ShadowClipper(),
+            child: PageView.builder(
+              controller: _controller,
+              // 카드 그림자가 잘리지 않게 하고, 이웃 카드 높이를 미리 재도록
+              // 양옆 한 화면만큼 미리 빌드한다.
+              clipBehavior: Clip.none,
+              allowImplicitScrolling: true,
+              scrollCacheExtent: const ScrollCacheExtent.viewport(1),
+              itemCount: menus.length,
+              onPageChanged: (index) {
+                if (!_animating) _select(index);
+              },
+              itemBuilder: (context, index) {
+                final menu = menus[index];
+                return OverflowBox(
+                  alignment: Alignment.topCenter,
+                  minHeight: 0,
+                  maxHeight: double.infinity,
+                  child: _HeightReporter(
+                    onHeight: (h) => _setHeight(menu.restaurant.id, h),
+                    child: GestureDetector(
+                      onTap: () {
+                        // 상세 페이지가 동일한 식당으로 진입하도록 선택 ID를 확정한다.
+                        _select(index);
+                        widget.onTap?.call();
+                      },
+                      child: _MealMenuCard(menu: menu),
+                    ),
                   ),
-                ),
-              );
-            },
+                );
+              },
+            ),
           ),
         ),
       ],
     );
   }
+}
+
+/// 가로는 자기 폭 그대로, 세로는 카드 그림자(offset 4 + blur 4)만큼 위아래로
+/// 넓힌 클립 영역.
+class _ShadowClipper extends CustomClipper<Rect> {
+  const _ShadowClipper();
+
+  static const double _vertical = 12;
+
+  @override
+  Rect getClip(Size size) =>
+      Rect.fromLTRB(0, -_vertical, size.width, size.height + _vertical);
+
+  @override
+  bool shouldReclip(_ShadowClipper oldClipper) => false;
 }
 
 /// 자식의 레이아웃 높이가 바뀔 때마다 [onHeight]로 알린다(레이아웃 중 setState를
