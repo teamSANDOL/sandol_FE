@@ -227,8 +227,8 @@ NextShuttle nextShuttle(
   );
   if (direct.isActive) return direct;
   final transfers = ref.watch(shuttleTransfersProvider(direction: direction));
-  if (transfers == null || transfers.isEmpty) return direct;
-  final c = transfers.first;
+  final c = transfers?.where((c) => !c.tight).firstOrNull;
+  if (c == null) return direct;
   return NextShuttle(
     // 남은 분이 없으니 머리글은 statusLabel 이고, 강조색(운행 중)으로 보인다.
     status: ShuttleStatus.upcoming,

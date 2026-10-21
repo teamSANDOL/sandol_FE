@@ -180,6 +180,26 @@ void main() {
     expect(find.text('09:40 출발 → 본교 10:00 환승'), findsOneWidget);
   });
 
+  testWidgets('펼치면 안전 연결이 없는 환승편의 빠듯한 편도 보인다 (10:35)', (tester) async {
+    await pump(tester, DateTime.utc(2026, 10, 6, 10, 35));
+    await tester.tap(find.byTooltip('출발 정류장 선택'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('정왕역').last);
+    await tester.pumpAndSettle();
+    await tester.tap(find.byTooltip('도착 정류장 선택'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('제2캠퍼스'));
+    await tester.pumpAndSettle();
+
+    final tight = find.text('10:50 출발 (빠듯함) → 본교 11:00 환승 출발'.keepAll);
+    expect(tight, findsNothing);
+    // 다음 버스 카드는 안전 연결만.
+    expect(find.text('11:30 출발 → 본교 12:00 환승'), findsOneWidget);
+    await tester.tap(find.text('이전 버스도 보기'));
+    await tester.pumpAndSettle();
+    expect(tight, findsOneWidget);
+  });
+
   testWidgets('직행도 환승도 없으면 운행 종료', (tester) async {
     await pump(tester, DateTime.utc(2026, 10, 6, 20, 0));
     await tester.tap(find.byTooltip('출발 정류장 선택'));
