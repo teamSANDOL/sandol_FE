@@ -3,12 +3,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:handori/common/component/sandol_checkbox.dart';
 import 'package:handori/core/design_system/sandol_assets.dart';
 import 'package:handori/core/design_system/sandol_tokens.dart';
 import 'package:handori/core/router/route_paths.dart';
+import 'package:handori/features/auth/data/guest_access_storage.dart';
 import 'package:handori/features/auth/domain/model/auth_session.dart';
 import 'package:handori/features/auth/presentation/provider/auth_provider.dart';
 import 'package:handori/features/auth/screen/login_screen.dart';
@@ -141,7 +143,10 @@ void main() {
     await font.load();
   });
 
-  setUp(logins.clear);
+  setUp(() {
+    logins.clear();
+    FlutterSecureStorage.setMockInitialValues({});
+  });
 
   testWidgets('앱은 비밀번호를 받지 않고 모든 로그인·가입을 브라우저로 보낸다', (tester) async {
     final router = await host(tester);
@@ -161,6 +166,42 @@ void main() {
     expect(router.routeInformationProvider.value.uri.path, RoutePaths.login);
     await tapVisible(tester, find.text('로그인 없이 둘러보기'));
     expect(find.text('HOME'), findsOneWidget);
+    // 고른 시각이 남아 7일간 시작 때 로그인 화면을 건너뛴다.
+    expect(
+      await GuestAccessStorage(const FlutterSecureStorage()).isActive(),
+      isTrue,
+    );
+  });
+
+  group('둘러보기 7일 유지', () {
+    Future<void> openSplashWithGuestSince(
+      WidgetTester tester,
+      Duration ago,
+    ) async {
+      FlutterSecureStorage.setMockInitialValues({
+        'guest_browsing_started_at':
+            DateTime.now().subtract(ago).toUtc().toIso8601String(),
+      });
+      await host(tester, initial: RoutePaths.splash);
+      await tester.pumpAndSettle();
+    }
+
+    testWidgets('7일 이내면 로그인 화면 없이 홈으로 간다', (tester) async {
+      await openSplashWithGuestSince(tester, const Duration(days: 6));
+      expect(find.text('HOME'), findsOneWidget);
+    });
+
+    testWidgets('7일이 지나면 로그인 화면을 보여 준다', (tester) async {
+      await openSplashWithGuestSince(tester, const Duration(days: 8));
+      expect(find.text('HOME'), findsNothing);
+      expect(find.text('로그인 없이 둘러보기'), findsOneWidget);
+    });
+
+    testWidgets('기록이 미래 시각이면 로그인 화면을 보여 준다', (tester) async {
+      await openSplashWithGuestSince(tester, const Duration(days: -1));
+      expect(find.text('HOME'), findsNothing);
+      expect(find.text('로그인 없이 둘러보기'), findsOneWidget);
+    });
   });
 
   testWidgets('로그인 상태 유지는 기본 켬, 끄면 의미를 안내하고 그대로 전달한다', (tester) async {
