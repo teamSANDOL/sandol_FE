@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:handori/core/constants/api_constants.dart';
 import 'package:handori/core/network/auth_interceptor.dart';
+import 'package:handori/core/network/fallback_interceptor.dart';
 import 'package:handori/features/auth/presentation/provider/auth_provider.dart';
 
 part 'static_info_dio_provider.g.dart';
@@ -26,6 +27,7 @@ Dio staticInfoDio(Ref ref) {
     AuthInterceptor(
       () => ref.read(authRepositoryProvider).getValidAccessToken(),
     ),
+    FallbackInterceptor.fromEnv(dio),
     if (kDebugMode)
       LogInterceptor(
         requestHeader: false, // Authorization 토큰이 로그에 남지 않게 한다

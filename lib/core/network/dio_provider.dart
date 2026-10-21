@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:handori/core/constants/api_constants.dart';
 import 'package:handori/core/network/auth_interceptor.dart';
+import 'package:handori/core/network/fallback_interceptor.dart';
 import 'package:handori/features/auth/presentation/provider/auth_provider.dart';
 
 part 'dio_provider.g.dart';
@@ -25,6 +26,7 @@ Dio dio(Ref ref) {
     AuthInterceptor(
       () => ref.read(authRepositoryProvider).getValidAccessToken(),
     ),
+    FallbackInterceptor.fromEnv(dio),
     // TODO: ErrorInterceptor() — 에러 변환 추가
     if (kDebugMode)
       LogInterceptor(
