@@ -221,7 +221,7 @@ class _ShuttleTimetableProviderElement
       (origin as ShuttleTimetableProvider).direction;
 }
 
-String _$nextShuttleHash() => r'57f7282dc4eb884e0b16ec161234e6d257209802';
+String _$nextShuttleHash() => r'10da65dbdbd8f2935ff7320f6941f6726c0fc319';
 
 /// (노선·방향)별 [shuttleClockProvider] 기준 다음 셔틀 정보.
 ///
@@ -229,7 +229,7 @@ String _$nextShuttleHash() => r'57f7282dc4eb884e0b16ec161234e6d257209802';
 /// 갱신은 `ref.read(shuttleClockProvider.notifier).refresh()`로 한다.
 ///
 /// 정왕역 ↔ 제2캠퍼스는 직행이 남아 있지 않아도 본교 환승 연결이 있으면
-/// "운행 종료" 대신 가장 빠른 환승편을 안내한다.
+/// "운행 종료"·"운행 안함" 대신 가장 빠른 환승편을 안내한다.
 ///
 /// Copied from [nextShuttle].
 @ProviderFor(nextShuttle)
@@ -241,7 +241,7 @@ const nextShuttleProvider = NextShuttleFamily();
 /// 갱신은 `ref.read(shuttleClockProvider.notifier).refresh()`로 한다.
 ///
 /// 정왕역 ↔ 제2캠퍼스는 직행이 남아 있지 않아도 본교 환승 연결이 있으면
-/// "운행 종료" 대신 가장 빠른 환승편을 안내한다.
+/// "운행 종료"·"운행 안함" 대신 가장 빠른 환승편을 안내한다.
 ///
 /// Copied from [nextShuttle].
 class NextShuttleFamily extends Family<NextShuttle> {
@@ -251,7 +251,7 @@ class NextShuttleFamily extends Family<NextShuttle> {
   /// 갱신은 `ref.read(shuttleClockProvider.notifier).refresh()`로 한다.
   ///
   /// 정왕역 ↔ 제2캠퍼스는 직행이 남아 있지 않아도 본교 환승 연결이 있으면
-  /// "운행 종료" 대신 가장 빠른 환승편을 안내한다.
+  /// "운행 종료"·"운행 안함" 대신 가장 빠른 환승편을 안내한다.
   ///
   /// Copied from [nextShuttle].
   const NextShuttleFamily();
@@ -262,7 +262,7 @@ class NextShuttleFamily extends Family<NextShuttle> {
   /// 갱신은 `ref.read(shuttleClockProvider.notifier).refresh()`로 한다.
   ///
   /// 정왕역 ↔ 제2캠퍼스는 직행이 남아 있지 않아도 본교 환승 연결이 있으면
-  /// "운행 종료" 대신 가장 빠른 환승편을 안내한다.
+  /// "운행 종료"·"운행 안함" 대신 가장 빠른 환승편을 안내한다.
   ///
   /// Copied from [nextShuttle].
   NextShuttleProvider call({
@@ -300,7 +300,7 @@ class NextShuttleFamily extends Family<NextShuttle> {
 /// 갱신은 `ref.read(shuttleClockProvider.notifier).refresh()`로 한다.
 ///
 /// 정왕역 ↔ 제2캠퍼스는 직행이 남아 있지 않아도 본교 환승 연결이 있으면
-/// "운행 종료" 대신 가장 빠른 환승편을 안내한다.
+/// "운행 종료"·"운행 안함" 대신 가장 빠른 환승편을 안내한다.
 ///
 /// Copied from [nextShuttle].
 class NextShuttleProvider extends AutoDisposeProvider<NextShuttle> {
@@ -310,7 +310,7 @@ class NextShuttleProvider extends AutoDisposeProvider<NextShuttle> {
   /// 갱신은 `ref.read(shuttleClockProvider.notifier).refresh()`로 한다.
   ///
   /// 정왕역 ↔ 제2캠퍼스는 직행이 남아 있지 않아도 본교 환승 연결이 있으면
-  /// "운행 종료" 대신 가장 빠른 환승편을 안내한다.
+  /// "운행 종료"·"운행 안함" 대신 가장 빠른 환승편을 안내한다.
   ///
   /// Copied from [nextShuttle].
   NextShuttleProvider({

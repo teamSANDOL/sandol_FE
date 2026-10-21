@@ -170,6 +170,16 @@ void main() {
     expect(tight, findsOneWidget);
   });
 
+  testWidgets('평일 제2캠퍼스 → 정왕역은 직행 없음 · 환승 이용', (tester) async {
+    await pump(tester, DateTime.utc(2026, 10, 6, 9, 0));
+    await tester.tap(find.byTooltip('출발 정류장 선택'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('제2캠퍼스'));
+    await tester.pumpAndSettle();
+    expect(find.text('직행 없음 · 환승 이용'), findsOneWidget);
+    expect(find.text('09:40 출발 → 본교 10:00 환승'), findsOneWidget);
+  });
+
   testWidgets('직행도 환승도 없으면 운행 종료', (tester) async {
     await pump(tester, DateTime.utc(2026, 10, 6, 20, 0));
     await tester.tap(find.byTooltip('출발 정류장 선택'));

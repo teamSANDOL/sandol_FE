@@ -214,7 +214,7 @@ ShuttleTimetable? shuttleTimetable(
 /// 갱신은 `ref.read(shuttleClockProvider.notifier).refresh()`로 한다.
 ///
 /// 정왕역 ↔ 제2캠퍼스는 직행이 남아 있지 않아도 본교 환승 연결이 있으면
-/// "운행 종료" 대신 가장 빠른 환승편을 안내한다.
+/// "운행 종료"·"운행 안함" 대신 가장 빠른 환승편을 안내한다.
 @riverpod
 NextShuttle nextShuttle(
   Ref ref, {
@@ -232,7 +232,11 @@ NextShuttle nextShuttle(
   return NextShuttle(
     // 남은 분이 없으니 머리글은 statusLabel 이고, 강조색(운행 중)으로 보인다.
     status: ShuttleStatus.upcoming,
-    statusLabel: '직행 종료 · 환승 이용',
+    // 그날 직행편이 원래 없으면(미운행) "직행 없음", 다 지났으면 "직행 종료".
+    statusLabel:
+        direct.status == ShuttleStatus.notOperating
+            ? '직행 없음 · 환승 이용'
+            : '직행 종료 · 환승 이용',
     subText: '${c.departure.label} 출발 → 본교 ${c.transfer.label} 환승',
   );
 }
