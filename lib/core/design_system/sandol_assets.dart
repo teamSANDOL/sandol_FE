@@ -100,5 +100,5 @@ abstract final class SandolAssets {
   static const navMeal = '$_home/nav_meal.svg';
   static const navBus = '$_home/nav_bus.svg';
   static const navNotice = '$_home/nav_notice.svg';
-  static const navEmptyClass = '$_home/nav_empty_class.svg';
+  static const navMap = '$_home/nav_map.svg'; // 2086:39 '맵' (Lucide map)
 }

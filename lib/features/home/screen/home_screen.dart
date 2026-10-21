@@ -126,11 +126,11 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                     child: EmptyClassTimelineCard(
                       maxItems: 3,
                       onBuildingTap: (name) {
-                        // 상세 지도가 열리면 이 건물로 시트를 올린다.
+                        // 맵 탭이 열리면 이 건물의 빈 강의실 현황을 띄운다.
                         ref
                             .read(emptyClassFocusControllerProvider.notifier)
                             .request(name);
-                        _goBranch(RootShell.emptyClassBranch);
+                        _goBranch(RootShell.mapBranch);
                       },
                     ),
                   ),

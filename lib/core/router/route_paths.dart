@@ -13,7 +13,7 @@ abstract class RoutePaths {
   static const meal = '/meal'; // 1
   static const bus = '/bus'; // 2
   static const notice = '/notice'; // 3
-  static const emptyClass = '/empty-class'; // 4
+  static const map = '/map'; // 4
 
   // ── 탭 하위 상세 ────────────────────────────────────────────
   // 각 탭 브랜치 안에 있어 진입해도 바텀네비가 유지된다.
