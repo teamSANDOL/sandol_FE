@@ -1,4 +1,6 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:handori/common/component/sandol_card.dart';
 import 'package:handori/common/component/sandol_chip.dart';
@@ -6,9 +8,6 @@ import 'package:handori/core/design_system/sandol_tokens.dart';
 import 'package:handori/features/school_meal/presentation/model/restaurant_menu.dart';
 import 'package:handori/features/school_meal/presentation/provider/selected_restaurant_id_notifier.dart';
 import 'package:handori/shared/widget/remote_image.dart';
-
-/// 스와이프 판정 최소 가로 속도(px/s). 이보다 느린 드래그는 무시한다.
-const _kSwipeVelocity = 200.0;
 
 class HomeMealSection extends ConsumerStatefulWidget {
   final List<RestaurantMenu> menus;
@@ -21,9 +20,14 @@ class HomeMealSection extends ConsumerStatefulWidget {
 }
 
 class _HomeMealSectionState extends ConsumerState<HomeMealSection> {
-  /// 카드 전환 애니메이션 방향. 1이면 다음 식당(오른쪽에서 등장),
-  /// -1이면 이전 식당(왼쪽에서 등장).
-  int _slideDirection = 1;
+  late final PageController _controller;
+
+  /// provider 변경에 따른 `animateToPage` 진행 중 여부. 이동 중 지나치는 중간
+  /// 페이지의 `onPageChanged`가 선택을 되돌려 쓰는 피드백 루프를 막는다.
+  bool _animating = false;
+
+  /// 식당 ID → 카드 실측 높이. 드래그 중 높이 보간에 쓴다.
+  final Map<int, double> _heights = {};
 
   /// 식당 ID → 칩 위젯 키. 선택된 칩이 스크롤 영역 밖에 있을 때
   /// `Scrollable.ensureVisible`로 찾아가기 위해 보관한다.
@@ -31,6 +35,13 @@ class _HomeMealSectionState extends ConsumerState<HomeMealSection> {
 
   GlobalKey _chipKey(int restaurantId) =>
       _chipKeys.putIfAbsent(restaurantId, () => GlobalKey());
+
+  /// 선택된 식당의 menus 내 위치. 선택이 없거나 목록에 없으면 0.
+  int _selectedIndex() {
+    final id = ref.read(selectedRestaurantIdProvider);
+    final i = widget.menus.indexWhere((m) => m.restaurant.id == id);
+    return i < 0 ? 0 : i;
+  }
 
   /// 선택된 칩이 칩 목록 스크롤 영역 밖에 있으면 보이는 위치로 스크롤한다.
   void _revealChip(int restaurantId) {
@@ -49,6 +60,8 @@ class _HomeMealSectionState extends ConsumerState<HomeMealSection> {
   @override
   void initState() {
     super.initState();
+    // 상세 페이지에서 고른 식당 카드에서 바로 시작한다.
+    _controller = PageController(initialPage: _selectedIndex());
     // 상세 페이지에서 먼 식당을 고르고 돌아온 경우 첫 프레임에 칩을 노출한다.
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final id = ref.read(selectedRestaurantIdProvider);
@@ -56,12 +69,74 @@ class _HomeMealSectionState extends ConsumerState<HomeMealSection> {
     });
   }
 
-  void _select(int from, int to) {
-    if (to == from || to < 0 || to >= widget.menus.length) return;
-    setState(() => _slideDirection = to > from ? 1 : -1);
+  @override
+  void didUpdateWidget(HomeMealSection oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    // 식당 목록 구성이 바뀌면 선택 식당의 새 위치로 옮긴다.
+    final ids = widget.menus.map((m) => m.restaurant.id).toList();
+    final oldIds = oldWidget.menus.map((m) => m.restaurant.id).toList();
+    if (!listEquals(ids, oldIds)) {
+      _heights.removeWhere((id, _) => !ids.contains(id));
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted && _controller.hasClients) {
+          _controller.jumpToPage(_selectedIndex());
+        }
+      });
+    }
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  /// 칩 탭·페이지 이동으로 선택이 바뀌면 이 식당을 provider에 반영한다.
+  void _select(int index) {
+    if (index < 0 || index >= widget.menus.length) return;
     ref
         .read(selectedRestaurantIdProvider.notifier)
-        .select(widget.menus[to].restaurant.id);
+        .select(widget.menus[index].restaurant.id);
+  }
+
+  /// provider가 바뀌었을 때 컨트롤러를 해당 페이지로 옮긴다. 이미 그 페이지거나
+  /// 손가락으로 드래그해 도착한 경우에는 아무것도 하지 않는다.
+  Future<void> _syncPage(int? id) async {
+    final index = widget.menus.indexWhere((m) => m.restaurant.id == id);
+    if (index < 0 || !_controller.hasClients) return;
+    if ((_controller.page ?? index.toDouble()).round() == index) return;
+    _animating = true;
+    try {
+      await _controller.animateToPage(
+        index,
+        duration: const Duration(milliseconds: 250),
+        curve: Curves.easeInOut,
+      );
+    } finally {
+      _animating = false;
+    }
+  }
+
+  void _setHeight(int restaurantId, double height) {
+    if (!mounted || _heights[restaurantId] == height) return;
+    setState(() => _heights[restaurantId] = height);
+  }
+
+  /// 현재 스크롤 위치(`page`)에서 이웃한 두 카드 높이를 선형 보간한 값.
+  /// 측정 전이면 null.
+  double? _interpolatedHeight() {
+    final menus = widget.menus;
+    final position = _controller.hasClients ? _controller.position : null;
+    final page =
+        position != null && position.haveDimensions
+            ? _controller.page!
+            : _selectedIndex().toDouble();
+    final lo = page.floor().clamp(0, menus.length - 1);
+    final hi = (lo + 1).clamp(0, menus.length - 1);
+    final h1 = _heights[menus[lo].restaurant.id];
+    final h2 = _heights[menus[hi].restaurant.id];
+    if (h1 == null || h2 == null) return h1 ?? h2;
+    return h1 + (h2 - h1) * (page - lo).clamp(0.0, 1.0);
   }
 
   @override
@@ -75,11 +150,13 @@ class _HomeMealSectionState extends ConsumerState<HomeMealSection> {
     var selected = menus.indexWhere((m) => m.restaurant.id == selectedId);
     if (selected < 0) selected = 0;
 
-    final menu = menus[selected];
-
-    // 스와이프·상세 페이지 등 어디서 선택이 바뀌어도 해당 칩이 보이게 스크롤한다.
+    // 스와이프·상세 페이지 등 어디서 선택이 바뀌어도 해당 칩이 보이게 스크롤하고
+    // 카드 페이지도 맞춘다.
     ref.listen(selectedRestaurantIdProvider, (previous, next) {
-      if (next != null && next != previous) _revealChip(next);
+      if (next != null && next != previous) {
+        _revealChip(next);
+        _syncPage(next);
+      }
     });
 
     return Column(
@@ -101,7 +178,7 @@ class _HomeMealSectionState extends ConsumerState<HomeMealSection> {
                     key: _chipKey(menus[i].restaurant.id),
                     label: menus[i].name,
                     selected: i == selected,
-                    onTap: () => _select(selected, i),
+                    onTap: () => _select(i),
                   ),
               ],
             ),
@@ -110,66 +187,88 @@ class _HomeMealSectionState extends ConsumerState<HomeMealSection> {
 
         const SizedBox(height: SandolSpacing.sm),
 
-        // 선택된 식당 메뉴 카드 — 좌우 스와이프로 식당 전환
-        GestureDetector(
-          onTap: () {
-            // 상세 페이지가 동일한 식당으로 진입하도록 현재 선택 ID를 확정한다.
-            ref
-                .read(selectedRestaurantIdProvider.notifier)
-                .select(menu.restaurant.id);
-            widget.onTap?.call();
+        // 식당 메뉴 카드 — PageView가 손가락을 따라 움직이고, 높이는 이웃한
+        // 두 카드 높이를 page 값으로 보간한다.
+        AnimatedBuilder(
+          animation: _controller,
+          builder: (context, child) {
+            final height = _interpolatedHeight();
+            // 측정 전 첫 프레임은 높이 0으로 두고 숨겨 깜빡임을 막는다.
+            return Opacity(
+              opacity: height == null ? 0 : 1,
+              child: SizedBox(height: height ?? 0, child: child),
+            );
           },
-          onHorizontalDragEnd: (details) {
-            final velocity = details.primaryVelocity ?? 0;
-            if (velocity < -_kSwipeVelocity) {
-              _select(selected, selected + 1);
-            } else if (velocity > _kSwipeVelocity) {
-              _select(selected, selected - 1);
-            }
-          },
-          child: AnimatedSize(
-            duration: const Duration(milliseconds: 250),
-            curve: Curves.easeInOut,
-            alignment: Alignment.topCenter,
-            child: AnimatedSwitcher(
-              duration: const Duration(milliseconds: 250),
-              switchInCurve: Curves.easeOut,
-              switchOutCurve: Curves.easeIn,
-              transitionBuilder: (child, animation) {
-                // 새로 들어오는 카드는 스와이프 방향에서, 나가는 카드는 반대쪽으로.
-                final incoming = child.key == ValueKey(menu.restaurant.id);
-                final begin = Offset(
-                  (incoming ? 0.25 : -0.25) * _slideDirection,
-                  0,
-                );
-                return FadeTransition(
-                  opacity: animation,
-                  child: SlideTransition(
-                    position: Tween<Offset>(
-                      begin: begin,
-                      end: Offset.zero,
-                    ).animate(animation),
-                    child: child,
+          child: PageView.builder(
+            controller: _controller,
+            // 카드 그림자가 잘리지 않게 하고, 이웃 카드 높이를 미리 재도록
+            // 양옆 한 화면만큼 미리 빌드한다.
+            clipBehavior: Clip.none,
+            allowImplicitScrolling: true,
+            scrollCacheExtent: const ScrollCacheExtent.viewport(1),
+            itemCount: menus.length,
+            onPageChanged: (index) {
+              if (!_animating) _select(index);
+            },
+            itemBuilder: (context, index) {
+              final menu = menus[index];
+              return OverflowBox(
+                alignment: Alignment.topCenter,
+                minHeight: 0,
+                maxHeight: double.infinity,
+                child: _HeightReporter(
+                  onHeight: (h) => _setHeight(menu.restaurant.id, h),
+                  child: GestureDetector(
+                    onTap: () {
+                      // 상세 페이지가 동일한 식당으로 진입하도록 선택 ID를 확정한다.
+                      _select(index);
+                      widget.onTap?.call();
+                    },
+                    child: _MealMenuCard(menu: menu),
                   ),
-                );
-              },
-              layoutBuilder:
-                  (currentChild, previousChildren) => Stack(
-                    alignment: Alignment.topCenter,
-                    children: [
-                      ...previousChildren,
-                      if (currentChild != null) currentChild,
-                    ],
-                  ),
-              child: _MealMenuCard(
-                key: ValueKey(menu.restaurant.id),
-                menu: menu,
-              ),
-            ),
+                ),
+              );
+            },
           ),
         ),
       ],
     );
+  }
+}
+
+/// 자식의 레이아웃 높이가 바뀔 때마다 [onHeight]로 알린다(레이아웃 중 setState를
+/// 피하려고 다음 프레임에 호출).
+class _HeightReporter extends SingleChildRenderObjectWidget {
+  final ValueChanged<double> onHeight;
+
+  const _HeightReporter({required this.onHeight, required super.child});
+
+  @override
+  RenderObject createRenderObject(BuildContext context) =>
+      _RenderHeightReporter(onHeight);
+
+  @override
+  void updateRenderObject(
+    BuildContext context,
+    _RenderHeightReporter renderObject,
+  ) => renderObject.onHeight = onHeight;
+}
+
+class _RenderHeightReporter extends RenderProxyBox {
+  _RenderHeightReporter(this.onHeight);
+
+  ValueChanged<double> onHeight;
+  double? _last;
+
+  @override
+  void performLayout() {
+    super.performLayout();
+    final h = size.height;
+    if (h == _last) return;
+    _last = h;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (attached) onHeight(h);
+    });
   }
 }
 
@@ -178,7 +277,7 @@ class _HomeMealSectionState extends ConsumerState<HomeMealSection> {
 class _MealMenuCard extends StatelessWidget {
   final RestaurantMenu menu;
 
-  const _MealMenuCard({required this.menu, super.key});
+  const _MealMenuCard({required this.menu});
 
   static const double _photoHeight = 125;
 
