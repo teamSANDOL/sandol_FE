@@ -148,11 +148,15 @@ class _TreeCard extends StatelessWidget {
     vertical: 32,
   );
 
+  /// 시안 Frame 2147234888의 모서리
+  static const _radius = BorderRadius.all(Radius.circular(16));
+
   @override
   Widget build(BuildContext context) {
     final units = root.children.whereType<OrganizationUnitNode>();
     final groups = root.children.whereType<OrganizationGroupNode>();
     return SandolCard(
+      borderRadius: _radius,
       padding: _padding,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -180,6 +184,7 @@ class _SearchResultCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => SandolCard(
+    borderRadius: _TreeCard._radius,
     padding: _TreeCard._padding,
     child:
         results.isEmpty

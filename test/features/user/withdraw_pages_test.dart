@@ -71,7 +71,7 @@ void main() {
     expect(enabled(tester, '다음 단계로'), isFalse);
     expect(find.byType(TextField), findsNothing);
 
-    await tester.tap(find.text('타 어플이 더 편해요(ex. tukorea portal)'));
+    await tester.tap(find.text('타 앱이 더 편해요(ex. tukorea portal)'));
     await tester.pumpAndSettle();
     expect(find.byType(TextField), findsOneWidget);
     expect(enabled(tester, '다음 단계로'), isTrue);

@@ -128,7 +128,7 @@ class _FarewellCard extends StatelessWidget {
     child: Column(
       spacing: 9,
       children: [
-        Text('정말로 떠나실 건가요?', style: SandolTypography.title.onPrimary),
+        Text('정말로 떠나실 건가요?', style: SandolTypography.title.accent),
         SvgPicture.asset(SandolAssets.myWithdrawMascot),
       ],
     ),

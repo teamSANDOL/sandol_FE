@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:handori/core/design_system/sandol_tokens.dart';
 
-/// 새 디자인의 카드 틀: 배경 + 36% 테두리 + 12 모서리 + 옅은 그림자.
+/// 새 디자인의 카드 틀: 배경 + 테두리 + 12 모서리 + 옅은 그림자.
 ///
 /// 안쪽 사진·헤더 띠가 모서리를 넘지 않게 항상 잘라내고, 테두리는 그 위에
 /// 그린다. 그림자는 잘리지 않도록 잘라내는 Material 바깥에 둔다.
@@ -13,6 +13,7 @@ class SandolCard extends StatelessWidget {
     this.padding,
     this.color = SandolColors.background,
     this.borderColor = SandolColors.border,
+    this.borderRadius = SandolMetrics.radius,
     this.onTap,
   });
 
@@ -20,8 +21,11 @@ class SandolCard extends StatelessWidget {
   final EdgeInsetsGeometry? padding;
   final Color color;
 
-  /// 기본은 36% 테두리. 공지 목록처럼 primary 테두리를 쓰는 카드가 바꾼다.
+  /// 기본은 회색 테두리. 공지 목록처럼 primary 테두리를 쓰는 카드가 바꾼다.
   final Color borderColor;
+
+  /// 기본은 12. 조직도 카드처럼 시안이 16을 쓰는 카드가 바꾼다.
+  final BorderRadius borderRadius;
   final VoidCallback? onTap;
 
   @override
@@ -29,14 +33,14 @@ class SandolCard extends StatelessWidget {
     final content =
         padding == null ? child : Padding(padding: padding!, child: child);
     return DecoratedBox(
-      decoration: const BoxDecoration(
-        borderRadius: SandolMetrics.radius,
+      decoration: BoxDecoration(
+        borderRadius: borderRadius,
         boxShadow: SandolShadows.card,
       ),
       child: Material(
         color: color,
         shape: RoundedRectangleBorder(
-          borderRadius: SandolMetrics.radius,
+          borderRadius: borderRadius,
           side: BorderSide(color: borderColor),
         ),
         clipBehavior: Clip.antiAlias,

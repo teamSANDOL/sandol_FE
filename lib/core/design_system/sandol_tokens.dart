@@ -12,7 +12,7 @@ abstract final class SandolColors {
   static const field = Color(0x333882D3);
 
   /// 카드 · 입력 필드 공용 테두리
-  static const border = Color(0x5C214A77);
+  static const border = Color(0xFFD5DAE5);
   static const fieldBorder = border;
   static const link = Color(0xCC3882D3);
   static const error = AppColors.danger;
@@ -97,10 +97,10 @@ extension SandolTextStyleX on TextStyle {
   TextStyle get inactive => copyWith(color: SandolColors.inactive);
 }
 
-/// 개편 전 홈 카드에 쓰던 그림자를 그대로 이어 쓴다.
+/// 카드 그림자. primary 10%, blur 4 (Figma DROP_SHADOW).
 abstract final class SandolShadows {
   static const card = [
-    BoxShadow(color: Color(0x0A000000), blurRadius: 8, offset: Offset(0, 4)),
+    BoxShadow(color: Color(0x1A3882D3), blurRadius: 4, offset: Offset(0, 4)),
   ];
 }
 

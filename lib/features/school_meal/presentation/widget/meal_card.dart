@@ -205,6 +205,7 @@ class _MealMenuCard extends StatelessWidget {
                 vertical: SandolSpacing.md,
               ),
               child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 spacing: SandolSpacing.sm,
                 children: [
                   Row(
@@ -212,13 +213,13 @@ class _MealMenuCard extends StatelessWidget {
                       Expanded(
                         child: Text(
                           menu.name,
-                          style: SandolTypography.caption.strong,
+                          style: SandolTypography.caption,
                         ),
                       ),
                       if (price != null)
                         Text(
                           '${price ~/ 1000},${(price % 1000).toString().padLeft(3, '0')}원',
-                          style: SandolTypography.caption.strong,
+                          style: SandolTypography.caption.accent,
                         ),
                     ],
                   ),
@@ -226,11 +227,7 @@ class _MealMenuCard extends StatelessWidget {
                     Text('오늘은 운영하지 않아요', style: SandolTypography.caption.muted)
                   else
                     for (final item in items)
-                      Text(
-                        item,
-                        style: SandolTypography.caption,
-                        textAlign: TextAlign.center,
-                      ),
+                      Text(item, style: SandolTypography.caption),
                 ],
               ),
             ),

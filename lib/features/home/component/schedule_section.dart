@@ -1,5 +1,3 @@
-import 'dart:math' as math;
-
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:handori/common/component/sandol_card.dart';
@@ -62,10 +60,8 @@ class ScheduleSection extends StatelessWidget {
             size: _closeSize,
             background: SandolColors.primarySoft,
             onTap: onClose,
-            icon: Transform.rotate(
-              angle: math.pi / 4,
-              child: SvgPicture.asset(SandolAssets.close),
-            ),
+            // 시안(Frame 2147235019)의 '+'. 동작은 시안에 없어 기존 X 그대로.
+            icon: SvgPicture.asset(SandolAssets.close),
           ),
         ),
       ],
@@ -85,44 +81,68 @@ class _ScheduleCard extends StatelessWidget {
   final DateTime today;
   final VoidCallback onDetail;
 
+  /// 시안 Frame 2147234779의 파랑 그라데이션
+  static const _gradient = LinearGradient(
+    colors: [SandolColors.primary, Color(0xFF5FA8EA)],
+  );
+
   @override
   Widget build(BuildContext context) => SandolCard(
-    padding: const EdgeInsets.fromLTRB(
-      SandolMetrics.cardInset,
-      SandolSpacing.md,
-      SandolMetrics.cardInset,
-      SandolSpacing.md,
-    ),
-    child: Column(
-      crossAxisAlignment: CrossAxisAlignment.end,
-      children: [
-        Row(
+    color: SandolColors.primary,
+    child: DecoratedBox(
+      decoration: const BoxDecoration(gradient: _gradient),
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(
+          SandolMetrics.cardInset,
+          SandolSpacing.md,
+          SandolMetrics.cardInset,
+          SandolSpacing.md,
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.end,
           children: [
-            Expanded(
-              child: Padding(
-                padding: const EdgeInsets.all(10),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    SvgPicture.asset(SandolAssets.star),
-                    const SizedBox(height: 10),
-                    Text(
-                      event.title,
-                      style: SandolTypography.headline,
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
+            Row(
+              children: [
+                Expanded(
+                  child: Padding(
+                    padding: const EdgeInsets.all(10),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        SvgPicture.asset(
+                          SandolAssets.star,
+                          colorFilter: const ColorFilter.mode(
+                            SandolColors.background,
+                            BlendMode.srcIn,
+                          ),
+                        ),
+                        const SizedBox(height: 10),
+                        Text(
+                          event.title,
+                          style: SandolTypography.headline.onPrimary,
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        const SizedBox(height: SandolSpacing.xs),
+                        Text(
+                          event.periodLabel,
+                          style: SandolTypography.body.copyWith(
+                            color: SandolColors.background.withValues(
+                              alpha: 0.85,
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
-                    const SizedBox(height: SandolSpacing.xs),
-                    Text(event.periodLabel, style: SandolTypography.body),
-                  ],
+                  ),
                 ),
-              ),
+                _DDayBadge(label: event.dDayOn(today)),
+              ],
             ),
-            _DDayBadge(label: event.dDayOn(today)),
+            _DetailLink(onTap: onDetail, onGradient: true),
           ],
         ),
-        _DetailLink(onTap: onDetail),
-      ],
+      ),
     ),
   );
 }
@@ -213,11 +233,17 @@ class _SleepingMascot extends StatelessWidget {
   );
 }
 
+/// 그라데이션 카드 위 글씨 · 아이콘색 (시안: 흰색 90%)
+const Color _onGradient = Color(0xE6FDFDFD);
+
 /// 오른쪽 아래 '자세히보기 >'
 class _DetailLink extends StatelessWidget {
-  const _DetailLink({required this.onTap});
+  const _DetailLink({required this.onTap, this.onGradient = false});
 
   final VoidCallback onTap;
+
+  /// 파랑 그라데이션 카드 위(시안: 흰색 90%)에 놓이면 true
+  final bool onGradient;
 
   @override
   Widget build(BuildContext context) => InkWell(
@@ -226,9 +252,20 @@ class _DetailLink extends StatelessWidget {
     child: Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Text('자세히보기', style: SandolTypography.caption.muted),
+        Text(
+          '자세히보기',
+          style:
+              onGradient
+                  ? SandolTypography.caption.copyWith(color: _onGradient)
+                  : SandolTypography.caption.muted,
+        ),
         const SizedBox(width: SandolSpacing.sm),
-        const SandolChevron(muted: true),
+        onGradient
+            ? const ColorFiltered(
+              colorFilter: ColorFilter.mode(_onGradient, BlendMode.srcIn),
+              child: SandolChevron(),
+            )
+            : const SandolChevron(muted: true),
       ],
     ),
   );
@@ -247,14 +284,14 @@ class _DDayBadge extends StatelessWidget {
     height: _size,
     padding: const EdgeInsets.all(SandolSpacing.xs),
     decoration: const BoxDecoration(
-      color: SandolColors.primary,
+      color: SandolColors.background,
       shape: BoxShape.circle,
     ),
     alignment: Alignment.center,
     // 'D-Day'처럼 긴 라벨도 원 안에 들어가게 줄인다.
     child: FittedBox(
       fit: BoxFit.scaleDown,
-      child: Text(label, style: SandolTypography.title.onPrimary),
+      child: Text(label, style: SandolTypography.title),
     ),
   );
 }
