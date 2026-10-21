@@ -1,5 +1,6 @@
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:handori/core/constants/api_constants.dart';
@@ -12,7 +13,8 @@ part 'meal_dio_provider.g.dart';
 Dio mealDio(Ref ref) {
   final dio = Dio(
     BaseOptions(
-      baseUrl: ApiConstants.mealBaseUrl,
+      // .env 의 API_BASE_URL 로 오버라이드 가능 (테스트 서버용). 기본은 프로덕션.
+      baseUrl: dotenv.maybeGet('API_BASE_URL') ?? ApiConstants.mealBaseUrl,
       connectTimeout: const Duration(seconds: 10),
       receiveTimeout: const Duration(seconds: 10),
       contentType: 'application/json',
