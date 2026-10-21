@@ -12,6 +12,7 @@ import 'package:handori/features/notice/domain/model/shuttle.dart';
 import 'package:handori/features/notice/presentation/provider/notice_bookmark_provider.dart';
 import 'package:handori/features/notice/presentation/provider/notice_filter.dart';
 import 'package:handori/features/notice/presentation/provider/notice_provider.dart';
+import 'package:handori/features/notice/presentation/provider/notice_seen_provider.dart';
 import 'package:handori/features/notice/presentation/widget/notice_card.dart';
 import 'package:handori/features/notice/presentation/widget/notice_style.dart';
 import 'package:handori/features/notice/presentation/widget/shuttle_card.dart';
@@ -31,14 +32,52 @@ class NoticePage extends ConsumerStatefulWidget {
   ConsumerState<NoticePage> createState() => _NoticePageState();
 }
 
-class _NoticePageState extends ConsumerState<NoticePage> {
+class _NoticePageState extends ConsumerState<NoticePage>
+    with WidgetsBindingObserver {
   final _searchController = TextEditingController();
   NoticeFilter _filter = NoticeFilter.all;
+  bool _active = true;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+  }
+
+  /// 다른 탭으로 옮기면(셸이 이 탭의 TickerMode 를 끈다) 목록을 떠난 것이다.
+  /// 탭 화면은 앱이 끝날 때까지 트리에 남으므로 dispose 에서는 따로 남기지 않는다
+  /// (그때는 ProviderScope 가 먼저 정리돼 ref 를 못 쓰고, 앱 종료 전엔 paused 가 온다).
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final active = TickerMode.valuesOf(context).enabled;
+    if (_active && !active) _markSeen();
+    _active = active;
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.paused) _markSeen();
+  }
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     _searchController.dispose();
     super.dispose();
+  }
+
+  /// 지금 불러와 있는 공지(전체 · 생활관)를 '본 공지'로 남긴다.
+  /// 이번 방문 동안은 NEW 가 그대로 보이고, 다음 방문부터 사라진다.
+  void _markSeen() {
+    final loaded = [
+      for (final dormitory in const [false, true])
+        ...?ref
+            .read(noticeListNotifierProvider(isDormitory: dormitory))
+            .valueOrNull
+            ?.items,
+    ];
+    ref.read(noticeSeenProvider.notifier).markSeen(loaded);
   }
 
   @override
@@ -392,6 +431,8 @@ class _NoticeListView extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final bookmarks = ref.watch(noticeBookmarksProvider);
+    ref.watch(noticeSeenProvider); // 본 공지 기록이 바뀌면 NEW 를 다시 그린다.
+    final seen = ref.read(noticeSeenProvider.notifier);
     final list = ListView(
       controller: controller,
       physics: const AlwaysScrollableScrollPhysics(),
@@ -421,6 +462,7 @@ class _NoticeListView extends ConsumerWidget {
                 NoticeCard(
                   notice: notice,
                   saved: bookmarks.any((b) => b.id == notice.id),
+                  isNew: seen.isNew(notice),
                   onToggleSaved:
                       () => ref
                           .read(noticeBookmarksProvider.notifier)
