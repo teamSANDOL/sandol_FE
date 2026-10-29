@@ -83,9 +83,7 @@ class _ScheduleCard extends StatelessWidget {
   final VoidCallback onDetail;
 
   /// 시안 Frame 2147234779의 파랑 그라데이션
-  static const _gradient = LinearGradient(
-    colors: [SandolColors.primary, Color(0xFF5FA8EA)],
-  );
+  static const _gradient = SandolGradients.primaryCard;
 
   @override
   Widget build(BuildContext context) => SandolCard(

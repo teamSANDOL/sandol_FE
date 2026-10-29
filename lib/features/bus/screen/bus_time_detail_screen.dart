@@ -75,69 +75,72 @@ class _BusTimeDetailScreenState extends ConsumerState<BusTimeDetailScreen> {
     final needsReview =
         ref.watch(shuttleScheduleSourceProvider)?.needsReview ?? false;
 
-    return Scaffold(
-      backgroundColor: SandolColors.background,
-      appBar: AppTopBar(
-        title: '셔틀버스',
-        titleWidget: const Text('셔틀버스', style: SandolTypography.title),
-        backIcon: SvgPicture.asset(SandolAssets.backArrow),
-        onBack:
-            () => StatefulNavigationShell.of(
-              context,
-            ).goBranch(RootShell.homeBranch),
-        backgroundColor: SandolColors.background,
-        // 뒤로가기 버튼(44) 안의 아이콘(24)이 본문 여백(33)에 맞게
-        horizontalPadding: SandolMetrics.pageGutter - 10,
-      ),
-      body: Stack(
-        children: [
-          const SandolBottomGlow(),
-          RefreshIndicator(
-            color: SandolColors.primary,
-            backgroundColor: SandolColors.background,
-            onRefresh: _refresh,
-            child: ListView(
-              physics: const AlwaysScrollableScrollPhysics(),
-              padding: const EdgeInsets.fromLTRB(
-                SandolMetrics.pageGutter,
-                SandolSpacing.md,
-                SandolMetrics.pageGutter,
-                SandolSpacing.xl,
-              ),
-              children: [
-                _RouteCard(
-                  direction: direction,
-                  stops: stops,
-                  onSwap: () => _select(direction.reversed),
-                  onSelect: _select,
+    return DecoratedBox(
+      decoration: const BoxDecoration(gradient: SandolGradients.shuttle),
+      child: Scaffold(
+        backgroundColor: Colors.transparent,
+        appBar: AppTopBar(
+          title: '셔틀버스',
+          titleWidget: const Text('셔틀버스', style: SandolTypography.title),
+          backIcon: SvgPicture.asset(SandolAssets.backArrow),
+          onBack:
+              () => StatefulNavigationShell.of(
+                context,
+              ).goBranch(RootShell.homeBranch),
+          backgroundColor: Colors.transparent,
+          // 뒤로가기 버튼(44) 안의 아이콘(24)이 본문 여백(33)에 맞게
+          horizontalPadding: SandolMetrics.pageGutter - 10,
+        ),
+        body: Stack(
+          children: [
+            const SandolBottomGlow(),
+            RefreshIndicator(
+              color: SandolColors.primary,
+              backgroundColor: SandolColors.background,
+              onRefresh: _refresh,
+              child: ListView(
+                physics: const AlwaysScrollableScrollPhysics(),
+                padding: const EdgeInsets.fromLTRB(
+                  SandolMetrics.pageGutter,
+                  SandolSpacing.md,
+                  SandolMetrics.pageGutter,
+                  SandolSpacing.xl,
                 ),
-                const SizedBox(height: SandolSpacing.xl),
-                _NextBusCard(next: next, onRefresh: _refresh),
-                if (transfers != null) ...[
-                  const SizedBox(height: SandolSpacing.xl),
-                  _TransferCard(
-                    school: stops['main_campus']!.name,
-                    connections: transfers,
+                children: [
+                  _RouteCard(
+                    direction: direction,
+                    stops: stops,
+                    onSwap: () => _select(direction.reversed),
+                    onSelect: _select,
                   ),
+                  const SizedBox(height: SandolSpacing.xl),
+                  _NextBusCard(next: next, onRefresh: _refresh),
+                  if (transfers != null) ...[
+                    const SizedBox(height: SandolSpacing.xl),
+                    _TransferCard(
+                      school: stops['main_campus']!.name,
+                      connections: transfers,
+                    ),
+                  ],
+                  const SizedBox(height: 48),
+                  _TimetableHeader(
+                    route:
+                        '${stops[direction.origin]!.name} → '
+                        '${stops[direction.destination]!.name}'
+                        '${direction.viaSchool ? ' (${stops['main_campus']!.name} 경유)' : ''}',
+                  ),
+                  const SizedBox(height: 12),
+                  _TimetableCard(
+                    timetable: timetable,
+                    nowMinutes: now.hour * 60 + now.minute,
+                  ),
+                  const SizedBox(height: SandolSpacing.lg),
+                  _FooterNote(lastUpdated: now, needsReview: needsReview),
                 ],
-                const SizedBox(height: 48),
-                _TimetableHeader(
-                  route:
-                      '${stops[direction.origin]!.name} → '
-                      '${stops[direction.destination]!.name}'
-                      '${direction.viaSchool ? ' (${stops['main_campus']!.name} 경유)' : ''}',
-                ),
-                const SizedBox(height: 12),
-                _TimetableCard(
-                  timetable: timetable,
-                  nowMinutes: now.hour * 60 + now.minute,
-                ),
-                const SizedBox(height: SandolSpacing.lg),
-                _FooterNote(lastUpdated: now, needsReview: needsReview),
-              ],
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

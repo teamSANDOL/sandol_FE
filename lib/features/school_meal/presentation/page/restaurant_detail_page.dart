@@ -93,69 +93,73 @@ class _RestaurantDetailPageState extends ConsumerState<RestaurantDetailPage> {
           meals: ref.watch(mealListNotifierProvider(date: dateKey)).valueOrNull,
         );
 
-    return Scaffold(
-      backgroundColor: SandolColors.background,
-      appBar: AppTopBar(
-        title: '학식',
-        titleWidget: const Text('학식', style: SandolTypography.title),
-        backIcon: SvgPicture.asset(SandolAssets.backArrow),
-        onBack:
-            () => StatefulNavigationShell.of(
-              context,
-            ).goBranch(RootShell.homeBranch),
-        backgroundColor: SandolColors.background,
-        // 뒤로가기 버튼(44) 안의 아이콘(24)이 본문 여백(33)에 맞게
-        horizontalPadding: SandolMetrics.pageGutter - 10,
-      ),
-      body: Stack(
-        children: [
-          const SandolBottomGlow(),
-          ListView(
-            padding: const EdgeInsets.fromLTRB(
-              SandolMetrics.pageGutter,
-              SandolSpacing.md,
-              SandolMetrics.pageGutter,
-              SandolSpacing.xl,
+    return DecoratedBox(
+      decoration: const BoxDecoration(gradient: SandolGradients.screen),
+      child: Scaffold(
+        backgroundColor: Colors.transparent,
+        appBar: AppTopBar(
+          title: '학식',
+          titleWidget: const Text('학식', style: SandolTypography.title),
+          backIcon: SvgPicture.asset(SandolAssets.backArrow),
+          onBack:
+              () => StatefulNavigationShell.of(
+                context,
+              ).goBranch(RootShell.homeBranch),
+          backgroundColor: Colors.transparent,
+          // 뒤로가기 버튼(44) 안의 아이콘(24)이 본문 여백(33)에 맞게
+          horizontalPadding: SandolMetrics.pageGutter - 10,
+        ),
+        body: Stack(
+          children: [
+            const SandolBottomGlow(),
+            ListView(
+              padding: const EdgeInsets.fromLTRB(
+                SandolMetrics.pageGutter,
+                SandolSpacing.md,
+                SandolMetrics.pageGutter,
+                SandolSpacing.xl,
+              ),
+              children: [
+                _DateStrip(
+                  today: _today,
+                  selected: _date,
+                  onSelect:
+                      (d) => setState(() {
+                        _date = d;
+                        _picked = null; // 날짜를 바꾸면 기본 끼니 규칙을 다시 적용
+                      }),
+                ),
+                const SizedBox(height: 18),
+                _MealTabs(
+                  selected: mealType,
+                  nowType: isToday ? _nowMealType() : null,
+                  onSelect: (t) => setState(() => _picked = t),
+                ),
+                const SizedBox(height: 20),
+                restaurantsAsync.when(
+                  data:
+                      (restaurants) => _Cards(
+                        restaurants: restaurants,
+                        mealType: mealType,
+                        date: dateKey,
+                      ),
+                  loading:
+                      () => const Padding(
+                        padding: EdgeInsets.only(top: 60),
+                        child: Center(child: SandolLoadingIndicator()),
+                      ),
+                  error:
+                      (e, _) => ErrorRetryView(
+                        title: '식당 정보를 불러올 수 없습니다.',
+                        onRetry:
+                            () =>
+                                ref.invalidate(restaurantListNotifierProvider),
+                      ),
+                ),
+              ],
             ),
-            children: [
-              _DateStrip(
-                today: _today,
-                selected: _date,
-                onSelect:
-                    (d) => setState(() {
-                      _date = d;
-                      _picked = null; // 날짜를 바꾸면 기본 끼니 규칙을 다시 적용
-                    }),
-              ),
-              const SizedBox(height: 18),
-              _MealTabs(
-                selected: mealType,
-                nowType: isToday ? _nowMealType() : null,
-                onSelect: (t) => setState(() => _picked = t),
-              ),
-              const SizedBox(height: 20),
-              restaurantsAsync.when(
-                data:
-                    (restaurants) => _Cards(
-                      restaurants: restaurants,
-                      mealType: mealType,
-                      date: dateKey,
-                    ),
-                loading:
-                    () => const Padding(
-                      padding: EdgeInsets.only(top: 60),
-                      child: Center(child: SandolLoadingIndicator()),
-                    ),
-                error:
-                    (e, _) => ErrorRetryView(
-                      title: '식당 정보를 불러올 수 없습니다.',
-                      onRetry:
-                          () => ref.invalidate(restaurantListNotifierProvider),
-                    ),
-              ),
-            ],
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

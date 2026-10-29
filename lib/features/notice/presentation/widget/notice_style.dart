@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:handori/core/design_system/sandol_tokens.dart';
 
 /// 공지사항 화면(Figma 공지사항2)에서만 쓰는 색. 공용 토큰에는 없는 값이다.
 abstract final class NoticeColors {
@@ -14,11 +15,6 @@ abstract final class NoticeColors {
   /// NEW 배지
   static const badgeNew = Color(0xFFFD7267);
 
-  /// 화면 배경: 위에서 아래로 CFE4FA → E8F0FD(35%) → E7E5FE(83%)
-  static const background = LinearGradient(
-    begin: Alignment.topCenter,
-    end: Alignment.bottomCenter,
-    colors: [Color(0xFFCFE4FA), Color(0xFFE8F0FD), Color(0xFFE7E5FE)],
-    stops: [0, 0.35, 0.83],
-  );
+  /// 화면 배경 (공용 SandolGradients.screen)
+  static const background = SandolGradients.screen;
 }

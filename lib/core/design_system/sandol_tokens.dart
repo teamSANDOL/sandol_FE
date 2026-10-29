@@ -2,6 +2,37 @@ import 'package:flutter/material.dart';
 import 'package:handori/core/constants/app_colors.dart';
 import 'package:handori/core/constants/app_radius.dart';
 
+/// Figma 화면 배경·카드 그라데이션.
+///
+/// 시안의 배경 그라데이션은 맨 위 색의 투명도가 0이고 흰색 위에 겹쳐 있다
+/// (CFE4FA 0% → E8F0FD 35% @72% → E7E5FE 83% @100%). 불투명 색으로 그대로
+/// 옮기면 위쪽이 시안보다 훨씬 파랗게 나와서, 흰색 위에 합성한 값을 쓴다.
+abstract final class SandolGradients {
+  /// 학식 · 공지사항 화면 배경 (위 → 아래)
+  static const screen = LinearGradient(
+    begin: Alignment.topCenter,
+    end: Alignment.bottomCenter,
+    colors: [Color(0xFFFFFFFF), Color(0xFFF7FAFE), Color(0xFFEBE9FE)],
+    stops: [0, 0.7212, 1],
+  );
+
+  /// 셔틀버스 화면 배경. 시안은 흰색 → 8B7CF6을 20%로 깔고 끝점이 화면
+  /// 높이의 2.34배라, 화면 아래끝에서 보라가 약 8.5%만 섞인다.
+  static const shuttle = LinearGradient(
+    begin: Alignment.topCenter,
+    end: Alignment.bottomCenter,
+    colors: [Color(0xFFFEFEFE), Color(0xFFF3F2FC)],
+  );
+
+  /// 홈 주요일정 카드 (Frame 2147234779, 345x142). 오른쪽 아래의 진한 파랑에서
+  /// 왼쪽 위의 밝은 파랑으로 번진다. 시안 변환 행렬에서 구한 시작·끝점이다.
+  static const primaryCard = LinearGradient(
+    begin: Alignment(0.4029, 2.4699),
+    end: Alignment(-1.1724, -1.4264),
+    colors: [SandolColors.primary, Color(0xFF5FA8EA)],
+  );
+}
+
 /// Figma 2142:2334 / 2143:2498 / 2143:2581 / 2143:2624의 공통 토큰.
 /// 새 디자인으로 전환하는 화면은 이 토큰을 사용한다.
 abstract final class SandolColors {
