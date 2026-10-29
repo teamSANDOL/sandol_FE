@@ -30,14 +30,15 @@
 
 | 용도 | URL | 원본 파일 |
 |---|---|---|
-| 개인정보처리방침 | https://sandori.kr/privacy | `docs/privacy-policy.html` |
+| 개인정보처리방침 | https://quanect.kr/policies/sandori-service | 사이트에서 호스팅. `docs/privacy-policy.html`은 초안 사본 |
+| 서비스 이용약관 | https://quanect.kr/policies/terms-of-service | 사이트에서 호스팅 |
 | 계정 삭제 요청 | https://sandori.kr/account-deletion | `docs/account-deletion.html` |
 
 앱 내 진입점: 마이페이지 → "개인정보처리방침", 회원가입 → "개인정보 수집 동의(필수)" 제목 탭.
 앱 내 계정 삭제: 마이페이지 → 회원 탈퇴 (Keycloak Account API DELETE, 기존 구현).
 
 **직접 해야 할 일**
-- [ ] 두 HTML 의 `[담당자 이메일]` 을 실제 팀 연락처로 교체(3곳).
+- [x] 두 HTML 의 `[담당자 이메일]` 을 contact@quanect.kr 로 교체(2026-10-29). 사이트의 방침에도 푸시 토큰·Firebase 항목을 반영할 것.
 - [ ] 백엔드 팀에 확인: 빈 강의실 API 로 보내는 위도·경도를 서버가 저장하지 않는지. 방침 2·3조가 "저장하지 않음"으로 쓰여 있으므로 사실과 다르면 문구 수정.
 - [ ] 회원가입 필드 확인: 방침 1조는 아이디·이름·이메일·생년월일을 적었다. Keycloak 등록 폼과 다르면 맞출 것.
 - [ ] sandori.kr 게이트웨이에 정적 파일 두 개 서빙 (nginx 예: `location = /privacy { alias /srv/docs/privacy-policy.html; }`).
@@ -58,6 +59,7 @@
 | 개인 정보 → 이름 | 수집, 계정 관리, 필수(로그인 시) |
 | 개인 정보 → 이메일 주소 | 수집, 계정 관리, 필수(로그인 시) |
 | 개인 정보 → 사용자 ID | 수집, 계정 관리, 필수(로그인 시) |
+| 기기 또는 기타 ID(푸시 토큰) | 수집, 앱 기능(알림), 선택 |
 | 개인 정보 → 기타(생년월일) | 수집, 계정 관리, 필수(로그인 시) |
 | 앱 활동, 기기 ID, 광고, 분석 | 수집 안 함 |
 | 앱 정보 및 성능 → 진단 | 수집 안 함 (크래시 리포팅 도입 시 "충돌 로그" 추가) |

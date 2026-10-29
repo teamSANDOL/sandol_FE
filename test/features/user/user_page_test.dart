@@ -48,6 +48,7 @@ void main() {
     expect(find.text('회원탈퇴'), findsNothing);
     // 기타: 약관 및 정책 · 앱 버전
     expect(find.text('약관 및 정책'), findsOneWidget);
+    expect(find.text('개인정보처리방침'), findsOneWidget);
     expect(find.text('v1.0.0 • 최신'), findsOneWidget);
     expect(tester.takeException(), isNull);
 

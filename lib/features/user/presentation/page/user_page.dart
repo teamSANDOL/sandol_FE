@@ -137,6 +137,15 @@ class _UserPageState extends ConsumerState<UserPage> {
                     onTap:
                         () => openExternalLink(
                           context,
+                          ApiConstants.termsOfServiceUrl,
+                        ),
+                  ),
+                  _LinkRow(
+                    icon: SandolAssets.myTerms,
+                    label: '개인정보처리방침',
+                    onTap:
+                        () => openExternalLink(
+                          context,
                           ApiConstants.privacyPolicyUrl,
                         ),
                   ),
