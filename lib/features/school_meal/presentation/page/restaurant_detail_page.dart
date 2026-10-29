@@ -13,6 +13,7 @@ import 'package:handori/core/design_system/sandol_tokens.dart';
 import 'package:handori/core/utils/date_formatter.dart';
 import 'package:handori/core/utils/keep_all.dart';
 import 'package:handori/core/utils/korea_time.dart';
+import 'package:handori/features/school_meal/domain/model/meal.dart';
 import 'package:handori/features/school_meal/domain/model/meal_type.dart';
 import 'package:handori/features/school_meal/domain/model/restaurant.dart';
 import 'package:handori/features/school_meal/presentation/model/restaurant_menu.dart';
@@ -37,7 +38,9 @@ class RestaurantDetailPage extends ConsumerStatefulWidget {
 class _RestaurantDetailPageState extends ConsumerState<RestaurantDetailPage> {
   late final DateTime _today = _dateOnly(KoreaTime.now());
   late DateTime _date = _today;
-  late MealType _mealType = _nowMealType();
+
+  /// 사용자가 끼니 탭을 직접 고른 값. null 이면 [_defaultMeal] 규칙을 따른다.
+  MealType? _picked;
 
   static DateTime _dateOnly(DateTime d) => DateTime.utc(d.year, d.month, d.day);
 
@@ -50,9 +53,45 @@ class _RestaurantDetailPageState extends ConsumerState<RestaurantDetailPage> {
     return MealType.dinner;
   }
 
+  /// 기본 끼니. 선택한 날짜에 메뉴가 있는 끼니 중 고른다.
+  ///
+  /// 오늘이면 지금 끼니부터 뒤로(조식→점심→저녁), 없으면 앞쪽으로 돌아 처음 만나는
+  /// 메뉴 있는 끼니. 오늘이 아니면 메뉴 있는 첫 끼니. 하나도 없거나 아직 로딩 전이면
+  /// 지금 끼니(깜빡임 최소: 로드 후 한 번만 보정된다).
+  static MealType _defaultMeal({
+    required bool isToday,
+    required List<Restaurant>? restaurants,
+    required List<Meal>? meals,
+  }) {
+    final now = _nowMealType();
+    if (restaurants == null || meals == null) return now;
+    final available = <MealType>{
+      for (final menu in buildRestaurantMenus(restaurants, meals))
+        for (final slot in menu.slots)
+          if (slot.menu.isNotEmpty) slot.mealType,
+    };
+    const tabs = _MealTabs._tabs;
+    final start = isToday ? tabs.indexOf(now) : 0;
+    for (var i = 0; i < tabs.length; i++) {
+      final type = tabs[(start + i) % tabs.length];
+      if (available.contains(type)) return type;
+    }
+    return now;
+  }
+
   @override
   Widget build(BuildContext context) {
     final restaurantsAsync = ref.watch(restaurantListNotifierProvider);
+    final isToday = _date == _today;
+    // 오늘은 date 없이 두면 notifier 가 오늘(KST)로 해석한다.
+    final dateKey = isToday ? null : DateFormatter.isoDate(_date);
+    final mealType =
+        _picked ??
+        _defaultMeal(
+          isToday: isToday,
+          restaurants: restaurantsAsync.valueOrNull,
+          meals: ref.watch(mealListNotifierProvider(date: dateKey)).valueOrNull,
+        );
 
     return Scaffold(
       backgroundColor: SandolColors.background,
@@ -82,23 +121,25 @@ class _RestaurantDetailPageState extends ConsumerState<RestaurantDetailPage> {
               _DateStrip(
                 today: _today,
                 selected: _date,
-                onSelect: (d) => setState(() => _date = d),
+                onSelect:
+                    (d) => setState(() {
+                      _date = d;
+                      _picked = null; // 날짜를 바꾸면 기본 끼니 규칙을 다시 적용
+                    }),
               ),
               const SizedBox(height: 18),
               _MealTabs(
-                selected: _mealType,
-                nowType: _date == _today ? _nowMealType() : null,
-                onSelect: (t) => setState(() => _mealType = t),
+                selected: mealType,
+                nowType: isToday ? _nowMealType() : null,
+                onSelect: (t) => setState(() => _picked = t),
               ),
               const SizedBox(height: 20),
               restaurantsAsync.when(
                 data:
                     (restaurants) => _Cards(
                       restaurants: restaurants,
-                      mealType: _mealType,
-                      // 오늘은 date 없이 두면 notifier 가 오늘(KST)로 해석한다.
-                      date:
-                          _date == _today ? null : DateFormatter.isoDate(_date),
+                      mealType: mealType,
+                      date: dateKey,
                     ),
                 loading:
                     () => const Padding(

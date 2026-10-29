@@ -50,7 +50,11 @@ void main() {
     ),
   ];
 
-  Future<void> pump(WidgetTester tester) async {
+  Future<void> pump(
+    WidgetTester tester, {
+    List<Meal>? todayMeals,
+    List<Meal> otherDayMeals = const [],
+  }) async {
     tester.view.physicalSize = const Size(412, 1200);
     tester.view.devicePixelRatio = 1;
     addTearDown(tester.view.reset);
@@ -83,7 +87,12 @@ void main() {
           restaurantListNotifierProvider.overrideWith(
             () => _Restaurants([gaga, edong]),
           ),
-          mealListNotifierProvider().overrideWith(() => _Meals(meals)),
+          mealListNotifierProvider().overrideWith(
+            () => _Meals(todayMeals ?? meals),
+          ),
+          mealListNotifierProvider(
+            date: '2026-10-07',
+          ).overrideWith(() => _Meals(otherDayMeals)),
         ],
         child: MaterialApp.router(routerConfig: router),
       ),
@@ -137,4 +146,59 @@ void main() {
       });
     });
   }
+
+  group('기본 끼니 선택', () {
+    void at(int hour) =>
+        KoreaTime.clock =
+            () => DateTime.utc(2026, 10, 6, hour).subtract(KoreaTime.offset);
+    tearDown(() => KoreaTime.clock = DateTime.now);
+
+    final breakfast = Meal(
+      id: 3,
+      restaurantId: 1,
+      mealType: MealType.breakfast,
+      menu: const ['토스트'],
+      restaurantName: gaga.name,
+      registeredAt: DateTime(2026, 10, 6),
+      updatedAt: DateTime(2026, 10, 6),
+    );
+
+    testWidgets('05:00 조식 없음 -> 점심 선택, 조식에 NOW', (tester) async {
+      at(5);
+      await pump(tester);
+      expect(find.text('조식 • NOW'), findsOneWidget);
+      expect(find.text('소고기 하이라이스'.keepAll), findsOneWidget);
+      expect(find.text('식당 1곳'), findsOneWidget);
+    });
+
+    testWidgets('08:00 조식 있음 -> 조식', (tester) async {
+      at(8);
+      await pump(tester, todayMeals: [breakfast, ...meals]);
+      expect(find.text('토스트'.keepAll), findsOneWidget);
+      expect(find.text('소고기 하이라이스'.keepAll), findsNothing);
+    });
+
+    testWidgets('오늘이 아닌 날짜는 메뉴 있는 첫 끼니', (tester) async {
+      at(8);
+      await pump(
+        tester,
+        otherDayMeals: [meals[1]], // 저녁만
+      );
+      await tester.tap(find.textContaining('수\n'));
+      await tester.pumpAndSettle();
+      expect(find.text('김치찌개'.keepAll), findsOneWidget);
+      expect(find.text('조식 • NOW'), findsNothing);
+    });
+
+    testWidgets('직접 고른 끼니는 유지, 날짜를 바꾸면 규칙 재적용', (tester) async {
+      at(5);
+      await pump(tester);
+      await tapTab(tester, '조식');
+      await tester.pumpAndSettle();
+      expect(find.text('식당 0곳'), findsOneWidget);
+      await tester.tap(find.textContaining('수\n'));
+      await tester.pumpAndSettle();
+      expect(find.text('식당 0곳'), findsOneWidget); // 수요일 데이터 없음 -> 현재 끼니(조식)
+    });
+  });
 }
