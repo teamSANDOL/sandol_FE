@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:handori/core/design_system/sandol_assets.dart';
-import 'package:handori/core/design_system/sandol_tokens.dart';
+import 'package:handori/core/design_system/handol_assets.dart';
+import 'package:handori/core/design_system/handol_tokens.dart';
 
 /// 하단 네비 (Figma 2086:23).
 ///
@@ -21,21 +21,21 @@ class AppBottomNav extends StatelessWidget {
   static const _items = [
     (
       label: '홈',
-      icon: SandolAssets.navHome,
-      activeIcon: SandolAssets.navHomeActive,
+      icon: HandolAssets.navHome,
+      activeIcon: HandolAssets.navHomeActive,
     ),
-    (label: '학식', icon: SandolAssets.navMeal, activeIcon: null),
-    (label: '셔틀버스', icon: SandolAssets.navBus, activeIcon: null),
-    (label: '공지사항', icon: SandolAssets.navNotice, activeIcon: null),
-    (label: '맵', icon: SandolAssets.navMap, activeIcon: null),
+    (label: '학식', icon: HandolAssets.navMeal, activeIcon: null),
+    (label: '셔틀버스', icon: HandolAssets.navBus, activeIcon: null),
+    (label: '공지사항', icon: HandolAssets.navNotice, activeIcon: null),
+    (label: '맵', icon: HandolAssets.navMap, activeIcon: null),
   ];
 
   @override
   Widget build(BuildContext context) {
     return DecoratedBox(
       decoration: const BoxDecoration(
-        color: SandolColors.background,
-        borderRadius: SandolMetrics.radiusTop,
+        color: HandolColors.background,
+        borderRadius: HandolMetrics.radiusTop,
       ),
       child: SafeArea(
         top: false,
@@ -86,7 +86,7 @@ class _NavItem extends StatelessWidget {
       (true, null) => SvgPicture.asset(
         icon,
         colorFilter: const ColorFilter.mode(
-          SandolColors.primary,
+          HandolColors.primary,
           BlendMode.srcIn,
         ),
       ),
@@ -103,7 +103,7 @@ class _NavItem extends StatelessWidget {
           child: Column(
             children: [
               SizedBox(height: _iconBox, child: Center(child: glyph)),
-              const SizedBox(height: SandolSpacing.xs),
+              const SizedBox(height: HandolSpacing.xs),
               // 큰 글꼴에서도 다섯 라벨이 잘리지 않게 칸 너비에 맞춰 줄인다.
               Flexible(
                 child: Padding(
@@ -116,8 +116,8 @@ class _NavItem extends StatelessWidget {
                       maxLines: 1,
                       style:
                           selected
-                              ? SandolTypography.caption.strong.accent
-                              : SandolTypography.caption,
+                              ? HandolTypography.caption.strong.accent
+                              : HandolTypography.caption,
                     ),
                   ),
                 ),

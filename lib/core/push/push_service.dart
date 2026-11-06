@@ -85,7 +85,7 @@ Future<void> firebaseBackgroundHandler(RemoteMessage message) async {}
 const _channel = AndroidNotificationChannel(
   // AndroidManifest 의 default_notification_channel_id 와 같아야 한다.
   'sandol_default',
-  '산돌이 알림',
+  '한돌이 알림',
   importance: Importance.high,
 );
 

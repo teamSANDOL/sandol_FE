@@ -1,19 +1,19 @@
 import 'package:flutter/material.dart';
-import 'package:handori/core/design_system/sandol_tokens.dart';
+import 'package:handori/core/design_system/handol_tokens.dart';
 
 /// 새 디자인의 카드 틀: 배경 + 테두리 + 12 모서리 + 옅은 그림자.
 ///
 /// 안쪽 사진·헤더 띠가 모서리를 넘지 않게 항상 잘라내고, 테두리는 그 위에
 /// 그린다. 그림자는 잘리지 않도록 잘라내는 Material 바깥에 둔다.
 /// [onTap]이 있으면 카드 전체가 눌린다.
-class SandolCard extends StatelessWidget {
-  const SandolCard({
+class HandolCard extends StatelessWidget {
+  const HandolCard({
     super.key,
     required this.child,
     this.padding,
-    this.color = SandolColors.background,
-    this.borderColor = SandolColors.border,
-    this.borderRadius = SandolMetrics.radius,
+    this.color = HandolColors.background,
+    this.borderColor = HandolColors.border,
+    this.borderRadius = HandolMetrics.radius,
     this.onTap,
   });
 
@@ -35,7 +35,7 @@ class SandolCard extends StatelessWidget {
     return DecoratedBox(
       decoration: BoxDecoration(
         borderRadius: borderRadius,
-        boxShadow: SandolShadows.card,
+        boxShadow: HandolShadows.card,
       ),
       child: Material(
         color: color,

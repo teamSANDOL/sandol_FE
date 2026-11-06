@@ -2,10 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:go_router/go_router.dart';
 import 'package:handori/common/component/app_top_bar.dart';
-import 'package:handori/common/component/sandol_bottom_glow.dart';
-import 'package:handori/common/component/sandol_card.dart';
-import 'package:handori/core/design_system/sandol_assets.dart';
-import 'package:handori/core/design_system/sandol_tokens.dart';
+import 'package:handori/common/component/handol_bottom_glow.dart';
+import 'package:handori/common/component/handol_card.dart';
+import 'package:handori/core/design_system/handol_assets.dart';
+import 'package:handori/core/design_system/handol_tokens.dart';
 import 'package:handori/core/router/route_paths.dart';
 import 'package:handori/core/utils/keep_all.dart';
 import 'package:handori/features/user/presentation/widget/withdraw_actions.dart';
@@ -41,33 +41,33 @@ class _WithdrawReasonPageState extends State<WithdrawReasonPage> {
 
   @override
   Widget build(BuildContext context) => Scaffold(
-    backgroundColor: SandolColors.background,
+    backgroundColor: HandolColors.background,
     appBar: AppTopBar(
       title: '회원탈퇴',
-      titleWidget: const Text('회원탈퇴', style: SandolTypography.title),
-      backIcon: SvgPicture.asset(SandolAssets.backArrow),
+      titleWidget: const Text('회원탈퇴', style: HandolTypography.title),
+      backIcon: SvgPicture.asset(HandolAssets.backArrow),
       onBack: () => context.pop(),
       showUser: false,
-      backgroundColor: SandolColors.background,
-      horizontalPadding: SandolMetrics.pageGutter - 10,
+      backgroundColor: HandolColors.background,
+      horizontalPadding: HandolMetrics.pageGutter - 10,
     ),
     body: Stack(
       children: [
-        const SandolBottomGlow(),
+        const HandolBottomGlow(),
         ListView(
           keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
           padding: const EdgeInsets.fromLTRB(
-            SandolMetrics.pageGutter,
+            HandolMetrics.pageGutter,
             0,
-            SandolMetrics.pageGutter,
-            SandolSpacing.xl,
+            HandolMetrics.pageGutter,
+            HandolSpacing.xl,
           ),
           children: [
             Padding(
               padding: const EdgeInsets.only(left: 11),
               child: Text(
                 '탈퇴하는 이유를 알려주세요'.keepAll,
-                style: SandolTypography.title.accent,
+                style: HandolTypography.title.accent,
               ),
             ),
             const SizedBox(height: 27),
@@ -115,7 +115,7 @@ class _ReasonOption extends StatelessWidget {
     crossAxisAlignment: CrossAxisAlignment.stretch,
     children: [
       InkWell(
-        borderRadius: SandolMetrics.radius,
+        borderRadius: HandolMetrics.radius,
         onTap: onTap,
         child: Padding(
           padding: const EdgeInsets.symmetric(vertical: 12),
@@ -124,11 +124,11 @@ class _ReasonOption extends StatelessWidget {
             children: [
               DecoratedBox(
                 decoration: BoxDecoration(
-                  color: SandolColors.background,
+                  color: HandolColors.background,
                   shape: BoxShape.circle,
                   border: Border.all(
                     color:
-                        selected ? SandolColors.primary : SandolColors.border,
+                        selected ? HandolColors.primary : HandolColors.border,
                   ),
                 ),
                 child: SizedBox.square(
@@ -138,7 +138,7 @@ class _ReasonOption extends StatelessWidget {
                           ? const Center(
                             child: DecoratedBox(
                               decoration: BoxDecoration(
-                                color: SandolColors.primary,
+                                color: HandolColors.primary,
                                 shape: BoxShape.circle,
                               ),
                               child: SizedBox.square(dimension: 12),
@@ -152,8 +152,8 @@ class _ReasonOption extends StatelessWidget {
                   label.keepAll,
                   style:
                       selected
-                          ? SandolTypography.body.strong
-                          : SandolTypography.body.muted,
+                          ? HandolTypography.body.strong
+                          : HandolTypography.body.muted,
                 ),
               ),
             ],
@@ -173,16 +173,16 @@ class _CommentField extends StatelessWidget {
   final TextEditingController controller;
 
   @override
-  Widget build(BuildContext context) => SandolCard(
-    padding: const EdgeInsets.fromLTRB(44, 17, SandolMetrics.cardInset, 17),
+  Widget build(BuildContext context) => HandolCard(
+    padding: const EdgeInsets.fromLTRB(44, 17, HandolMetrics.cardInset, 17),
     child: TextField(
       controller: controller,
       minLines: 3,
       maxLines: 5,
-      style: SandolTypography.caption,
+      style: HandolTypography.caption,
       decoration: InputDecoration.collapsed(
-        hintText: '더 나은 산돌이가 될 수 있도록 의견을 들려주세요.',
-        hintStyle: SandolTypography.caption.muted,
+        hintText: '더 나은 한돌이가 될 수 있도록 의견을 들려주세요.',
+        hintStyle: HandolTypography.caption.muted,
       ),
     ),
   );

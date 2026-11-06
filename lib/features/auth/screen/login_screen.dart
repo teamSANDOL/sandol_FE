@@ -2,10 +2,10 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:handori/common/component/sandol_button.dart';
-import 'package:handori/common/component/sandol_checkbox.dart';
-import 'package:handori/core/design_system/sandol_assets.dart';
-import 'package:handori/core/design_system/sandol_tokens.dart';
+import 'package:handori/common/component/handol_button.dart';
+import 'package:handori/common/component/handol_checkbox.dart';
+import 'package:handori/core/design_system/handol_assets.dart';
+import 'package:handori/core/design_system/handol_tokens.dart';
 import 'package:handori/core/router/route_paths.dart';
 import 'package:handori/features/auth/presentation/provider/auth_provider.dart';
 import 'package:handori/features/auth/presentation/widget/auth_scaffold.dart';
@@ -55,7 +55,7 @@ class _LoginscreenState extends ConsumerState<Loginscreen> {
           const AuthBrandHeading(
             spans: [
               TextSpan(text: '로그인하고 더 '),
-              TextSpan(text: '똑똑한\n학교생활', style: SandolTypography.titleAccent),
+              TextSpan(text: '똑똑한\n학교생활', style: HandolTypography.titleAccent),
               TextSpan(text: '을 시작해요'),
             ],
           ),
@@ -65,21 +65,21 @@ class _LoginscreenState extends ConsumerState<Loginscreen> {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 _SocialButton(
-                  asset: SandolAssets.kakao,
+                  asset: HandolAssets.kakao,
                   label: '카카오로 로그인',
                   onPressed: busy ? null : () => _login(kakao: true),
                 ),
-                const SizedBox(width: SandolSpacing.md),
+                const SizedBox(width: HandolSpacing.md),
                 _SocialButton(
-                  asset: SandolAssets.google,
+                  asset: HandolAssets.google,
                   label: 'Google로 로그인',
                   onPressed: busy
                       ? null
                       : () => showAuthNotice(context, 'Google 로그인은 준비 중이에요.'),
                 ),
-                const SizedBox(width: SandolSpacing.md),
+                const SizedBox(width: HandolSpacing.md),
                 _SocialButton(
-                  asset: SandolAssets.apple,
+                  asset: HandolAssets.apple,
                   label: 'Apple로 로그인',
                   onPressed: busy
                       ? null
@@ -89,22 +89,22 @@ class _LoginscreenState extends ConsumerState<Loginscreen> {
             ),
             const SizedBox(height: 10),
             const AuthDivider(label: '또는'),
-            const SizedBox(height: SandolSpacing.sm),
-            SandolButton(
+            const SizedBox(height: HandolSpacing.sm),
+            HandolButton(
               label: '아이디로 시작하기',
               loading: busy,
               onPressed: () => _login(),
             ),
             const SizedBox(height: 6),
-            SandolCheckbox(
+            HandolCheckbox(
               label: '로그인 상태 유지',
               value: _rememberMe,
               onChanged: (value) => setState(() => _rememberMe = value),
             ),
             Text(
               _rememberMe ? '앱을 다시 열어도 로그인이 유지돼요.' : '앱을 완전히 종료하면 로그아웃돼요.',
-              style: SandolTypography.caption.copyWith(
-                color: SandolColors.muted,
+              style: HandolTypography.caption.copyWith(
+                color: HandolColors.muted,
               ),
             ),
             const SizedBox(height: 12),
@@ -123,13 +123,13 @@ class _LoginscreenState extends ConsumerState<Loginscreen> {
                       TextSpan(text: '계정이 없으시다면 '),
                       TextSpan(
                         text: '회원가입하기',
-                        style: SandolTypography.captionLink,
+                        style: HandolTypography.captionLink,
                       ),
                     ],
                   ),
                   textAlign: TextAlign.center,
-                  style: SandolTypography.caption.copyWith(
-                    color: SandolColors.muted,
+                  style: HandolTypography.caption.copyWith(
+                    color: HandolColors.muted,
                   ),
                 ),
               ),
@@ -139,7 +139,7 @@ class _LoginscreenState extends ConsumerState<Loginscreen> {
               onPressed: busy ? null : _browseAsGuest,
             ),
           ] else ...[
-            SandolButton(
+            HandolButton(
               label: '홈으로 가기',
               onPressed: () => context.go(RoutePaths.home),
             ),
@@ -173,7 +173,7 @@ class _SocialButton extends StatelessWidget {
       message: label,
       child: InkWell(
         onTap: onPressed,
-        borderRadius: SandolMetrics.radius,
+        borderRadius: HandolMetrics.radius,
         child: SizedBox(
           width: 46,
           height: 47,
@@ -196,8 +196,8 @@ class _TextAction extends StatelessWidget {
   Widget build(BuildContext context) => TextButton(
     onPressed: onPressed,
     style: TextButton.styleFrom(
-      foregroundColor: SandolColors.muted,
-      textStyle: SandolTypography.caption,
+      foregroundColor: HandolColors.muted,
+      textStyle: HandolTypography.caption,
     ),
     child: Text(label, textAlign: TextAlign.center),
   );

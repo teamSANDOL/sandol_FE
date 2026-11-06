@@ -6,7 +6,7 @@
     <!-- Android 13+ 알림 표시 권한. 선언만 하고 실행 중 요청은 PushService.requestPermission() 이 맡는다. -->
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
     <application
-        android:label="산돌이"
+        android:label="한돌이"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
         <!-- 백그라운드 FCM 알림도 PushService 와 같은 채널로 보낸다. -->

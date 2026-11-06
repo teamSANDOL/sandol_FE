@@ -1,5 +1,5 @@
 /// 원본 노드별 Figma export. 같은 로봇이어도 시안의 표정/크롭을 구분한다.
-abstract final class SandolAssets {
+abstract final class HandolAssets {
   static const _base = 'assets/design_system/auth';
   static const welcomeLogo = '$_base/welcome_logo.png'; // 2142:2366
   static const kakao = '$_base/kakao.png'; // 2143:2412
@@ -20,7 +20,7 @@ abstract final class SandolAssets {
   static const star = '$_home/star.svg'; // 2156:657
   static const starMuted = '$_home/star_muted.svg'; // 2270:508
 
-  // 잠자는 산돌이(2270:510 외 4개 레이어). 겹쳐 그리는 위치는
+  // 잠자는 한돌이(2270:510 외 4개 레이어). 겹쳐 그리는 위치는
   // ScheduleSection의 _SleepingMascot에 있다.
   static const mascotBase = '$_home/mascot_base.svg'; // 2270:510
   static const mascotMouth = '$_home/mascot_mouth.svg'; // 2270:520
@@ -89,7 +89,7 @@ abstract final class SandolAssets {
   static const myVersion = '$_my/version.svg'; // 2196:749
   static const myLeave = '$_my/leave.svg'; // 2196:753
   static const myWithdrawMascot =
-      '$_my/withdraw_mascot.svg'; // 2196:693 (우는 산돌이)
+      '$_my/withdraw_mascot.svg'; // 2196:693 (우는 한돌이)
   static const myNoticeInfo = '$_my/notice_info.svg'; // 2196:1208 (진회색 ⓘ)
 
   // ── 하단 네비(2086:23) ───────────────────────────────────────

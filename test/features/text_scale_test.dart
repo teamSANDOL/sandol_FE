@@ -9,7 +9,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:handori/common/component/app_bottom_nav.dart';
-import 'package:handori/common/component/sandol_section.dart';
+import 'package:handori/common/component/handol_section.dart';
 import 'package:handori/common/layout/root_shell.dart';
 import 'package:handori/core/network/fallback_interceptor.dart';
 import 'package:handori/core/utils/korea_time.dart';
@@ -162,7 +162,7 @@ void main() {
                 body: Column(
                   children: [
                     for (final t in titles)
-                      SandolSection(title: t, child: const SizedBox()),
+                      HandolSection(title: t, child: const SizedBox()),
                   ],
                 ),
               ),

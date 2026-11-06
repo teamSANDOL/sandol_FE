@@ -17,7 +17,7 @@
 
 ## 2. 플랫폼 준비
 
-- **Android**: 추가 작업 없음. 알림 채널 `sandol_default`(산돌이 알림)를 앱이 만들고, 백그라운드 알림도 이 채널을 쓴다(`AndroidManifest.xml` meta-data).
+- **Android**: 추가 작업 없음. 알림 채널 `sandol_default`(한돌이 알림)를 앱이 만들고, 백그라운드 알림도 이 채널을 쓴다(`AndroidManifest.xml` meta-data).
 - **iOS** (Windows 에서 빌드 검증 안 됨)
   - Apple Developer → Keys 에서 APNs 키(.p8)를 만들어 Firebase 콘솔 → 프로젝트 설정 → 클라우드 메시징에 업로드.
   - Xcode → Runner → Signing & Capabilities 에 **Push Notifications**, **Background Modes → Remote notifications** 추가.

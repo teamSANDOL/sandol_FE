@@ -6,9 +6,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
-import 'package:handori/common/component/sandol_checkbox.dart';
-import 'package:handori/core/design_system/sandol_assets.dart';
-import 'package:handori/core/design_system/sandol_tokens.dart';
+import 'package:handori/common/component/handol_checkbox.dart';
+import 'package:handori/core/design_system/handol_assets.dart';
+import 'package:handori/core/design_system/handol_tokens.dart';
 import 'package:handori/core/router/route_paths.dart';
 import 'package:handori/features/auth/data/guest_access_storage.dart';
 import 'package:handori/features/auth/domain/model/auth_session.dart';
@@ -90,7 +90,7 @@ Future<GoRouter> host(
         pinnedOrganizationUnitsProvider.overrideWith((_) async => []),
       ],
       child: MaterialApp.router(
-        theme: SandolTheme.light,
+        theme: HandolTheme.light,
         debugShowCheckedModeBanner: false,
         routerConfig: router,
         localizationsDelegates: GlobalMaterialLocalizations.delegates,
@@ -112,11 +112,11 @@ Future<GoRouter> host(
   await tester.runAsync(() async {
     final context = tester.element(find.byType(Scaffold).first);
     for (final asset in [
-      SandolAssets.welcomeLogo,
-      SandolAssets.kakao,
-      SandolAssets.google,
-      SandolAssets.apple,
-      SandolAssets.splashPoster,
+      HandolAssets.welcomeLogo,
+      HandolAssets.kakao,
+      HandolAssets.google,
+      HandolAssets.apple,
+      HandolAssets.splashPoster,
     ]) {
       await precacheImage(AssetImage(asset), context);
     }
@@ -207,11 +207,11 @@ void main() {
   testWidgets('로그인 상태 유지는 기본 켬, 끄면 의미를 안내하고 그대로 전달한다', (tester) async {
     await host(tester);
     expect(
-      tester.widget<SandolCheckbox>(find.byType(SandolCheckbox)).value,
+      tester.widget<HandolCheckbox>(find.byType(HandolCheckbox)).value,
       isTrue,
     );
     expect(find.text('앱을 다시 열어도 로그인이 유지돼요.'), findsOneWidget);
-    await tapVisible(tester, find.byType(SandolCheckbox));
+    await tapVisible(tester, find.byType(HandolCheckbox));
     expect(find.text('앱을 완전히 종료하면 로그아웃돼요.'), findsOneWidget);
     await tapVisible(tester, action('아이디로 시작하기'));
     await tapVisible(tester, find.byTooltip('카카오로 로그인'));
@@ -221,7 +221,7 @@ void main() {
   testWidgets('360×640, 2배 글씨에서도 버튼을 조작할 수 있다', (tester) async {
     await host(tester, size: const Size(360, 640), textScale: 2);
     await capture(tester, '05-login-large-text');
-    await tapVisible(tester, find.byType(SandolCheckbox));
+    await tapVisible(tester, find.byType(HandolCheckbox));
     await tapVisible(
       tester,
       find.textContaining('계정이 없으시다면', findRichText: true),
@@ -242,7 +242,7 @@ void main() {
       (w) =>
           w is Image &&
           w.image is AssetImage &&
-          (w.image as AssetImage).assetName == SandolAssets.splashPoster,
+          (w.image as AssetImage).assetName == HandolAssets.splashPoster,
     );
     expect(tester.getSize(image).aspectRatio, closeTo(1080 / 1920, .001));
     await tester.pump(const Duration(seconds: 3));
@@ -278,7 +278,7 @@ void main() {
       session: restored.future,
     );
     expect(find.byType(VideoPlayer), findsNothing);
-    expect(find.bySemanticsLabel('산돌이 시작 화면'), findsOneWidget);
+    expect(find.bySemanticsLabel('한돌이 시작 화면'), findsOneWidget);
     restored.complete(const AuthSession(accessToken: 'test-only'));
     await tester.pump();
     expect(router.routeInformationProvider.value.uri.path, RoutePaths.home);

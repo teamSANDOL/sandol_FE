@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:handori/common/component/sandol_card.dart';
-import 'package:handori/common/component/sandol_icon_label.dart';
-import 'package:handori/core/design_system/sandol_assets.dart';
-import 'package:handori/core/design_system/sandol_tokens.dart';
+import 'package:handori/common/component/handol_card.dart';
+import 'package:handori/common/component/handol_icon_label.dart';
+import 'package:handori/core/design_system/handol_assets.dart';
+import 'package:handori/core/design_system/handol_tokens.dart';
 import 'package:handori/features/organization/domain/model/organization_node.dart';
 import 'package:handori/features/organization/presentation/provider/organization_provider.dart';
 import 'package:handori/features/organization/presentation/util/contact_actions.dart';
@@ -23,28 +23,28 @@ class OrganizationQuickCard extends ConsumerWidget {
     final units =
         ref.watch(pinnedOrganizationUnitsProvider).valueOrNull ?? const [];
 
-    return SandolCard(
+    return HandolCard(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           if (units.isNotEmpty) ...[
             // 줄마다 위아래 8씩 터치 여백이 있어 시안의 12 / 16 여백에서 뺀다.
-            const SizedBox(height: SandolSpacing.xs),
+            const SizedBox(height: HandolSpacing.xs),
             for (final unit in units) _ContactRow(unit: unit),
-            const SizedBox(height: SandolSpacing.sm),
+            const SizedBox(height: HandolSpacing.sm),
             const Divider(
               height: 0.5,
               thickness: 0.5,
-              color: SandolColors.border,
+              color: HandolColors.border,
             ),
           ],
           InkWell(
             onTap: onOpenAll,
             child: Padding(
               padding: const EdgeInsets.fromLTRB(
-                SandolMetrics.cardInset,
+                HandolMetrics.cardInset,
                 13,
-                SandolMetrics.cardInset,
+                HandolMetrics.cardInset,
                 12,
               ),
               child: Row(
@@ -55,17 +55,17 @@ class OrganizationQuickCard extends ConsumerWidget {
                       children: [
                         const Text(
                           '전체학과/ 부서 조회',
-                          style: SandolTypography.headline,
+                          style: HandolTypography.headline,
                         ),
                         const SizedBox(height: 3),
                         Text(
                           '전체 조직도와 연락처를 확인하세요',
-                          style: SandolTypography.caption.muted,
+                          style: HandolTypography.caption.muted,
                         ),
                       ],
                     ),
                   ),
-                  const SandolChevron(),
+                  const HandolChevron(),
                 ],
               ),
             ),
@@ -93,8 +93,8 @@ class _ContactRow extends StatelessWidget {
       onLongPress: () => ContactActions.copy(context, phone, label: '전화번호'),
       child: Padding(
         padding: const EdgeInsets.symmetric(
-          horizontal: SandolMetrics.cardInset,
-          vertical: SandolSpacing.sm,
+          horizontal: HandolMetrics.cardInset,
+          vertical: HandolSpacing.sm,
         ),
         child: Row(
           children: [
@@ -102,7 +102,7 @@ class _ContactRow extends StatelessWidget {
               width: _nameWidth,
               child: Text(
                 unit.name,
-                style: SandolTypography.body.strong,
+                style: HandolTypography.body.strong,
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
               ),
@@ -110,10 +110,10 @@ class _ContactRow extends StatelessWidget {
             Expanded(
               child: Text(
                 ContactActions.formatPhone(phone),
-                style: SandolTypography.caption,
+                style: HandolTypography.caption,
               ),
             ),
-            SvgPicture.asset(SandolAssets.call, semanticsLabel: '전화 걸기'),
+            SvgPicture.asset(HandolAssets.call, semanticsLabel: '전화 걸기'),
           ],
         ),
       ),

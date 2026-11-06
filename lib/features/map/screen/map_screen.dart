@@ -3,9 +3,9 @@ import 'package:flutter/services.dart';
 import 'package:flutter_naver_map/flutter_naver_map.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:geolocator/geolocator.dart';
-import 'package:handori/common/component/sandol_card.dart';
-import 'package:handori/common/component/sandol_icon_label.dart';
-import 'package:handori/core/design_system/sandol_tokens.dart';
+import 'package:handori/common/component/handol_card.dart';
+import 'package:handori/common/component/handol_icon_label.dart';
+import 'package:handori/core/design_system/handol_tokens.dart';
 import 'package:handori/features/empty_class/model/class_model.dart';
 import 'package:handori/features/empty_class/presentation/provider/empty_class_focus_provider.dart';
 import 'package:handori/features/empty_class/presentation/provider/empty_class_provider.dart';
@@ -399,7 +399,7 @@ class _MapScreenState extends ConsumerState<MapScreen> {
           statusBarColor: Colors.transparent,
         ),
         child: Scaffold(
-          backgroundColor: SandolColors.background,
+          backgroundColor: HandolColors.background,
           resizeToAvoidBottomInset: false,
           body: LayoutBuilder(
             builder: (context, c) => _buildStack(c.maxHeight, refreshing),
@@ -437,8 +437,8 @@ class _MapScreenState extends ConsumerState<MapScreen> {
         ),
         Positioned(
           top: topInset + 12,
-          left: SandolMetrics.pageGutter,
-          right: SandolMetrics.pageGutter,
+          left: HandolMetrics.pageGutter,
+          right: HandolMetrics.pageGutter,
           child: _TopBar(
             search: _search,
             focus: _searchFocus,
@@ -457,7 +457,7 @@ class _MapScreenState extends ConsumerState<MapScreen> {
             final hidden = frac > _coverFrac - 0.1;
             return Positioned(
               bottom: frac * bodyH + 12,
-              left: SandolMetrics.pageGutter,
+              left: HandolMetrics.pageGutter,
               child: IgnorePointer(
                 ignoring: hidden,
                 child: AnimatedOpacity(
@@ -469,12 +469,12 @@ class _MapScreenState extends ConsumerState<MapScreen> {
             );
           },
           child: Column(
-            spacing: SandolSpacing.sm,
+            spacing: HandolSpacing.sm,
             children: [
               _RoundButton(
                 tooltip: '표시할 시설 선택',
                 icon: Icons.tune_rounded,
-                color: SandolColors.muted,
+                color: HandolColors.muted,
                 onTap:
                     () =>
                         _panel.isTuk
@@ -519,21 +519,21 @@ class _MapScreenState extends ConsumerState<MapScreen> {
             right: 0,
             child: IgnorePointer(
               child: Center(
-                child: SandolCard(
+                child: HandolCard(
                   padding: const EdgeInsets.symmetric(
                     horizontal: 12,
                     vertical: 7,
                   ),
-                  child: SandolIconLabel(
+                  child: HandolIconLabel(
                     icon: const SizedBox.square(
                       dimension: 12,
                       child: CircularProgressIndicator(
                         strokeWidth: 1.6,
-                        color: SandolColors.primary,
+                        color: HandolColors.primary,
                       ),
                     ),
                     label: '빈 강의실 갱신 중',
-                    style: SandolTypography.caption,
+                    style: HandolTypography.caption,
                   ),
                 ),
               ),
@@ -611,9 +611,9 @@ class _MapScreenState extends ConsumerState<MapScreen> {
     };
 
     return Material(
-      color: SandolColors.background,
+      color: HandolColors.background,
       shape: const RoundedRectangleBorder(
-        borderRadius: SandolMetrics.radiusTop,
+        borderRadius: HandolMetrics.radiusTop,
         side: BorderSide(color: MapColors.line),
       ),
       clipBehavior: Clip.antiAlias,
@@ -625,7 +625,7 @@ class _MapScreenState extends ConsumerState<MapScreen> {
             onVerticalDragUpdate: (d) => _onGripDragUpdate(d, minFrac, bodyH),
             onVerticalDragEnd: (d) => _onGripDragEnd(d, minFrac, bodyH),
             child: const Padding(
-              padding: EdgeInsets.only(top: 7, bottom: SandolSpacing.sm),
+              padding: EdgeInsets.only(top: 7, bottom: HandolSpacing.sm),
               child: Center(child: _Grip()),
             ),
           ),
@@ -683,9 +683,9 @@ class _TopBar extends ConsumerWidget {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         Material(
-          color: SandolColors.background,
+          color: HandolColors.background,
           shape: const RoundedRectangleBorder(
-            borderRadius: SandolMetrics.radius,
+            borderRadius: HandolMetrics.radius,
             side: BorderSide(color: MapColors.line),
           ),
           child: SizedBox(
@@ -695,14 +695,14 @@ class _TopBar extends ConsumerWidget {
               focusNode: focus,
               onChanged: (_) => onChanged(),
               textInputAction: TextInputAction.search,
-              style: SandolTypography.caption,
+              style: HandolTypography.caption,
               decoration: InputDecoration(
                 border: InputBorder.none,
                 hintText: '장소를 검색하세요',
-                hintStyle: SandolTypography.caption.muted,
+                hintStyle: HandolTypography.caption.muted,
                 prefixIcon: const Icon(
                   Icons.search_rounded,
-                  color: SandolColors.primary,
+                  color: HandolColors.primary,
                 ),
                 contentPadding: const EdgeInsets.symmetric(vertical: 17),
               ),
@@ -711,17 +711,17 @@ class _TopBar extends ConsumerWidget {
         ),
         if (q.isNotEmpty && focus.hasFocus)
           Padding(
-            padding: const EdgeInsets.only(top: SandolSpacing.xs),
-            child: SandolCard(
+            padding: const EdgeInsets.only(top: HandolSpacing.xs),
+            child: HandolCard(
               child: ConstrainedBox(
                 constraints: const BoxConstraints(maxHeight: 240),
                 child:
                     results.isEmpty
                         ? Padding(
-                          padding: const EdgeInsets.all(SandolSpacing.md),
+                          padding: const EdgeInsets.all(HandolSpacing.md),
                           child: Text(
                             '검색 결과가 없어요',
-                            style: SandolTypography.caption.muted,
+                            style: HandolTypography.caption.muted,
                           ),
                         )
                         : ListView(
@@ -733,11 +733,11 @@ class _TopBar extends ConsumerWidget {
                                 dense: true,
                                 title: Text(
                                   title,
-                                  style: SandolTypography.body,
+                                  style: HandolTypography.body,
                                 ),
                                 subtitle: Text(
                                   sub,
-                                  style: SandolTypography.caption.muted,
+                                  style: HandolTypography.caption.muted,
                                 ),
                                 onTap: () => onPick(item),
                               ),
@@ -747,7 +747,7 @@ class _TopBar extends ConsumerWidget {
             ),
           )
         else ...[
-          const SizedBox(height: SandolSpacing.sm),
+          const SizedBox(height: HandolSpacing.sm),
           Row(
             spacing: 29,
             children: [
@@ -797,7 +797,7 @@ class _RoundButton extends StatelessWidget {
     required this.tooltip,
     required this.icon,
     required this.onTap,
-    this.color = SandolColors.text,
+    this.color = HandolColors.text,
   });
 
   final String tooltip;
@@ -807,7 +807,7 @@ class _RoundButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Material(
-    color: SandolColors.background,
+    color: HandolColors.background,
     shape: const CircleBorder(side: BorderSide(color: MapColors.line)),
     elevation: 2,
     child: IconButton(
@@ -845,7 +845,7 @@ class _MapCover extends StatelessWidget {
                   padding: const EdgeInsets.only(top: 12),
                   child: Column(
                     children: [
-                      Text('지도', style: SandolTypography.title.onPrimary),
+                      Text('지도', style: HandolTypography.title.onPrimary),
                       const SizedBox(height: 7),
                       const _Grip(),
                     ],

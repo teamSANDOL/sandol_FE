@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:handori/core/design_system/sandol_tokens.dart';
+import 'package:handori/core/design_system/handol_tokens.dart';
 
-class SandolCheckbox extends StatelessWidget {
-  const SandolCheckbox({
+class HandolCheckbox extends StatelessWidget {
+  const HandolCheckbox({
     super.key,
     required this.label,
     required this.value,
@@ -24,7 +24,7 @@ class SandolCheckbox extends StatelessWidget {
     child: ExcludeSemantics(
       child: InkWell(
         onTap: () => onChanged(!value),
-        borderRadius: SandolMetrics.radius,
+        borderRadius: HandolMetrics.radius,
         child: Padding(
           padding: const EdgeInsets.symmetric(vertical: 6),
           child: Row(
@@ -36,11 +36,11 @@ class SandolCheckbox extends StatelessWidget {
                 decoration: BoxDecoration(
                   color:
                       value
-                          ? SandolColors.primary
+                          ? HandolColors.primary
                           : dense
-                          ? SandolColors.inactive
-                          : SandolColors.field,
-                  border: Border.all(color: SandolColors.fieldBorder),
+                          ? HandolColors.inactive
+                          : HandolColors.field,
+                  border: Border.all(color: HandolColors.fieldBorder),
                   borderRadius: BorderRadius.circular(dense ? 6 : 12),
                 ),
                 child:
@@ -48,18 +48,18 @@ class SandolCheckbox extends StatelessWidget {
                         ? Icon(
                           Icons.check,
                           size: dense ? 16 : 22,
-                          color: SandolColors.background,
+                          color: HandolColors.background,
                         )
                         : null,
               ),
-              SizedBox(width: dense ? SandolSpacing.xs : SandolSpacing.sm),
+              SizedBox(width: dense ? HandolSpacing.xs : HandolSpacing.sm),
               Expanded(
                 child: Text(
                   label,
                   style:
                       dense
-                          ? SandolTypography.caption.muted
-                          : SandolTypography.body.muted,
+                          ? HandolTypography.caption.muted
+                          : HandolTypography.body.muted,
                 ),
               ),
             ],

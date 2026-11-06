@@ -1,14 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:handori/core/design_system/sandol_assets.dart';
-import 'package:handori/core/design_system/sandol_tokens.dart';
+import 'package:handori/core/design_system/handol_assets.dart';
+import 'package:handori/core/design_system/handol_tokens.dart';
 import 'package:handori/core/utils/keep_all.dart';
 import 'package:handori/features/map/component/map_common.dart';
 import 'package:handori/features/map/data/tuk_place.dart';
 import 'package:handori/features/map/presentation/provider/tuk_world_provider.dart';
 import 'package:handori/shared/widget/error_retry_view.dart';
-import 'package:handori/shared/widget/sandol_loading_indicator.dart';
+import 'package:handori/shared/widget/handol_loading_indicator.dart';
 import 'package:handori/shared/widget/remote_image.dart';
 
 /// TUK 월드 분류. [all]은 필터 없음. 서버 분류 문자열과 [label]이 같다.
@@ -67,8 +67,8 @@ class TukWorldPanel extends ConsumerWidget {
             selected: c == picked,
             labelStyle:
                 picked == null
-                    ? SandolTypography.headline
-                    : SandolTypography.caption,
+                    ? HandolTypography.headline
+                    : HandolTypography.caption,
             onTap: () => onCategory(c == picked ? null : c),
           ),
       ],
@@ -83,8 +83,8 @@ class TukWorldPanel extends ConsumerWidget {
                 onRetry: () => ref.invalidate(tukWorldPlacesProvider),
               )
               : const Padding(
-                padding: EdgeInsets.all(SandolSpacing.xl),
-                child: Center(child: SandolLoadingIndicator()),
+                padding: EdgeInsets.all(HandolSpacing.xl),
+                child: Center(child: HandolLoadingIndicator()),
               );
     } else if (picked == null) {
       body = const SizedBox.shrink();
@@ -99,18 +99,18 @@ class TukWorldPanel extends ConsumerWidget {
                 TextSpan(text: '${picked.label}  '),
                 TextSpan(
                   text: '${list.length}곳',
-                  style: SandolTypography.headline.accent,
+                  style: HandolTypography.headline.accent,
                 ),
               ],
             ),
-            style: SandolTypography.headline,
+            style: HandolTypography.headline,
           ),
-          const SizedBox(height: SandolSpacing.md),
+          const SizedBox(height: HandolSpacing.md),
           if (list.isEmpty)
-            Text('등록된 제휴 업체가 없어요', style: SandolTypography.caption.muted),
+            Text('등록된 제휴 업체가 없어요', style: HandolTypography.caption.muted),
           for (final p in list)
             Padding(
-              padding: const EdgeInsets.only(bottom: SandolSpacing.md),
+              padding: const EdgeInsets.only(bottom: HandolSpacing.md),
               child: _PlaceRow(place: p, onTap: () => onPlaceTap(p)),
             ),
         ],
@@ -120,18 +120,18 @@ class TukWorldPanel extends ConsumerWidget {
     return ListView(
       controller: controller,
       padding: const EdgeInsets.fromLTRB(
-        SandolMetrics.pageGutter,
-        SandolSpacing.sm,
-        SandolMetrics.pageGutter,
-        SandolSpacing.xl,
+        HandolMetrics.pageGutter,
+        HandolSpacing.sm,
+        HandolMetrics.pageGutter,
+        HandolSpacing.xl,
       ),
       children: [
         if (picked == null) ...[
-          const Text('표시할 시설 선택', style: SandolTypography.headline),
-          const SizedBox(height: SandolSpacing.lg),
+          const Text('표시할 시설 선택', style: HandolTypography.headline),
+          const SizedBox(height: HandolSpacing.lg),
         ],
         tiles,
-        const SizedBox(height: SandolSpacing.lg),
+        const SizedBox(height: HandolSpacing.lg),
         body,
       ],
     );
@@ -151,11 +151,11 @@ class _Thumb extends StatelessWidget {
     final fallback = Container(
       color: MapColors.tile,
       alignment: Alignment.center,
-      child: Icon(TukCategory.iconOf(place), color: SandolColors.primary),
+      child: Icon(TukCategory.iconOf(place), color: HandolColors.primary),
     );
     final urls = place.imageUrls;
     return ClipRRect(
-      borderRadius: SandolMetrics.radius,
+      borderRadius: HandolMetrics.radius,
       child: SizedBox(
         width: width,
         height: height,
@@ -175,11 +175,11 @@ class _PlaceRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) => InkWell(
     onTap: onTap,
-    borderRadius: SandolMetrics.radius,
+    borderRadius: HandolMetrics.radius,
     child: Row(
       children: [
         _Thumb(place, width: 90, height: 80),
-        const SizedBox(width: SandolSpacing.md),
+        const SizedBox(width: HandolSpacing.md),
         Expanded(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -188,14 +188,14 @@ class _PlaceRow extends StatelessWidget {
                 place.name,
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
-                style: SandolTypography.headline,
+                style: HandolTypography.headline,
               ),
-              const SizedBox(height: SandolSpacing.sm),
+              const SizedBox(height: HandolSpacing.sm),
               Text(
                 (place.discountInfo ?? '').keepAll,
                 maxLines: 2,
                 overflow: TextOverflow.ellipsis,
-                style: SandolTypography.caption.muted.copyWith(fontSize: 12),
+                style: HandolTypography.caption.muted.copyWith(fontSize: 12),
               ),
             ],
           ),
@@ -229,10 +229,10 @@ class TukPlaceDetail extends StatelessWidget {
   Widget build(BuildContext context) => ListView(
     controller: controller,
     padding: const EdgeInsets.fromLTRB(
-      SandolMetrics.pageGutter,
-      SandolSpacing.sm,
-      SandolMetrics.pageGutter,
-      SandolSpacing.xl,
+      HandolMetrics.pageGutter,
+      HandolSpacing.sm,
+      HandolMetrics.pageGutter,
+      HandolSpacing.xl,
     ),
     children: [
       Row(
@@ -241,7 +241,7 @@ class TukPlaceDetail extends StatelessWidget {
             tooltip: '뒤로',
             visualDensity: VisualDensity.compact,
             onPressed: onBack,
-            icon: SvgPicture.asset(SandolAssets.backArrow),
+            icon: SvgPicture.asset(HandolAssets.backArrow),
           ),
           Expanded(
             child: Text(
@@ -249,16 +249,16 @@ class TukPlaceDetail extends StatelessWidget {
               textAlign: TextAlign.center,
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
-              style: SandolTypography.headline,
+              style: HandolTypography.headline,
             ),
           ),
           const SizedBox(width: 48),
         ],
       ),
-      const SizedBox(height: SandolSpacing.md),
+      const SizedBox(height: HandolSpacing.md),
       if (place.imageUrls.isNotEmpty) ...[
         _Thumb(place, width: double.infinity, height: 116),
-        const SizedBox(height: SandolSpacing.sm),
+        const SizedBox(height: HandolSpacing.sm),
       ],
       Row(
         children: [
@@ -270,11 +270,11 @@ class TukPlaceDetail extends StatelessWidget {
                   if (place.category != null)
                     TextSpan(
                       text: '  ${place.category}',
-                      style: SandolTypography.caption.muted,
+                      style: HandolTypography.caption.muted,
                     ),
                 ],
               ),
-              style: SandolTypography.headline,
+              style: HandolTypography.headline,
             ),
           ),
           SizedBox(
@@ -287,48 +287,48 @@ class TukPlaceDetail extends StatelessWidget {
           ),
         ],
       ),
-      const SizedBox(height: SandolSpacing.md),
+      const SizedBox(height: HandolSpacing.md),
       const Divider(height: 1, color: MapColors.line),
-      const SizedBox(height: SandolSpacing.md),
-      const Text('이용 안내', style: SandolTypography.headline),
-      const SizedBox(height: SandolSpacing.md),
+      const SizedBox(height: HandolSpacing.md),
+      const Text('이용 안내', style: HandolTypography.headline),
+      const SizedBox(height: HandolSpacing.md),
       Container(
         padding: const EdgeInsets.all(20),
         decoration: BoxDecoration(
-          borderRadius: SandolMetrics.radius,
+          borderRadius: HandolMetrics.radius,
           border: Border.all(color: MapColors.line),
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text('제휴 혜택', style: SandolTypography.body),
-            const SizedBox(height: SandolSpacing.sm),
+            const Text('제휴 혜택', style: HandolTypography.body),
+            const SizedBox(height: HandolSpacing.sm),
             Text(
               (place.discountInfo ?? '등록된 혜택 정보가 없어요').keepAll,
-              style: SandolTypography.body.muted,
+              style: HandolTypography.body.muted,
             ),
           ],
         ),
       ),
       if (place.address != null) ...[
-        const SizedBox(height: SandolSpacing.md),
+        const SizedBox(height: HandolSpacing.md),
         Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             const SizedBox(
               width: 60,
-              child: Text('주소', style: SandolTypography.body),
+              child: Text('주소', style: HandolTypography.body),
             ),
             Expanded(
               child: Text(
                 place.address!.keepAll,
-                style: SandolTypography.body.muted,
+                style: HandolTypography.body.muted,
               ),
             ),
           ],
         ),
       ],
-      const SizedBox(height: SandolSpacing.lg),
+      const SizedBox(height: HandolSpacing.lg),
       MapButton(
         label: '지도에서 위치 보기',
         icon: Icons.place_outlined,

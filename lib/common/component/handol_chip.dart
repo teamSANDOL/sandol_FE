@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:handori/core/design_system/sandol_tokens.dart';
+import 'package:handori/core/design_system/handol_tokens.dart';
 
 /// 선택되지 않은 칩의 모양.
-enum SandolChipStyle {
+enum HandolChipStyle {
   /// main40 바탕에 검은 글씨 (홈 2153:231)
   tint,
 
@@ -11,13 +11,13 @@ enum SandolChipStyle {
 }
 
 /// 선택 칩. 선택되면 primary 바탕에 굵은 흰 글씨.
-class SandolChip extends StatelessWidget {
-  const SandolChip({
+class HandolChip extends StatelessWidget {
+  const HandolChip({
     super.key,
     required this.label,
     required this.selected,
     required this.onTap,
-    this.style = SandolChipStyle.tint,
+    this.style = HandolChipStyle.tint,
   });
 
   static const double height = 39;
@@ -26,34 +26,34 @@ class SandolChip extends StatelessWidget {
   final String label;
   final bool selected;
   final VoidCallback onTap;
-  final SandolChipStyle style;
+  final HandolChipStyle style;
 
   @override
   Widget build(BuildContext context) => Material(
     color:
         selected
-            ? SandolColors.primary
+            ? HandolColors.primary
             : switch (style) {
-              SandolChipStyle.tint => SandolColors.primary40,
-              SandolChipStyle.solid => SandolColors.inactive,
+              HandolChipStyle.tint => HandolColors.primary40,
+              HandolChipStyle.solid => HandolColors.inactive,
             },
-    borderRadius: SandolMetrics.radius,
+    borderRadius: HandolMetrics.radius,
     child: InkWell(
-      borderRadius: SandolMetrics.radius,
+      borderRadius: HandolMetrics.radius,
       onTap: onTap,
       child: Container(
         height: height,
         constraints: const BoxConstraints(minWidth: minWidth),
-        padding: const EdgeInsets.symmetric(horizontal: SandolSpacing.md),
+        padding: const EdgeInsets.symmetric(horizontal: HandolSpacing.md),
         alignment: Alignment.center,
         child: Text(
           label,
           style:
               selected
-                  ? SandolTypography.caption.strong.onPrimary
+                  ? HandolTypography.caption.strong.onPrimary
                   : switch (style) {
-                    SandolChipStyle.tint => SandolTypography.caption,
-                    SandolChipStyle.solid => SandolTypography.caption.onPrimary,
+                    HandolChipStyle.tint => HandolTypography.caption,
+                    HandolChipStyle.solid => HandolTypography.caption.onPrimary,
                   },
         ),
       ),

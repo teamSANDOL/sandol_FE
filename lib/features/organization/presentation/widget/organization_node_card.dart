@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:handori/common/component/sandol_icon_label.dart';
-import 'package:handori/core/design_system/sandol_assets.dart';
-import 'package:handori/core/design_system/sandol_tokens.dart';
+import 'package:handori/common/component/handol_icon_label.dart';
+import 'package:handori/core/design_system/handol_assets.dart';
+import 'package:handori/core/design_system/handol_tokens.dart';
 import 'package:handori/features/organization/domain/model/organization_node.dart';
 import 'package:handori/features/organization/presentation/util/contact_actions.dart';
 
@@ -48,23 +48,23 @@ class _GroupRowState extends State<_GroupRow> {
     crossAxisAlignment: CrossAxisAlignment.stretch,
     children: [
       InkWell(
-        borderRadius: SandolMetrics.radius,
+        borderRadius: HandolMetrics.radius,
         onTap: () => setState(() => _expanded = !_expanded),
         child: Padding(
           padding: const EdgeInsets.symmetric(vertical: 10),
           child: Row(
             children: [
               Expanded(
-                child: SandolIconLabel(
-                  icon: SvgPicture.asset(SandolAssets.orgFolder),
+                child: HandolIconLabel(
+                  icon: SvgPicture.asset(HandolAssets.orgFolder),
                   label: widget.node.name,
-                  style: SandolTypography.body,
+                  style: HandolTypography.body,
                 ),
               ),
               AnimatedRotation(
                 turns: _expanded ? 0.5 : 0,
                 duration: const Duration(milliseconds: 200),
-                child: const SandolChevron(quarterTurns: SandolChevron.down),
+                child: const HandolChevron(quarterTurns: HandolChevron.down),
               ),
             ],
           ),
@@ -104,28 +104,28 @@ class _UnitRow extends StatelessWidget {
       padding: EdgeInsets.symmetric(vertical: top ? 0 : 10),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
-        spacing: top ? SandolSpacing.md : SandolSpacing.sm,
+        spacing: top ? HandolSpacing.md : HandolSpacing.sm,
         children: [
           Text(
             node.name,
             style:
                 top
-                    ? SandolTypography.headline.strong.accent
-                    : SandolTypography.body,
+                    ? HandolTypography.headline.strong.accent
+                    : HandolTypography.body,
           ),
           if (phone != null || url != null)
             Row(
-              spacing: SandolSpacing.lg,
+              spacing: HandolSpacing.lg,
               children: [
                 const _Avatar(),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
-                    spacing: SandolSpacing.xs,
+                    spacing: HandolSpacing.xs,
                     children: [
                       if (phone != null)
                         _ContactLine(
-                          icon: SvgPicture.asset(SandolAssets.orgPhone),
+                          icon: SvgPicture.asset(HandolAssets.orgPhone),
                           text: ContactActions.formatPhone(phone),
                           onTap: () => ContactActions.dial(context, phone),
                           onLongPress:
@@ -137,7 +137,7 @@ class _UnitRow extends StatelessWidget {
                         ),
                       if (url != null)
                         _ContactLine(
-                          icon: SvgPicture.asset(SandolAssets.orgMail),
+                          icon: SvgPicture.asset(HandolAssets.orgMail),
                           text: url,
                           onTap: () => ContactActions.openUrl(context, url),
                           onLongPress:
@@ -165,7 +165,7 @@ class _Avatar extends StatelessWidget {
   @override
   Widget build(BuildContext context) => const DecoratedBox(
     decoration: BoxDecoration(
-      color: SandolColors.textSecondary,
+      color: HandolColors.textSecondary,
       shape: BoxShape.circle,
     ),
     child: SizedBox.square(dimension: 32, child: Center(child: _AvatarIcon())),
@@ -177,7 +177,7 @@ class _AvatarIcon extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) =>
-      SvgPicture.asset(SandolAssets.orgAvatar);
+      SvgPicture.asset(HandolAssets.orgAvatar);
 }
 
 /// 탭 = 네이티브 액션(전화/링크), 길게 누름 = 복사.
@@ -196,13 +196,13 @@ class _ContactLine extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => InkWell(
-    borderRadius: SandolMetrics.radius,
+    borderRadius: HandolMetrics.radius,
     onTap: onTap,
     onLongPress: onLongPress,
-    child: SandolIconLabel(
+    child: HandolIconLabel(
       icon: SizedBox.square(dimension: 12, child: Center(child: icon)),
       label: text,
-      style: SandolTypography.body,
+      style: HandolTypography.body,
       gap: 14,
     ),
   );

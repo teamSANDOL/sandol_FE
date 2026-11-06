@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:handori/core/design_system/sandol_tokens.dart';
+import 'package:handori/core/design_system/handol_tokens.dart';
 
 /// 시안 값을 흰색(또는 FDFDFD) 위에 합성한 결과와 맞는지 확인한다.
 void main() {
@@ -8,7 +8,7 @@ void main() {
       Color.alphaBlend(top.withValues(alpha: alpha), base);
 
   test('화면 배경은 투명도 0인 CFE4FA에서 시작해 흰색 위에 합성한 값과 같다', () {
-    const g = SandolGradients.screen;
+    const g = HandolGradients.screen;
     expect(g.colors.first, const Color(0xFFFFFFFF));
     expect(g.stops, [0, 0.7212, 1]);
     final white = const Color(0xFFFFFFFF);
@@ -22,11 +22,11 @@ void main() {
   });
 
   test('홈 카드는 오른쪽 아래의 진한 파랑에서 왼쪽 위로 번진다', () {
-    const g = SandolGradients.primaryCard;
+    const g = HandolGradients.primaryCard;
     final begin = g.begin as Alignment;
     final end = g.end as Alignment;
     expect(begin.x, greaterThan(end.x));
     expect(begin.y, greaterThan(end.y));
-    expect(g.colors.first, SandolColors.primary);
+    expect(g.colors.first, HandolColors.primary);
   });
 }

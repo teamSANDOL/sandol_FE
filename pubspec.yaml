@@ -94,7 +94,7 @@ dev_dependencies:
   # ── 앱 아이콘 ─────────────────────────────────────────────────────────────────
   flutter_launcher_icons: ^0.14.4  # dart run flutter_launcher_icons
 
-# 런처 아이콘 설정 — 소스는 assets/icon/ (sandol_logo 기반, scripts 참고)
+# 런처 아이콘 설정 — 소스는 assets/icon/ (handol_logo 기반, scripts 참고)
 flutter_launcher_icons:
   android: true
   ios: true

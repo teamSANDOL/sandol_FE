@@ -4,8 +4,8 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:go_router/go_router.dart';
 import 'package:handori/common/component/app_top_bar.dart';
 import 'package:handori/common/layout/root_shell.dart';
-import 'package:handori/core/design_system/sandol_assets.dart';
-import 'package:handori/core/design_system/sandol_tokens.dart';
+import 'package:handori/core/design_system/handol_assets.dart';
+import 'package:handori/core/design_system/handol_tokens.dart';
 import 'package:handori/core/router/route_paths.dart';
 import 'package:handori/features/notice/domain/model/notice.dart';
 import 'package:handori/features/notice/domain/model/shuttle.dart';
@@ -18,7 +18,7 @@ import 'package:handori/features/notice/presentation/widget/notice_style.dart';
 import 'package:handori/features/notice/presentation/widget/shuttle_card.dart';
 import 'package:handori/shared/model/pagination_state.dart';
 import 'package:handori/shared/widget/error_retry_view.dart';
-import 'package:handori/shared/widget/sandol_loading_indicator.dart';
+import 'package:handori/shared/widget/handol_loading_indicator.dart';
 
 /// 공지사항 탭 (Figma 공지사항2).
 ///
@@ -88,23 +88,23 @@ class _NoticePageState extends ConsumerState<NoticePage>
         backgroundColor: Colors.transparent,
         appBar: AppTopBar(
           title: '공지사항',
-          titleWidget: const Text('공지사항', style: SandolTypography.title),
-          backIcon: SvgPicture.asset(SandolAssets.backArrow),
+          titleWidget: const Text('공지사항', style: HandolTypography.title),
+          backIcon: SvgPicture.asset(HandolAssets.backArrow),
           onBack:
               () => StatefulNavigationShell.of(
                 context,
               ).goBranch(RootShell.homeBranch),
           backgroundColor: Colors.transparent,
           // 뒤로가기 버튼(44) 안의 아이콘(24)이 본문 여백(33)에 맞게
-          horizontalPadding: SandolMetrics.pageGutter - 10,
+          horizontalPadding: HandolMetrics.pageGutter - 10,
         ),
         body: Column(
           children: [
             Padding(
               padding: const EdgeInsets.fromLTRB(
-                SandolMetrics.pageGutter,
-                SandolSpacing.sm,
-                SandolMetrics.pageGutter,
+                HandolMetrics.pageGutter,
+                HandolSpacing.sm,
+                HandolMetrics.pageGutter,
                 0,
               ),
               child: _SearchBox(
@@ -114,9 +114,9 @@ class _NoticePageState extends ConsumerState<NoticePage>
             ),
             Padding(
               padding: const EdgeInsets.fromLTRB(
-                SandolMetrics.pageGutter,
-                SandolSpacing.md,
-                SandolMetrics.pageGutter,
+                HandolMetrics.pageGutter,
+                HandolSpacing.md,
+                HandolMetrics.pageGutter,
                 0,
               ),
               child: _FilterChips(
@@ -157,8 +157,8 @@ class _SearchBox extends StatelessWidget {
   @override
   Widget build(BuildContext context) => DecoratedBox(
     decoration: BoxDecoration(
-      color: SandolColors.background,
-      borderRadius: SandolMetrics.radius,
+      color: HandolColors.background,
+      borderRadius: HandolMetrics.radius,
       border: Border.all(color: NoticeColors.border),
     ),
     child: Row(
@@ -167,8 +167,8 @@ class _SearchBox extends StatelessWidget {
           padding: EdgeInsets.symmetric(horizontal: 11),
           child: Icon(
             Icons.search_rounded,
-            size: SandolMetrics.iconSize,
-            color: SandolColors.primary,
+            size: HandolMetrics.iconSize,
+            color: HandolColors.primary,
           ),
         ),
         Expanded(
@@ -176,10 +176,10 @@ class _SearchBox extends StatelessWidget {
             controller: controller,
             onChanged: onChanged,
             textInputAction: TextInputAction.search,
-            style: SandolTypography.caption,
+            style: HandolTypography.caption,
             decoration: InputDecoration(
               hintText: '어떤 공지를 찾고 있나요?',
-              hintStyle: SandolTypography.caption.muted,
+              hintStyle: HandolTypography.caption.muted,
               border: InputBorder.none,
               contentPadding: const EdgeInsets.symmetric(vertical: 17),
               isDense: true,
@@ -193,12 +193,12 @@ class _SearchBox extends StatelessWidget {
                   ? const Icon(
                     Icons.tune_rounded,
                     size: 20,
-                    color: SandolColors.muted,
+                    color: HandolColors.muted,
                   )
                   : IconButton(
                     tooltip: '검색어 지우기',
                     icon: const Icon(Icons.close_rounded, size: 20),
-                    color: SandolColors.muted,
+                    color: HandolColors.muted,
                     onPressed: () {
                       controller.clear();
                       onChanged('');
@@ -225,7 +225,7 @@ class _FilterChips extends StatelessWidget {
       final width = (constraints.maxWidth - _gap * 3) / 4;
       return Wrap(
         spacing: _gap,
-        runSpacing: SandolSpacing.sm,
+        runSpacing: HandolSpacing.sm,
         children: [
           for (final f in NoticeFilter.values)
             SizedBox(
@@ -257,19 +257,19 @@ class _FilterChip extends StatelessWidget {
   Widget build(BuildContext context) {
     final style =
         selected
-            ? SandolTypography.caption.onPrimary
-            : SandolTypography.caption;
+            ? HandolTypography.caption.onPrimary
+            : HandolTypography.caption;
     return Material(
-      color: selected ? SandolColors.primary : SandolColors.background,
+      color: selected ? HandolColors.primary : HandolColors.background,
       shape: RoundedRectangleBorder(
-        borderRadius: SandolMetrics.radius,
+        borderRadius: HandolMetrics.radius,
         side: BorderSide(
-          color: selected ? SandolColors.primary : NoticeColors.border,
+          color: selected ? HandolColors.primary : NoticeColors.border,
         ),
       ),
       child: InkWell(
         customBorder: const RoundedRectangleBorder(
-          borderRadius: SandolMetrics.radius,
+          borderRadius: HandolMetrics.radius,
         ),
         onTap: onTap,
         // 아이콘과 글자를 한 덩어리로 묶어, 큰 글꼴에서 칸보다 크면
@@ -281,7 +281,7 @@ class _FilterChip extends StatelessWidget {
               fit: BoxFit.scaleDown,
               child: Row(
                 mainAxisSize: MainAxisSize.min,
-                spacing: SandolSpacing.xs,
+                spacing: HandolSpacing.xs,
                 children: [
                   if (filter == NoticeFilter.saved)
                     Icon(
@@ -323,8 +323,8 @@ class _LoadingMore extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => const Padding(
-    padding: EdgeInsets.all(SandolSpacing.md),
-    child: Center(child: SandolLoadingIndicator()),
+    padding: EdgeInsets.all(HandolSpacing.md),
+    child: Center(child: HandolLoadingIndicator()),
   );
 }
 
@@ -361,7 +361,7 @@ class _NoticeListTabState extends ConsumerState<_NoticeListTab> {
         .watch(_provider)
         .when(
           data: _buildList,
-          loading: () => const Center(child: SandolLoadingIndicator()),
+          loading: () => const Center(child: HandolLoadingIndicator()),
           error:
               (e, _) => ErrorRetryView(
                 title: '공지사항을 불러올 수 없습니다.',
@@ -437,10 +437,10 @@ class _NoticeListView extends ConsumerWidget {
       controller: controller,
       physics: const AlwaysScrollableScrollPhysics(),
       padding: const EdgeInsets.fromLTRB(
-        SandolMetrics.pageGutter,
+        HandolMetrics.pageGutter,
         0,
-        SandolMetrics.pageGutter,
-        SandolSpacing.xl,
+        HandolMetrics.pageGutter,
+        HandolSpacing.xl,
       ),
       children: [
         _SummaryRow(total: total),
@@ -450,13 +450,13 @@ class _NoticeListView extends ConsumerWidget {
             child: Text(
               emptyText,
               textAlign: TextAlign.center,
-              style: SandolTypography.caption.muted,
+              style: HandolTypography.caption.muted,
             ),
           )
         else
           Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
-            spacing: SandolSpacing.sm,
+            spacing: HandolSpacing.sm,
             children: [
               for (final notice in items)
                 NoticeCard(
@@ -478,8 +478,8 @@ class _NoticeListView extends ConsumerWidget {
     );
     if (onRefresh == null) return list;
     return RefreshIndicator(
-      color: SandolColors.primary,
-      backgroundColor: SandolColors.background,
+      color: HandolColors.primary,
+      backgroundColor: HandolColors.background,
       onRefresh: onRefresh!,
       child: list,
     );
@@ -495,23 +495,23 @@ class _SummaryRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Padding(
-    padding: const EdgeInsets.symmetric(vertical: SandolSpacing.sm),
+    padding: const EdgeInsets.symmetric(vertical: HandolSpacing.sm),
     child: Row(
       children: [
         // 큰 글꼴에서는 '총 N건'이 아래 줄로 내려가게 Wrap 으로 둔다.
         Expanded(
           child: Wrap(
-            spacing: SandolSpacing.sm,
+            spacing: HandolSpacing.sm,
             children: [
-              Text('최신 공지', style: SandolTypography.caption),
-              Text('총 $total건', style: SandolTypography.caption),
+              Text('최신 공지', style: HandolTypography.caption),
+              Text('총 $total건', style: HandolTypography.caption),
             ],
           ),
         ),
         DecoratedBox(
           decoration: BoxDecoration(
-            color: SandolColors.background,
-            borderRadius: SandolMetrics.radius,
+            color: HandolColors.background,
+            borderRadius: HandolMetrics.radius,
             border: Border.all(color: NoticeColors.border),
           ),
           child: Padding(
@@ -519,7 +519,7 @@ class _SummaryRow extends StatelessWidget {
             child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Text('최신순', style: SandolTypography.caption),
+                Text('최신순', style: HandolTypography.caption),
                 const Icon(Icons.arrow_drop_down_rounded, size: 20),
               ],
             ),
@@ -556,7 +556,7 @@ class _ShuttleListTabState extends ConsumerState<_ShuttleListTab> {
         .watch(shuttleListNotifierProvider)
         .when(
           data: _buildList,
-          loading: () => const Center(child: SandolLoadingIndicator()),
+          loading: () => const Center(child: HandolLoadingIndicator()),
           error:
               (e, _) => ErrorRetryView(
                 title: '셔틀 정보를 불러올 수 없습니다.',
@@ -567,13 +567,13 @@ class _ShuttleListTabState extends ConsumerState<_ShuttleListTab> {
 
   Widget _buildList(PaginationState<Shuttle> data) {
     return RefreshIndicator(
-      color: SandolColors.primary,
-      backgroundColor: SandolColors.background,
+      color: HandolColors.primary,
+      backgroundColor: HandolColors.background,
       onRefresh: () => ref.read(shuttleListNotifierProvider.notifier).refresh(),
       child: ListView.builder(
         controller: _scrollController,
         physics: const AlwaysScrollableScrollPhysics(),
-        padding: const EdgeInsets.symmetric(vertical: SandolSpacing.sm),
+        padding: const EdgeInsets.symmetric(vertical: HandolSpacing.sm),
         itemCount: data.items.length + (data.isLoadingMore ? 1 : 0),
         itemBuilder:
             (context, index) =>

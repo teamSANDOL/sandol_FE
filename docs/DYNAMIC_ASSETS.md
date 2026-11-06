@@ -49,9 +49,9 @@
 | 셔틀 공지 이미지(iBook) | `lib/features/notice/presentation/widget/shuttle_card.dart:51` | 있음(서버 URL) | 학기마다 | 이미 서버 |
 | 홈 고정 부서 | `lib/features/organization/presentation/provider/organization_provider.dart:54` | 조직도는 있음, 고정 목록은 없음 | 드묾 | 유지(이름이 트리에 없으면 조용히 빠짐) |
 | 홈 주요일정 | `lib/common/repository/static_repository.dart:9` | 없음(학사일정 API 없음) | 학기마다 | 유지(자리표시 데이터). 학사일정 API가 생기면 교체 |
-| 스플래시 영상·포스터 | `lib/core/design_system/sandol_assets.dart:12` | 없음 | 드묾(브랜드 교체) | 유지. 첫 화면은 네트워크 전에 떠야 하므로 내장이 맞다 |
+| 스플래시 영상·포스터 | `lib/core/design_system/handol_assets.dart:12` | 없음 | 드묾(브랜드 교체) | 유지. 첫 화면은 네트워크 전에 떠야 하므로 내장이 맞다 |
 | 정책 URL(처리방침·계정 삭제) | `lib/core/constants/api_constants.dart:27` | 웹 페이지(주소 고정) | 거의 없음 | 유지. Play 콘솔 등록 주소와 같아야 한다 |
-| 로그인 버튼·아이콘·로고 등 디자인 에셋 | `lib/core/design_system/sandol_assets.dart` | 해당 없음 | 디자인 개편 시 | 유지(앱 업데이트로 배포) |
+| 로그인 버튼·아이콘·로고 등 디자인 에셋 | `lib/core/design_system/handol_assets.dart` | 해당 없음 | 디자인 개편 시 | 유지(앱 업데이트로 배포) |
 
 ## 셔틀
 

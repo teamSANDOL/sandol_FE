@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:handori/common/component/sandol_card.dart';
-import 'package:handori/common/component/sandol_icon_button.dart';
-import 'package:handori/common/component/sandol_icon_label.dart';
-import 'package:handori/core/design_system/sandol_assets.dart';
-import 'package:handori/core/design_system/sandol_tokens.dart';
+import 'package:handori/common/component/handol_card.dart';
+import 'package:handori/common/component/handol_icon_button.dart';
+import 'package:handori/common/component/handol_icon_label.dart';
+import 'package:handori/core/design_system/handol_assets.dart';
+import 'package:handori/core/design_system/handol_tokens.dart';
 import 'package:handori/features/bus/domain/model/shuttle_schedule.dart';
 import 'package:handori/features/bus/domain/usecase/next_shuttle_calculator.dart';
 import 'package:handori/features/bus/presentation/provider/next_shuttle_provider.dart';
@@ -59,7 +59,7 @@ class _BustimescreenState extends ConsumerState<Bustimescreen> {
             )
             .toList();
 
-    return SandolCard(
+    return HandolCard(
       onTap: widget.onTap,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -75,37 +75,37 @@ class _BustimescreenState extends ConsumerState<Bustimescreen> {
           ),
           Padding(
             padding: const EdgeInsets.symmetric(
-              horizontal: SandolMetrics.cardInset,
+              horizontal: HandolMetrics.cardInset,
               vertical: 10,
             ),
-            child: SandolIconLabel(
-              icon: SvgPicture.asset(SandolAssets.clock),
+            child: HandolIconLabel(
+              icon: SvgPicture.asset(HandolAssets.clock),
               label: next.headline,
-              style: SandolTypography.title.accent,
+              style: HandolTypography.title.accent,
             ),
           ),
-          const Divider(height: 1, thickness: 1, color: SandolColors.muted),
+          const Divider(height: 1, thickness: 1, color: HandolColors.muted),
           Padding(
             padding: const EdgeInsets.fromLTRB(
-              SandolMetrics.cardInset,
+              HandolMetrics.cardInset,
               13,
-              SandolMetrics.cardInset,
-              SandolSpacing.md,
+              HandolMetrics.cardInset,
+              HandolSpacing.md,
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                SandolIconLabel(
-                  icon: SvgPicture.asset(SandolAssets.busStop),
+                HandolIconLabel(
+                  icon: SvgPicture.asset(HandolAssets.busStop),
                   label: stopName,
-                  style: SandolTypography.headline.strong,
+                  style: HandolTypography.headline.strong,
                   gap: 9,
                 ),
                 const SizedBox(height: 29),
                 if (departures.isEmpty)
                   Text(
                     next.subText ?? '운행 정보가 없어요',
-                    style: SandolTypography.body.muted,
+                    style: HandolTypography.body.muted,
                   )
                 else
                   Column(
@@ -120,7 +120,7 @@ class _BustimescreenState extends ConsumerState<Bustimescreen> {
                   ),
                 const SizedBox(height: 20),
                 Center(
-                  child: SandolIconLabel.note('출발 시간은 교통 상황에 따라 달라질 수 있어요.'),
+                  child: HandolIconLabel.note('출발 시간은 교통 상황에 따라 달라질 수 있어요.'),
                 ),
               ],
             ),
@@ -147,13 +147,13 @@ class _DirectionBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final label = SandolTypography.caption.onPrimary;
+    final label = HandolTypography.caption.onPrimary;
     return ColoredBox(
-      color: SandolColors.primary,
+      color: HandolColors.primary,
       child: Padding(
         padding: const EdgeInsets.symmetric(
-          horizontal: SandolMetrics.cardInset,
-          vertical: SandolSpacing.xs,
+          horizontal: HandolMetrics.cardInset,
+          vertical: HandolSpacing.xs,
         ),
         child: Row(
           children: [
@@ -163,23 +163,23 @@ class _DirectionBar extends StatelessWidget {
                 Text(from, style: label),
                 RotatedBox(
                   quarterTurns: 2,
-                  child: SvgPicture.asset(SandolAssets.arrowLeft),
+                  child: SvgPicture.asset(HandolAssets.arrowLeft),
                 ),
                 Text(to, style: label),
               ],
             ),
             const Spacer(),
             Row(
-              spacing: SandolSpacing.sm,
+              spacing: HandolSpacing.sm,
               children: [
-                SandolIconButton(
+                HandolIconButton(
                   tooltip: '반대 방향',
-                  icon: SvgPicture.asset(SandolAssets.swap),
+                  icon: SvgPicture.asset(HandolAssets.swap),
                   onTap: onSwap,
                 ),
-                SandolIconButton(
+                HandolIconButton(
                   tooltip: '새로고침',
-                  icon: SvgPicture.asset(SandolAssets.refresh),
+                  icon: SvgPicture.asset(HandolAssets.refresh),
                   onTap: onRefresh,
                 ),
               ],
@@ -226,15 +226,15 @@ class _DepartureRow extends StatelessWidget {
         Expanded(
           child: Align(
             alignment: Alignment.centerLeft,
-            child: SandolIconLabel(
-              icon: SvgPicture.asset(SandolAssets.busDeparture),
+            child: HandolIconLabel(
+              icon: SvgPicture.asset(HandolAssets.busDeparture),
               label: time,
-              style: SandolTypography.body,
-              gap: SandolSpacing.xs,
+              style: HandolTypography.body,
+              gap: HandolSpacing.xs,
             ),
           ),
         ),
-        Text(trailing, style: SandolTypography.body),
+        Text(trailing, style: HandolTypography.body),
       ],
     );
   }

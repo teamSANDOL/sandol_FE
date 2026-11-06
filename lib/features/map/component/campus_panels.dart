@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:handori/common/component/coming_soon_snackbar.dart';
-import 'package:handori/core/design_system/sandol_tokens.dart';
+import 'package:handori/core/design_system/handol_tokens.dart';
 import 'package:handori/features/empty_class/model/class_model.dart';
 import 'package:handori/features/map/component/map_common.dart';
 
@@ -53,30 +53,30 @@ class CampusHomePanel extends StatelessWidget {
   Widget build(BuildContext context) => ListView(
     controller: controller,
     padding: const EdgeInsets.fromLTRB(
-      SandolMetrics.pageGutter,
-      SandolSpacing.sm,
-      SandolMetrics.pageGutter,
-      SandolSpacing.lg,
+      HandolMetrics.pageGutter,
+      HandolSpacing.sm,
+      HandolMetrics.pageGutter,
+      HandolSpacing.lg,
     ),
     children: [
       Row(
         children: [
           Expanded(
-            child: Text('지금 많이 찾는 시설', style: SandolTypography.headline.accent),
+            child: Text('지금 많이 찾는 시설', style: HandolTypography.headline.accent),
           ),
           InkWell(
             onTap: onShowAll,
-            borderRadius: SandolMetrics.radius,
+            borderRadius: HandolMetrics.radius,
             child: const Row(
               children: [
-                Text('전체보기', style: SandolTypography.caption),
+                Text('전체보기', style: HandolTypography.caption),
                 Icon(Icons.chevron_right_rounded, size: 18),
               ],
             ),
           ),
         ],
       ),
-      const SizedBox(height: SandolSpacing.md),
+      const SizedBox(height: HandolSpacing.md),
       _TileRow([
         _tile(context, CampusFacility.emptyClass, onTap: onEmptyClass),
         for (final f in const [
@@ -111,16 +111,16 @@ class FacilityFilterPanel extends StatelessWidget {
   Widget build(BuildContext context) => ListView(
     controller: controller,
     padding: const EdgeInsets.fromLTRB(
-      SandolMetrics.pageGutter,
-      SandolSpacing.sm,
-      SandolMetrics.pageGutter,
-      SandolSpacing.lg,
+      HandolMetrics.pageGutter,
+      HandolSpacing.sm,
+      HandolMetrics.pageGutter,
+      HandolSpacing.lg,
     ),
     children: [
       Row(
         children: [
           const Expanded(
-            child: Text('표시할 시설 선택', style: SandolTypography.headline),
+            child: Text('표시할 시설 선택', style: HandolTypography.headline),
           ),
           IconButton(
             tooltip: '닫기',
@@ -130,7 +130,7 @@ class FacilityFilterPanel extends StatelessWidget {
           ),
         ],
       ),
-      const SizedBox(height: SandolSpacing.md),
+      const SizedBox(height: HandolSpacing.md),
       _TileRow([
         _tile(context, CampusFacility.all, onTap: onClose),
         _tile(context, CampusFacility.emptyClass, onTap: onEmptyClass),
@@ -179,23 +179,23 @@ class BuildingPanel extends StatelessWidget {
         Container(
           width: 100,
           height: 80,
-          padding: const EdgeInsets.all(SandolSpacing.md),
+          padding: const EdgeInsets.all(HandolSpacing.md),
           decoration: const BoxDecoration(
             color: MapColors.tile,
-            borderRadius: SandolMetrics.radius,
+            borderRadius: HandolMetrics.radius,
           ),
           child: Image.asset(building.classIcons, fit: BoxFit.contain),
         ),
-        const SizedBox(width: SandolSpacing.md),
+        const SizedBox(width: HandolSpacing.md),
         Expanded(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(building.className, style: SandolTypography.headline),
-              const SizedBox(height: SandolSpacing.sm),
+              Text(building.className, style: HandolTypography.headline),
+              const SizedBox(height: HandolSpacing.sm),
               Text(
                 '빈 강의실 ${building.emptyCount}개',
-                style: SandolTypography.caption.muted,
+                style: HandolTypography.caption.muted,
               ),
             ],
           ),
@@ -211,21 +211,21 @@ class BuildingPanel extends StatelessWidget {
     return ListView(
       controller: controller,
       padding: const EdgeInsets.fromLTRB(
-        SandolMetrics.pageGutter,
-        SandolSpacing.sm,
-        SandolMetrics.pageGutter,
-        SandolSpacing.xl,
+        HandolMetrics.pageGutter,
+        HandolSpacing.sm,
+        HandolMetrics.pageGutter,
+        HandolSpacing.xl,
       ),
       children: [
         header,
-        const SizedBox(height: SandolSpacing.sm),
+        const SizedBox(height: HandolSpacing.sm),
         if (expanded) ...[
           directions,
-          const SizedBox(height: SandolSpacing.lg),
-          Center(child: Text('시설 정보', style: SandolTypography.caption)),
-          const SizedBox(height: SandolSpacing.sm),
+          const SizedBox(height: HandolSpacing.lg),
+          Center(child: Text('시설 정보', style: HandolTypography.caption)),
+          const SizedBox(height: HandolSpacing.sm),
           const Divider(height: 1, color: MapColors.line),
-          const SizedBox(height: SandolSpacing.lg),
+          const SizedBox(height: HandolSpacing.lg),
           const MapSectionTitle('주요 시설'),
           _TileRow([
             _tile(context, CampusFacility.emptyClass, onTap: onEmptyClass),
@@ -246,8 +246,8 @@ class BuildingPanel extends StatelessWidget {
               _tile(context, CampusFacility.vending, enabled: false),
             ],
           ),
-          const SizedBox(height: SandolSpacing.lg),
-          Text('건물 소개 · 층별 안내는 준비중이에요', style: SandolTypography.caption.muted),
+          const SizedBox(height: HandolSpacing.lg),
+          Text('건물 소개 · 층별 안내는 준비중이에요', style: HandolTypography.caption.muted),
         ] else ...[
           Row(
             spacing: 29,
@@ -262,7 +262,7 @@ class BuildingPanel extends StatelessWidget {
               ),
             ],
           ),
-          const SizedBox(height: SandolSpacing.lg),
+          const SizedBox(height: HandolSpacing.lg),
           const MapSectionTitle('학습 공간'),
           Row(
             spacing: 29,

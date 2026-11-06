@@ -7,7 +7,7 @@ import 'package:handori/core/constants/app_radius.dart';
 /// 시안의 배경 그라데이션은 맨 위 색의 투명도가 0이고 흰색 위에 겹쳐 있다
 /// (CFE4FA 0% → E8F0FD 35% @72% → E7E5FE 83% @100%). 불투명 색으로 그대로
 /// 옮기면 위쪽이 시안보다 훨씬 파랗게 나와서, 흰색 위에 합성한 값을 쓴다.
-abstract final class SandolGradients {
+abstract final class HandolGradients {
   /// 학식 · 공지사항 화면 배경 (위 → 아래)
   static const screen = LinearGradient(
     begin: Alignment.topCenter,
@@ -29,13 +29,13 @@ abstract final class SandolGradients {
   static const primaryCard = LinearGradient(
     begin: Alignment(0.4029, 2.4699),
     end: Alignment(-1.1724, -1.4264),
-    colors: [SandolColors.primary, Color(0xFF5FA8EA)],
+    colors: [HandolColors.primary, Color(0xFF5FA8EA)],
   );
 }
 
 /// Figma 2142:2334 / 2143:2498 / 2143:2581 / 2143:2624의 공통 토큰.
 /// 새 디자인으로 전환하는 화면은 이 토큰을 사용한다.
-abstract final class SandolColors {
+abstract final class HandolColors {
   static const primary = Color(0xFF3882D3);
   static const background = Color(0xFFFDFDFD);
   static const text = Color(0xFF040404);
@@ -71,10 +71,10 @@ abstract final class SandolColors {
   static const text20 = Color(0x33040404);
 }
 
-abstract final class SandolTypography {
-  static const titleAccent = TextStyle(color: SandolColors.primary);
+abstract final class HandolTypography {
+  static const titleAccent = TextStyle(color: HandolColors.primary);
   static const captionLink = TextStyle(
-    color: SandolColors.link,
+    color: HandolColors.link,
     fontWeight: FontWeight.w700,
     decoration: TextDecoration.underline,
   );
@@ -84,7 +84,7 @@ abstract final class SandolTypography {
     fontWeight: FontWeight.w400,
     height: 16 / 14,
     letterSpacing: -0.55,
-    color: SandolColors.text,
+    color: HandolColors.text,
   );
   static const body = TextStyle(
     fontFamily: 'Pretendard',
@@ -92,7 +92,7 @@ abstract final class SandolTypography {
     fontWeight: FontWeight.w400,
     height: 18 / 16,
     letterSpacing: -0.55,
-    color: SandolColors.text,
+    color: HandolColors.text,
   );
   static const headline = TextStyle(
     fontFamily: 'Pretendard',
@@ -100,7 +100,7 @@ abstract final class SandolTypography {
     fontWeight: FontWeight.w400,
     height: 22 / 20,
     letterSpacing: -0.55,
-    color: SandolColors.text,
+    color: HandolColors.text,
   );
   static const title = TextStyle(
     fontFamily: 'Pretendard',
@@ -108,7 +108,7 @@ abstract final class SandolTypography {
     fontWeight: FontWeight.w700,
     height: 24 / 22,
     letterSpacing: -0.55,
-    color: SandolColors.text,
+    color: HandolColors.text,
   );
   static const button = TextStyle(
     fontFamily: 'Pretendard',
@@ -120,22 +120,22 @@ abstract final class SandolTypography {
 }
 
 /// 시안은 같은 크기에서 굵기·색만 바꿔 쓴다. `caption.strong.accent`처럼 잇는다.
-extension SandolTextStyleX on TextStyle {
+extension HandolTextStyleX on TextStyle {
   TextStyle get strong => copyWith(fontWeight: FontWeight.w700);
-  TextStyle get muted => copyWith(color: SandolColors.muted);
-  TextStyle get accent => copyWith(color: SandolColors.primary);
-  TextStyle get onPrimary => copyWith(color: SandolColors.background);
-  TextStyle get inactive => copyWith(color: SandolColors.inactive);
+  TextStyle get muted => copyWith(color: HandolColors.muted);
+  TextStyle get accent => copyWith(color: HandolColors.primary);
+  TextStyle get onPrimary => copyWith(color: HandolColors.background);
+  TextStyle get inactive => copyWith(color: HandolColors.inactive);
 }
 
 /// 카드 그림자. primary 10%, blur 4 (Figma DROP_SHADOW).
-abstract final class SandolShadows {
+abstract final class HandolShadows {
   static const card = [
     BoxShadow(color: Color(0x1A3882D3), blurRadius: 4, offset: Offset(0, 4)),
   ];
 }
 
-abstract final class SandolSpacing {
+abstract final class HandolSpacing {
   static const xs = 4.0;
   static const sm = 8.0;
   static const md = 16.0;
@@ -143,7 +143,7 @@ abstract final class SandolSpacing {
   static const xl = 40.0;
 }
 
-abstract final class SandolMetrics {
+abstract final class HandolMetrics {
   static const referenceWidth = 412.0;
   static const contentWidth = 346.0;
   static const pageGutter = 33.0;
@@ -158,21 +158,21 @@ abstract final class SandolMetrics {
   static const buttonHeight = 44.0;
 }
 
-abstract final class SandolTheme {
+abstract final class HandolTheme {
   static ThemeData get light => ThemeData(
     brightness: Brightness.light,
     fontFamily: 'Pretendard',
-    scaffoldBackgroundColor: SandolColors.background,
-    colorScheme: ColorScheme.fromSeed(seedColor: SandolColors.primary).copyWith(
-      primary: SandolColors.primary,
-      surface: SandolColors.background,
-      onSurface: SandolColors.text,
-      error: SandolColors.error,
+    scaffoldBackgroundColor: HandolColors.background,
+    colorScheme: ColorScheme.fromSeed(seedColor: HandolColors.primary).copyWith(
+      primary: HandolColors.primary,
+      surface: HandolColors.background,
+      onSurface: HandolColors.text,
+      error: HandolColors.error,
     ),
     textSelectionTheme: const TextSelectionThemeData(
-      cursorColor: SandolColors.primary,
-      selectionColor: SandolColors.field,
-      selectionHandleColor: SandolColors.primary,
+      cursorColor: HandolColors.primary,
+      selectionColor: HandolColors.field,
+      selectionHandleColor: HandolColors.primary,
     ),
   );
 }

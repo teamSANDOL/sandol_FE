@@ -2,9 +2,9 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:handori/common/component/sandol_card.dart';
-import 'package:handori/common/component/sandol_chip.dart';
-import 'package:handori/core/design_system/sandol_tokens.dart';
+import 'package:handori/common/component/handol_card.dart';
+import 'package:handori/common/component/handol_chip.dart';
+import 'package:handori/core/design_system/handol_tokens.dart';
 import 'package:handori/core/utils/keep_all.dart';
 import 'package:handori/features/school_meal/presentation/model/restaurant_menu.dart';
 import 'package:handori/features/school_meal/presentation/provider/selected_restaurant_id_notifier.dart';
@@ -166,7 +166,7 @@ class _HomeMealSectionState extends ConsumerState<HomeMealSection> {
         // 식당 선택 칩. ListView는 화면 밖 칩을 빌드하지 않아 ensureVisible이
         // 불가능하므로, 칩 개수가 적은 홈에서는 전부 빌드하는 Row 스크롤을 쓴다.
         SizedBox(
-          height: SandolChip.height,
+          height: HandolChip.height,
           child: SingleChildScrollView(
             scrollDirection: Axis.horizontal,
             // 섹션은 화면 여백 안에 있지만 칩 줄은 화면 끝까지 흘러간다.
@@ -175,7 +175,7 @@ class _HomeMealSectionState extends ConsumerState<HomeMealSection> {
               spacing: 12,
               children: [
                 for (var i = 0; i < menus.length; i++)
-                  SandolChip(
+                  HandolChip(
                     key: _chipKey(menus[i].restaurant.id),
                     label: menus[i].name,
                     selected: i == selected,
@@ -186,7 +186,7 @@ class _HomeMealSectionState extends ConsumerState<HomeMealSection> {
           ),
         ),
 
-        const SizedBox(height: SandolSpacing.sm),
+        const SizedBox(height: HandolSpacing.sm),
 
         // 식당 메뉴 카드 — PageView가 손가락을 따라 움직이고, 높이는 이웃한
         // 두 카드 높이를 page 값으로 보간한다.
@@ -310,12 +310,12 @@ class _MealMenuCard extends StatelessWidget {
     final photoUrl = menu.photoUrlFor(slot);
     final items = slot?.menu ?? const <String>[];
 
-    return SandolCard(
+    return HandolCard(
       // field(20%)를 배경 위에 합성한 불투명 값. 반투명이면 그림자가 비친다.
-      color: SandolColors.primarySoft,
+      color: HandolColors.primarySoft,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
-        spacing: SandolSpacing.xs,
+        spacing: HandolSpacing.xs,
         children: [
           if (photo != null || photoUrl != null)
             SizedBox(
@@ -323,28 +323,28 @@ class _MealMenuCard extends StatelessWidget {
               child: RemoteImage(url: photoUrl, asset: photo),
             ),
           ColoredBox(
-            color: SandolColors.background,
+            color: HandolColors.background,
             child: Padding(
               padding: const EdgeInsets.symmetric(
-                horizontal: SandolMetrics.cardInset,
-                vertical: SandolSpacing.md,
+                horizontal: HandolMetrics.cardInset,
+                vertical: HandolSpacing.md,
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
-                spacing: SandolSpacing.sm,
+                spacing: HandolSpacing.sm,
                 children: [
                   Row(
                     children: [
                       Expanded(
                         child: Text(
                           menu.name.keepAll,
-                          style: SandolTypography.caption,
+                          style: HandolTypography.caption,
                         ),
                       ),
                       if (price != null)
                         Text(
                           '${price ~/ 1000},${(price % 1000).toString().padLeft(3, '0')}원',
-                          style: SandolTypography.caption.accent,
+                          style: HandolTypography.caption.accent,
                         ),
                     ],
                   ),
@@ -352,11 +352,11 @@ class _MealMenuCard extends StatelessWidget {
                     // 홈 카드는 늘 오늘 식단이라 날짜 분기는 두지 않는다.
                     Text(
                       '오늘 메뉴가 아직 등록되지 않았어요'.keepAll,
-                      style: SandolTypography.caption.muted,
+                      style: HandolTypography.caption.muted,
                     )
                   else
                     for (final item in items)
-                      Text(item.keepAll, style: SandolTypography.caption),
+                      Text(item.keepAll, style: HandolTypography.caption),
                 ],
               ),
             ),

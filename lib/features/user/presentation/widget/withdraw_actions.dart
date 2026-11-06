@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:handori/common/component/sandol_button.dart';
-import 'package:handori/core/design_system/sandol_tokens.dart';
+import 'package:handori/common/component/handol_button.dart';
+import 'package:handori/core/design_system/handol_tokens.dart';
 
 /// `계속 사용하기` · 빨간 확인 버튼 한 쌍 (2196:1174 · 2196:1177).
 /// 회원탈퇴 두 화면이 같이 쓴다.
@@ -22,23 +22,23 @@ class WithdrawActions extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Row(
-    spacing: SandolSpacing.lg,
+    spacing: HandolSpacing.lg,
     children: [
       Expanded(
-        child: SandolButton(
+        child: HandolButton(
           label: '계속 사용하기',
-          variant: SandolButtonVariant.outlined,
+          variant: HandolButtonVariant.outlined,
           height: height,
-          textStyle: SandolTypography.title,
+          textStyle: HandolTypography.title,
           onPressed: onContinue,
         ),
       ),
       Expanded(
-        child: SandolButton(
+        child: HandolButton(
           label: confirmLabel,
-          variant: SandolButtonVariant.danger,
+          variant: HandolButtonVariant.danger,
           height: height,
-          textStyle: SandolTypography.title,
+          textStyle: HandolTypography.title,
           onPressed: onConfirm,
         ),
       ),

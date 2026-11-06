@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:handori/core/design_system/sandol_tokens.dart';
+import 'package:handori/core/design_system/handol_tokens.dart';
 import 'package:handori/core/utils/date_formatter.dart';
 import 'package:handori/core/utils/keep_all.dart';
 import 'package:handori/features/notice/domain/model/notice.dart';
@@ -27,9 +27,9 @@ class NoticeCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Material(
-    color: SandolColors.background,
+    color: HandolColors.background,
     shape: const RoundedRectangleBorder(
-      borderRadius: SandolMetrics.radius,
+      borderRadius: HandolMetrics.radius,
       side: BorderSide(color: NoticeColors.border),
     ),
     clipBehavior: Clip.antiAlias,
@@ -39,7 +39,7 @@ class NoticeCard extends StatelessWidget {
         padding: const EdgeInsets.fromLTRB(12, 6, 4, 10),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
-          spacing: SandolSpacing.xs,
+          spacing: HandolSpacing.xs,
           children: [
             Row(
               children: [
@@ -47,10 +47,10 @@ class NoticeCard extends StatelessWidget {
                 // 안쪽으로 밀리므로, 배지 줄이 남은 폭을 모두 차지하게 한다.
                 Expanded(
                   child: Row(
-                    spacing: SandolSpacing.xs,
+                    spacing: HandolSpacing.xs,
                     children: [
                       Flexible(
-                        child: _Badge(notice.author, SandolColors.primary),
+                        child: _Badge(notice.author, HandolColors.primary),
                       ),
                       if (isNew) const _Badge('NEW', NoticeColors.badgeNew),
                     ],
@@ -65,7 +65,7 @@ class NoticeCard extends StatelessWidget {
                         ? Icons.bookmark_rounded
                         : Icons.bookmark_border_rounded,
                     size: 20,
-                    color: saved ? SandolColors.primary : SandolColors.text,
+                    color: saved ? HandolColors.primary : HandolColors.text,
                   ),
                 ),
               ],
@@ -74,7 +74,7 @@ class NoticeCard extends StatelessWidget {
               padding: const EdgeInsets.only(right: 8),
               child: Text(
                 notice.title.keepAll,
-                style: SandolTypography.caption.strong.copyWith(
+                style: HandolTypography.caption.strong.copyWith(
                   color: NoticeColors.title,
                   height: 22 / 14,
                 ),
@@ -84,7 +84,7 @@ class NoticeCard extends StatelessWidget {
             ),
             Text(
               '${DateFormatter.format(notice.createdAt)}.',
-              style: SandolTypography.caption.copyWith(
+              style: HandolTypography.caption.copyWith(
                 fontSize: 12,
                 color: NoticeColors.meta,
               ),
@@ -111,7 +111,7 @@ class _Badge extends StatelessWidget {
     ),
     child: Text(
       label,
-      style: SandolTypography.caption.onPrimary,
+      style: HandolTypography.caption.onPrimary,
       maxLines: 1,
       overflow: TextOverflow.ellipsis,
     ),

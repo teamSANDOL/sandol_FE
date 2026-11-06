@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:handori/core/design_system/sandol_tokens.dart';
+import 'package:handori/core/design_system/handol_tokens.dart';
 
 /// 서버 이미지([url])가 있으면 그것을, 없거나 받지 못하면 앱 에셋([asset]),
 /// 에셋도 없으면 [placeholder]를 보여 준다. 크기는 부모가 정한다.
@@ -13,7 +13,7 @@ class RemoteImage extends StatelessWidget {
     super.key,
     this.url,
     this.asset,
-    this.placeholder = const ColoredBox(color: SandolColors.primarySoft),
+    this.placeholder = const ColoredBox(color: HandolColors.primarySoft),
     this.fit = BoxFit.cover,
   });
 

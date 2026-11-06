@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:handori/core/design_system/sandol_assets.dart';
-import 'package:handori/core/design_system/sandol_tokens.dart';
+import 'package:handori/core/design_system/handol_assets.dart';
+import 'package:handori/core/design_system/handol_tokens.dart';
 import 'package:handori/core/push/push_service.dart';
 import 'package:handori/core/router/route_paths.dart';
 import 'package:handori/features/auth/domain/model/auth_session.dart';
@@ -42,7 +42,7 @@ class _SplashscreenState extends ConsumerState<Splashscreen> {
 
   /// 화면 전환은 영상을 기다리지 않는다. 다른 앱의 음악을 끊지 않게 섞어 튼다.
   final _video = VideoPlayerController.asset(
-    SandolAssets.splashVideo,
+    HandolAssets.splashVideo,
     videoPlayerOptions: VideoPlayerOptions(mixWithOthers: true),
   );
   bool _videoReady = false;
@@ -119,17 +119,17 @@ class _SplashscreenState extends ConsumerState<Splashscreen> {
       statusBarColor: Colors.transparent,
     ),
     child: Scaffold(
-      backgroundColor: SandolColors.background,
+      backgroundColor: HandolColors.background,
       body: Center(
         // Figma 원본 1080×1920 자산. 시안의 412×733 배치처럼 세로 중앙 정렬하고 종횡비를 유지한다.
         // 영상도 같은 1080×1920 이라 정지 이미지 위에 그대로 덮는다.
         child: Stack(
           children: [
             Image.asset(
-              SandolAssets.splashPoster,
+              HandolAssets.splashPoster,
               width: MediaQuery.sizeOf(context).width,
               fit: BoxFit.contain,
-              semanticLabel: '산돌이 시작 화면',
+              semanticLabel: '한돌이 시작 화면',
             ),
             if (_videoReady) Positioned.fill(child: VideoPlayer(_video)),
           ],

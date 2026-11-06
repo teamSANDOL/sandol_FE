@@ -3,17 +3,17 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:go_router/go_router.dart';
 import 'package:handori/common/component/app_top_bar.dart';
-import 'package:handori/common/component/sandol_bottom_glow.dart';
-import 'package:handori/common/component/sandol_card.dart';
-import 'package:handori/core/design_system/sandol_assets.dart';
-import 'package:handori/core/design_system/sandol_tokens.dart';
+import 'package:handori/common/component/handol_bottom_glow.dart';
+import 'package:handori/common/component/handol_card.dart';
+import 'package:handori/core/design_system/handol_assets.dart';
+import 'package:handori/core/design_system/handol_tokens.dart';
 import 'package:handori/features/organization/domain/model/organization_node.dart';
 import 'package:handori/features/organization/domain/model/organization_search_result.dart';
 import 'package:handori/features/organization/presentation/provider/organization_provider.dart';
 import 'package:handori/features/organization/presentation/widget/organization_node_card.dart';
 import 'package:handori/features/organization/presentation/widget/organization_search_result_card.dart';
 import 'package:handori/shared/widget/error_retry_view.dart';
-import 'package:handori/shared/widget/sandol_loading_indicator.dart';
+import 'package:handori/shared/widget/handol_loading_indicator.dart';
 
 /// 학과/부서 조직도 (Figma 2158:882).
 ///
@@ -45,31 +45,31 @@ class _OrganizationTreePageState extends ConsumerState<OrganizationTreePage> {
     final treeAsync = ref.watch(organizationTreeNotifierProvider);
 
     return Scaffold(
-      backgroundColor: SandolColors.background,
+      backgroundColor: HandolColors.background,
       appBar: AppTopBar(
         title: '학과/부서 조직도',
-        titleWidget: const Text('학과/부서 조직도', style: SandolTypography.title),
-        backIcon: SvgPicture.asset(SandolAssets.backArrow),
+        titleWidget: const Text('학과/부서 조직도', style: HandolTypography.title),
+        backIcon: SvgPicture.asset(HandolAssets.backArrow),
         onBack: () => context.pop(),
-        backgroundColor: SandolColors.background,
+        backgroundColor: HandolColors.background,
         // 뒤로가기 버튼(44) 안의 아이콘(24)이 본문 여백(33)에 맞게
-        horizontalPadding: SandolMetrics.pageGutter - 10,
+        horizontalPadding: HandolMetrics.pageGutter - 10,
       ),
       body: Stack(
         children: [
-          const SandolBottomGlow(),
+          const HandolBottomGlow(),
           RefreshIndicator(
-            color: SandolColors.primary,
-            backgroundColor: SandolColors.background,
+            color: HandolColors.primary,
+            backgroundColor: HandolColors.background,
             onRefresh: _refresh,
             child: ListView(
               physics: const AlwaysScrollableScrollPhysics(),
               keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
               padding: const EdgeInsets.fromLTRB(
-                SandolMetrics.pageGutter,
-                SandolSpacing.sm,
-                SandolMetrics.pageGutter,
-                SandolSpacing.xl,
+                HandolMetrics.pageGutter,
+                HandolSpacing.sm,
+                HandolMetrics.pageGutter,
+                HandolSpacing.xl,
               ),
               children: [
                 _SearchField(
@@ -81,7 +81,7 @@ class _OrganizationTreePageState extends ConsumerState<OrganizationTreePage> {
                   loading:
                       () => const Padding(
                         padding: EdgeInsets.only(top: 60),
-                        child: Center(child: SandolLoadingIndicator()),
+                        child: Center(child: HandolLoadingIndicator()),
                       ),
                   error:
                       (_, _) => ErrorRetryView(
@@ -113,19 +113,19 @@ class _SearchField extends StatelessWidget {
   final ValueChanged<String> onChanged;
 
   @override
-  Widget build(BuildContext context) => SandolCard(
-    padding: const EdgeInsets.fromLTRB(10, 12, SandolMetrics.cardInset, 12),
+  Widget build(BuildContext context) => HandolCard(
+    padding: const EdgeInsets.fromLTRB(10, 12, HandolMetrics.cardInset, 12),
     child: Row(
       spacing: 11,
       children: [
-        SvgPicture.asset(SandolAssets.orgSearch),
+        SvgPicture.asset(HandolAssets.orgSearch),
         Expanded(
           child: TextField(
             controller: controller,
-            style: SandolTypography.caption,
+            style: HandolTypography.caption,
             decoration: InputDecoration.collapsed(
               hintText: '학과 또는 부서 이름 검색',
-              hintStyle: SandolTypography.caption.muted,
+              hintStyle: HandolTypography.caption.muted,
             ),
             textInputAction: TextInputAction.search,
             onChanged: onChanged,
@@ -144,7 +144,7 @@ class _TreeCard extends StatelessWidget {
   final OrganizationGroupNode root;
 
   static const _padding = EdgeInsets.symmetric(
-    horizontal: SandolMetrics.cardInset,
+    horizontal: HandolMetrics.cardInset,
     vertical: 32,
   );
 
@@ -155,7 +155,7 @@ class _TreeCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final units = root.children.whereType<OrganizationUnitNode>();
     final groups = root.children.whereType<OrganizationGroupNode>();
-    return SandolCard(
+    return HandolCard(
       borderRadius: _radius,
       padding: _padding,
       child: Column(
@@ -183,7 +183,7 @@ class _SearchResultCard extends StatelessWidget {
   final List<OrganizationSearchResult> results;
 
   @override
-  Widget build(BuildContext context) => SandolCard(
+  Widget build(BuildContext context) => HandolCard(
     borderRadius: _TreeCard._radius,
     padding: _TreeCard._padding,
     child:
@@ -191,11 +191,11 @@ class _SearchResultCard extends StatelessWidget {
             ? Text(
               '검색 결과가 없습니다.',
               textAlign: TextAlign.center,
-              style: SandolTypography.caption.muted,
+              style: HandolTypography.caption.muted,
             )
             : Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
-              spacing: SandolSpacing.md,
+              spacing: HandolSpacing.md,
               children: [
                 for (final r in results)
                   OrganizationSearchResultCard(result: r),

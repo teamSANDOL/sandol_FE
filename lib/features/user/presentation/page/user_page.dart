@@ -4,13 +4,13 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:go_router/go_router.dart';
 import 'package:handori/common/component/app_top_bar.dart';
 import 'package:handori/common/component/coming_soon_snackbar.dart';
-import 'package:handori/common/component/sandol_bottom_glow.dart';
-import 'package:handori/common/component/sandol_card.dart';
-import 'package:handori/common/component/sandol_icon_button.dart';
-import 'package:handori/common/component/sandol_icon_label.dart';
+import 'package:handori/common/component/handol_bottom_glow.dart';
+import 'package:handori/common/component/handol_card.dart';
+import 'package:handori/common/component/handol_icon_button.dart';
+import 'package:handori/common/component/handol_icon_label.dart';
 import 'package:handori/core/constants/api_constants.dart';
-import 'package:handori/core/design_system/sandol_assets.dart';
-import 'package:handori/core/design_system/sandol_tokens.dart';
+import 'package:handori/core/design_system/handol_assets.dart';
+import 'package:handori/core/design_system/handol_tokens.dart';
 import 'package:handori/core/router/route_paths.dart';
 import 'package:handori/core/utils/external_link.dart';
 import 'package:handori/features/auth/presentation/provider/auth_provider.dart';
@@ -39,35 +39,35 @@ class _UserPageState extends ConsumerState<UserPage> {
     final loggedIn = session != null;
 
     return Scaffold(
-      backgroundColor: SandolColors.background,
+      backgroundColor: HandolColors.background,
       appBar: AppTopBar(
         title: '마이페이지',
-        titleWidget: const Text('마이페이지', style: SandolTypography.title),
-        backIcon: SvgPicture.asset(SandolAssets.backArrow),
+        titleWidget: const Text('마이페이지', style: HandolTypography.title),
+        backIcon: SvgPicture.asset(HandolAssets.backArrow),
         onBack: () => context.pop(),
         showUser: false,
         trailing:
             loggedIn
-                ? SandolIconButton(
+                ? HandolIconButton(
                   tooltip: '로그아웃',
                   size: 44,
                   onTap: _confirmLogout,
-                  icon: SvgPicture.asset(SandolAssets.myLogout),
+                  icon: SvgPicture.asset(HandolAssets.myLogout),
                 )
                 : null,
-        backgroundColor: SandolColors.background,
+        backgroundColor: HandolColors.background,
         // 뒤로가기 버튼(44) 안의 아이콘(24)이 본문 여백(33)에 맞게
-        horizontalPadding: SandolMetrics.pageGutter - 10,
+        horizontalPadding: HandolMetrics.pageGutter - 10,
       ),
       body: Stack(
         children: [
-          const SandolBottomGlow(),
+          const HandolBottomGlow(),
           ListView(
             padding: const EdgeInsets.fromLTRB(
-              SandolMetrics.pageGutter,
-              SandolSpacing.md,
-              SandolMetrics.pageGutter,
-              SandolSpacing.xl,
+              HandolMetrics.pageGutter,
+              HandolSpacing.md,
+              HandolMetrics.pageGutter,
+              HandolSpacing.xl,
             ),
             children: [
               if (loggedIn)
@@ -77,62 +77,62 @@ class _UserPageState extends ConsumerState<UserPage> {
                 )
               else
                 _LoginCard(onTap: () => context.go(RoutePaths.login)),
-              const SizedBox(height: SandolSpacing.md),
+              const SizedBox(height: HandolSpacing.md),
               _Section(
                 label: '알림 설정',
                 children: [
                   _ToggleRow(
-                    icon: SandolAssets.myBell,
+                    icon: HandolAssets.myBell,
                     label: '푸시 알림',
                     value: _pushEnabled,
                     onChanged: (v) => setState(() => _pushEnabled = v),
                   ),
                   _ToggleRow(
-                    icon: SandolAssets.myGift,
+                    icon: HandolAssets.myGift,
                     label: '혜택 • 이벤트 알림',
                     value: _benefitEnabled,
                     onChanged: (v) => setState(() => _benefitEnabled = v),
                   ),
                   _ToggleRow(
-                    icon: SandolAssets.myMegaphone,
+                    icon: HandolAssets.myMegaphone,
                     label: '마케팅 정보 수신',
                     value: _marketingEnabled,
                     onChanged: (v) => setState(() => _marketingEnabled = v),
                   ),
                 ],
               ),
-              const SizedBox(height: SandolSpacing.lg),
+              const SizedBox(height: HandolSpacing.lg),
               _Section(
                 label: '고객 지원',
                 children: [
                   _LinkRow(
-                    icon: SandolAssets.myNotice,
+                    icon: HandolAssets.myNotice,
                     label: '공지사항',
                     onTap: () => context.go(RoutePaths.notice),
                   ),
                   _LinkRow(
-                    icon: SandolAssets.myFaq,
+                    icon: HandolAssets.myFaq,
                     label: '자주 묻는 질문',
                     onTap: () => showComingSoonSnackBar(context),
                   ),
                   _LinkRow(
-                    icon: SandolAssets.myInquiry,
+                    icon: HandolAssets.myInquiry,
                     label: '1:1 문의',
                     onTap: () => showComingSoonSnackBar(context),
                   ),
                   _LinkRow(
-                    icon: SandolAssets.myInfo,
+                    icon: HandolAssets.myInfo,
                     label: '서비스 안내',
                     onTap: () => showComingSoonSnackBar(context),
                   ),
                 ],
               ),
-              const SizedBox(height: SandolSpacing.lg),
+              const SizedBox(height: HandolSpacing.lg),
               _Section(
                 label: '기타',
                 children: [
                   _LinkRow(
-                    icon: SandolAssets.myTerms,
+                    icon: HandolAssets.myTerms,
                     label: '약관 및 정책',
                     onTap:
                         () => openExternalLink(
@@ -141,7 +141,7 @@ class _UserPageState extends ConsumerState<UserPage> {
                         ),
                   ),
                   _LinkRow(
-                    icon: SandolAssets.myTerms,
+                    icon: HandolAssets.myTerms,
                     label: '개인정보처리방침',
                     onTap:
                         () => openExternalLink(
@@ -150,7 +150,7 @@ class _UserPageState extends ConsumerState<UserPage> {
                         ),
                   ),
                   const _LinkRow(
-                    icon: SandolAssets.myVersion,
+                    icon: HandolAssets.myVersion,
                     label: '앱 버전',
                     // pubspec.yaml version 과 함께 갱신한다.
                     trailingText: 'v1.0.0 • 최신',
@@ -158,9 +158,9 @@ class _UserPageState extends ConsumerState<UserPage> {
                   // 비로그인(게스트)에게는 지울 계정이 없다.
                   if (loggedIn)
                     _LinkRow(
-                      icon: SandolAssets.myLeave,
+                      icon: HandolAssets.myLeave,
                       label: '회원탈퇴',
-                      labelColor: SandolColors.red,
+                      labelColor: HandolColors.red,
                       onTap: () => context.push(RoutePaths.withdraw),
                     ),
                 ],
@@ -206,40 +206,40 @@ class _ProfileCard extends StatelessWidget {
   final String email;
 
   @override
-  Widget build(BuildContext context) => SandolCard(
+  Widget build(BuildContext context) => HandolCard(
     padding: const EdgeInsets.symmetric(
-      horizontal: SandolMetrics.cardInset,
+      horizontal: HandolMetrics.cardInset,
       vertical: 32,
     ),
     child: Row(
-      spacing: SandolSpacing.md,
+      spacing: HandolSpacing.md,
       children: [
         DecoratedBox(
           decoration: const BoxDecoration(
-            color: SandolColors.textSecondary,
+            color: HandolColors.textSecondary,
             shape: BoxShape.circle,
           ),
           child: SizedBox.square(
             dimension: 52,
-            child: Center(child: SvgPicture.asset(SandolAssets.myAvatar)),
+            child: Center(child: SvgPicture.asset(HandolAssets.myAvatar)),
           ),
         ),
         Expanded(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
-            spacing: SandolSpacing.sm,
+            spacing: HandolSpacing.sm,
             children: [
               Text(
                 name,
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
-                style: SandolTypography.title.accent,
+                style: HandolTypography.title.accent,
               ),
               Text(
                 email,
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
-                style: SandolTypography.body.muted,
+                style: HandolTypography.body.muted,
               ),
             ],
           ),
@@ -257,26 +257,26 @@ class _LoginCard extends StatelessWidget {
   final VoidCallback onTap;
 
   @override
-  Widget build(BuildContext context) => SandolCard(
+  Widget build(BuildContext context) => HandolCard(
     onTap: onTap,
-    padding: const EdgeInsets.fromLTRB(25, 36, SandolMetrics.cardInset, 36),
+    padding: const EdgeInsets.fromLTRB(25, 36, HandolMetrics.cardInset, 36),
     child: Row(
       spacing: 26,
       children: [
-        SvgPicture.asset(SandolAssets.myLoginMascot),
+        SvgPicture.asset(HandolAssets.myLoginMascot),
         Expanded(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             spacing: 6,
             children: [
               Row(
-                spacing: SandolSpacing.xs,
+                spacing: HandolSpacing.xs,
                 children: [
-                  Text('로그인하기', style: SandolTypography.title.accent),
-                  const SandolChevron(),
+                  Text('로그인하기', style: HandolTypography.title.accent),
+                  const HandolChevron(),
                 ],
               ),
-              Text('똑똑한 학교생활을 같이 해보아요!', style: SandolTypography.body.muted),
+              Text('똑똑한 학교생활을 같이 해보아요!', style: HandolTypography.body.muted),
             ],
           ),
         ),
@@ -296,13 +296,13 @@ class _Section extends StatelessWidget {
   @override
   Widget build(BuildContext context) => Column(
     crossAxisAlignment: CrossAxisAlignment.stretch,
-    spacing: SandolSpacing.sm,
+    spacing: HandolSpacing.sm,
     children: [
-      Text(label, style: SandolTypography.caption),
-      SandolCard(
+      Text(label, style: HandolTypography.caption),
+      HandolCard(
         padding: const EdgeInsets.symmetric(
-          horizontal: SandolMetrics.cardInset,
-          vertical: SandolSpacing.md,
+          horizontal: HandolMetrics.cardInset,
+          vertical: HandolSpacing.md,
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -319,7 +319,7 @@ class _Row extends StatelessWidget {
     required this.icon,
     required this.label,
     required this.trailing,
-    this.labelColor = SandolColors.text,
+    this.labelColor = HandolColors.text,
     this.onTap,
   });
 
@@ -331,20 +331,20 @@ class _Row extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => InkWell(
-    borderRadius: SandolMetrics.radius,
+    borderRadius: HandolMetrics.radius,
     onTap: onTap,
     child: Padding(
       padding: const EdgeInsets.symmetric(vertical: 12),
       child: Row(
         children: [
           Expanded(
-            child: SandolIconLabel(
+            child: HandolIconLabel(
               icon: SizedBox.square(
                 dimension: 26,
                 child: Center(child: SvgPicture.asset(icon)),
               ),
               label: label,
-              style: SandolTypography.headline.copyWith(color: labelColor),
+              style: HandolTypography.headline.copyWith(color: labelColor),
             ),
           ),
           trailing,
@@ -389,7 +389,7 @@ class _Toggle extends StatelessWidget {
     height: 32,
     padding: const EdgeInsets.symmetric(horizontal: 2),
     decoration: BoxDecoration(
-      color: value ? SandolColors.primary : SandolColors.text20,
+      color: value ? HandolColors.primary : HandolColors.text20,
       borderRadius: BorderRadius.circular(24),
     ),
     alignment: value ? Alignment.centerRight : Alignment.centerLeft,
@@ -417,7 +417,7 @@ class _LinkRow extends StatelessWidget {
   const _LinkRow({
     required this.icon,
     required this.label,
-    this.labelColor = SandolColors.text,
+    this.labelColor = HandolColors.text,
     this.trailingText,
     this.onTap,
   });
@@ -437,8 +437,8 @@ class _LinkRow extends StatelessWidget {
     labelColor: labelColor,
     onTap: onTap,
     trailing: switch (trailingText) {
-      final String text => Text(text, style: SandolTypography.caption.muted),
-      null => const SandolChevron(muted: true),
+      final String text => Text(text, style: HandolTypography.caption.muted),
+      null => const HandolChevron(muted: true),
     },
   );
 }

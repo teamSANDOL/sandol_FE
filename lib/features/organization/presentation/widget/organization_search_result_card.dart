@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:handori/core/design_system/sandol_tokens.dart';
+import 'package:handori/core/design_system/handol_tokens.dart';
 import 'package:handori/features/organization/domain/model/organization_search_result.dart';
 import 'package:handori/features/organization/presentation/widget/organization_node_card.dart';
 
@@ -16,7 +16,7 @@ class OrganizationSearchResultCard extends StatelessWidget {
       if (result.path.isNotEmpty)
         Text(
           result.path.join(' › '),
-          style: SandolTypography.caption.muted,
+          style: HandolTypography.caption.muted,
           maxLines: 1,
           overflow: TextOverflow.ellipsis,
         ),

@@ -4,7 +4,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:go_router/go_router.dart';
 import 'package:handori/core/constants/app_colors.dart';
 import 'package:handori/core/constants/app_text_styles.dart';
-import 'package:handori/core/design_system/sandol_assets.dart';
+import 'package:handori/core/design_system/handol_assets.dart';
 import 'package:handori/core/router/route_paths.dart';
 
 /// 앱 전체 공통 상단 바.
@@ -31,7 +31,7 @@ class AppTopBar extends StatelessWidget implements PreferredSizeWidget {
   final Widget? titleWidget;
   final VoidCallback? onBack;
 
-  /// 뒤로가기 아이콘. 새 디자인 화면은 시안 SVG(SandolAssets.backArrow)를 넘긴다.
+  /// 뒤로가기 아이콘. 새 디자인 화면은 시안 SVG(HandolAssets.backArrow)를 넘긴다.
   final Widget? backIcon;
   final VoidCallback? onBell;
 
@@ -52,7 +52,7 @@ class AppTopBar extends StatelessWidget implements PreferredSizeWidget {
   /// 바 외곽선. 공지 탭처럼 바와 탭을 한 판으로 묶어 테두리를 두를 때 넘긴다.
   final ShapeBorder? shape;
 
-  /// 바 배경. 새 디자인 화면은 본문 배경(SandolColors.background)을 넘긴다.
+  /// 바 배경. 새 디자인 화면은 본문 배경(HandolColors.background)을 넘긴다.
   final Color backgroundColor;
 
   /// 바 좌우 바깥 여백. 본문 여백이 다른 화면이 제목·아이콘을 본문에 맞춘다.
@@ -147,7 +147,7 @@ class AppTopBar extends StatelessWidget implements PreferredSizeWidget {
               ),
             if (showUser)
               _BarIconButton(
-                icon: SvgPicture.asset(SandolAssets.user),
+                icon: SvgPicture.asset(HandolAssets.user),
                 tooltip: '내 정보',
                 onTap: onUser ?? () => context.push(RoutePaths.user),
               ),

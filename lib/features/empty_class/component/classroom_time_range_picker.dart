@@ -3,7 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:handori/core/constants/app_colors.dart';
 import 'package:handori/core/constants/app_text_styles.dart';
-import 'package:handori/core/design_system/sandol_tokens.dart';
+import 'package:handori/core/design_system/handol_tokens.dart';
 import 'package:handori/features/empty_class/domain/model/classroom_query.dart';
 import 'package:handori/features/empty_class/presentation/provider/classroom_query_provider.dart';
 import 'package:handori/core/constants/app_radius.dart';
@@ -57,9 +57,9 @@ class _ClassroomTimeRangePickerState
               // 손잡이가 카드 안쪽 여백에 딱 붙도록 트랙 양끝을 반지름만큼 줄인다.
               padding: const EdgeInsets.symmetric(horizontal: _thumbRadius),
               trackHeight: _trackHeight,
-              activeTrackColor: SandolColors.primary,
-              inactiveTrackColor: SandolColors.track,
-              overlayColor: SandolColors.primary.withValues(alpha: .12),
+              activeTrackColor: HandolColors.primary,
+              inactiveTrackColor: HandolColors.track,
+              overlayColor: HandolColors.primary.withValues(alpha: .12),
               rangeThumbShape: const _OutlinedThumbShape(radius: _thumbRadius),
               overlayShape: const RoundSliderOverlayShape(overlayRadius: 20),
               rangeTrackShape: const RoundedRectRangeSliderTrackShape(),
@@ -88,8 +88,8 @@ class _ClassroomTimeRangePickerState
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            const Text('지금', style: SandolTypography.caption),
-            Text(_hourLabel(ticks.last), style: SandolTypography.caption),
+            const Text('지금', style: HandolTypography.caption),
+            Text(_hourLabel(ticks.last), style: HandolTypography.caption),
           ],
         ),
       ],
@@ -138,13 +138,13 @@ class _OutlinedThumbShape extends RangeSliderThumbShape {
     bool isPressed = false,
   }) {
     context.canvas
-      ..drawCircle(center, radius, Paint()..color = SandolColors.background)
+      ..drawCircle(center, radius, Paint()..color = HandolColors.background)
       ..drawCircle(
         center,
         radius - 0.5,
         Paint()
           ..style = PaintingStyle.stroke
-          ..color = SandolColors.border,
+          ..color = HandolColors.border,
       );
   }
 }

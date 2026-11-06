@@ -3,12 +3,12 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:go_router/go_router.dart';
 import 'package:handori/common/component/app_top_bar.dart';
-import 'package:handori/common/component/sandol_bottom_glow.dart';
-import 'package:handori/common/component/sandol_card.dart';
-import 'package:handori/common/component/sandol_icon_button.dart';
+import 'package:handori/common/component/handol_bottom_glow.dart';
+import 'package:handori/common/component/handol_card.dart';
+import 'package:handori/common/component/handol_icon_button.dart';
 import 'package:handori/common/layout/root_shell.dart';
-import 'package:handori/core/design_system/sandol_assets.dart';
-import 'package:handori/core/design_system/sandol_tokens.dart';
+import 'package:handori/core/design_system/handol_assets.dart';
+import 'package:handori/core/design_system/handol_tokens.dart';
 import 'package:handori/core/utils/keep_all.dart';
 import 'package:handori/features/bus/domain/model/shuttle_schedule.dart';
 import 'package:handori/features/bus/domain/usecase/next_shuttle_calculator.dart';
@@ -76,35 +76,35 @@ class _BusTimeDetailScreenState extends ConsumerState<BusTimeDetailScreen> {
         ref.watch(shuttleScheduleSourceProvider)?.needsReview ?? false;
 
     return DecoratedBox(
-      decoration: const BoxDecoration(gradient: SandolGradients.shuttle),
+      decoration: const BoxDecoration(gradient: HandolGradients.shuttle),
       child: Scaffold(
         backgroundColor: Colors.transparent,
         appBar: AppTopBar(
           title: '셔틀버스',
-          titleWidget: const Text('셔틀버스', style: SandolTypography.title),
-          backIcon: SvgPicture.asset(SandolAssets.backArrow),
+          titleWidget: const Text('셔틀버스', style: HandolTypography.title),
+          backIcon: SvgPicture.asset(HandolAssets.backArrow),
           onBack:
               () => StatefulNavigationShell.of(
                 context,
               ).goBranch(RootShell.homeBranch),
           backgroundColor: Colors.transparent,
           // 뒤로가기 버튼(44) 안의 아이콘(24)이 본문 여백(33)에 맞게
-          horizontalPadding: SandolMetrics.pageGutter - 10,
+          horizontalPadding: HandolMetrics.pageGutter - 10,
         ),
         body: Stack(
           children: [
-            const SandolBottomGlow(),
+            const HandolBottomGlow(),
             RefreshIndicator(
-              color: SandolColors.primary,
-              backgroundColor: SandolColors.background,
+              color: HandolColors.primary,
+              backgroundColor: HandolColors.background,
               onRefresh: _refresh,
               child: ListView(
                 physics: const AlwaysScrollableScrollPhysics(),
                 padding: const EdgeInsets.fromLTRB(
-                  SandolMetrics.pageGutter,
-                  SandolSpacing.md,
-                  SandolMetrics.pageGutter,
-                  SandolSpacing.xl,
+                  HandolMetrics.pageGutter,
+                  HandolSpacing.md,
+                  HandolMetrics.pageGutter,
+                  HandolSpacing.xl,
                 ),
                 children: [
                   _RouteCard(
@@ -113,10 +113,10 @@ class _BusTimeDetailScreenState extends ConsumerState<BusTimeDetailScreen> {
                     onSwap: () => _select(direction.reversed),
                     onSelect: _select,
                   ),
-                  const SizedBox(height: SandolSpacing.xl),
+                  const SizedBox(height: HandolSpacing.xl),
                   _NextBusCard(next: next, onRefresh: _refresh),
                   if (transfers != null) ...[
-                    const SizedBox(height: SandolSpacing.xl),
+                    const SizedBox(height: HandolSpacing.xl),
                     _TransferCard(
                       school: stops['main_campus']!.name,
                       connections: transfers,
@@ -134,7 +134,7 @@ class _BusTimeDetailScreenState extends ConsumerState<BusTimeDetailScreen> {
                     timetable: timetable,
                     nowMinutes: now.hour * 60 + now.minute,
                   ),
-                  const SizedBox(height: SandolSpacing.lg),
+                  const SizedBox(height: HandolSpacing.lg),
                   _FooterNote(lastUpdated: now, needsReview: needsReview),
                 ],
               ),
@@ -172,9 +172,9 @@ class _RouteCard extends StatelessWidget {
   Future<void> _pickStop(BuildContext context, {required bool origin}) async {
     final picked = await showModalBottomSheet<String>(
       context: context,
-      backgroundColor: SandolColors.background,
+      backgroundColor: HandolColors.background,
       shape: const RoundedRectangleBorder(
-        borderRadius: SandolMetrics.radiusTop,
+        borderRadius: HandolMetrics.radiusTop,
       ),
       builder:
           (_) => _StopPickerSheet(
@@ -192,19 +192,19 @@ class _RouteCard extends StatelessWidget {
   }
 
   @override
-  Widget build(BuildContext context) => SandolCard(
+  Widget build(BuildContext context) => HandolCard(
     child: Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         Padding(
           padding: const EdgeInsets.fromLTRB(18, 18, 20, 0),
           child: _StopRow(
-            icon: SandolAssets.busStopPin,
+            icon: HandolAssets.busStopPin,
             label: '출발',
             name: stops[direction.origin]!.name,
             note: stops[direction.origin]!.boardingNote,
-            gap: SandolSpacing.sm,
-            button: SandolAssets.busPinButton,
+            gap: HandolSpacing.sm,
+            button: HandolAssets.busPinButton,
             onTap: () => _pickStop(context, origin: true),
           ),
         ),
@@ -215,11 +215,11 @@ class _RouteCard extends StatelessWidget {
           child: Stack(
             alignment: Alignment.center,
             children: [
-              const Divider(height: 1, thickness: 1, color: SandolColors.field),
-              SandolIconButton(
+              const Divider(height: 1, thickness: 1, color: HandolColors.field),
+              HandolIconButton(
                 tooltip: '출발 · 도착 바꾸기',
                 onTap: onSwap,
-                icon: SvgPicture.asset(SandolAssets.busSwap),
+                icon: SvgPicture.asset(HandolAssets.busSwap),
               ),
             ],
           ),
@@ -227,13 +227,13 @@ class _RouteCard extends StatelessWidget {
         Padding(
           padding: const EdgeInsets.fromLTRB(18, 0, 20, 24),
           child: _StopRow(
-            icon: SandolAssets.busStopFlag,
+            icon: HandolAssets.busStopFlag,
             label: '도착',
             name: stops[direction.destination]!.name,
             note:
                 direction.viaSchool ? '${stops['main_campus']!.name} 경유' : null,
-            gap: SandolSpacing.xs,
-            button: SandolAssets.busChevronButton,
+            gap: HandolSpacing.xs,
+            button: HandolAssets.busChevronButton,
             onTap: () => _pickStop(context, origin: false),
           ),
         ),
@@ -272,25 +272,25 @@ class _StopRow extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Row(
-              spacing: SandolSpacing.xs,
+              spacing: HandolSpacing.xs,
               children: [
                 SvgPicture.asset(icon),
-                Text(label, style: SandolTypography.caption),
+                Text(label, style: HandolTypography.caption),
               ],
             ),
             SizedBox(height: gap),
             Text(
               name,
-              style: SandolTypography.body.strong.copyWith(
-                color: SandolColors.textSecondary,
+              style: HandolTypography.body.strong.copyWith(
+                color: HandolColors.textSecondary,
               ),
             ),
             if (note case final String note)
-              Text(note, style: SandolTypography.caption.inactive),
+              Text(note, style: HandolTypography.caption.inactive),
           ],
         ),
       ),
-      SandolIconButton(
+      HandolIconButton(
         tooltip: '$label 정류장 선택',
         onTap: onTap,
         icon: SvgPicture.asset(button),
@@ -316,20 +316,20 @@ class _StopPickerSheet extends StatelessWidget {
   Widget build(BuildContext context) => SafeArea(
     child: Padding(
       padding: const EdgeInsets.fromLTRB(
-        SandolMetrics.cardInset,
-        SandolSpacing.md,
-        SandolMetrics.cardInset,
-        SandolSpacing.md,
+        HandolMetrics.cardInset,
+        HandolSpacing.md,
+        HandolMetrics.cardInset,
+        HandolSpacing.md,
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Text(title, style: SandolTypography.title),
-          const SizedBox(height: SandolSpacing.sm),
+          Text(title, style: HandolTypography.title),
+          const SizedBox(height: HandolSpacing.sm),
           for (final stop in _stopIds)
             InkWell(
-              borderRadius: SandolMetrics.radius,
+              borderRadius: HandolMetrics.radius,
               onTap: () => Navigator.pop(context, stop),
               child: Padding(
                 padding: const EdgeInsets.symmetric(vertical: 12),
@@ -337,8 +337,8 @@ class _StopPickerSheet extends StatelessWidget {
                   stops[stop]!.name,
                   style:
                       stop == selected
-                          ? SandolTypography.body.strong.accent
-                          : SandolTypography.body,
+                          ? HandolTypography.body.strong.accent
+                          : HandolTypography.body,
                 ),
               ),
             ),
@@ -358,44 +358,44 @@ class _NextBusCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final headline = SandolTypography.headline.strong;
-    return SandolCard(
+    final headline = HandolTypography.headline.strong;
+    return HandolCard(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Container(
             constraints: const BoxConstraints(minHeight: 47),
-            color: SandolColors.primary,
+            color: HandolColors.primary,
             padding: const EdgeInsets.symmetric(horizontal: 15),
             child: Row(
               children: [
-                Text('다음 버스', style: SandolTypography.body.strong.onPrimary),
+                Text('다음 버스', style: HandolTypography.body.strong.onPrimary),
                 const Spacer(),
                 const DecoratedBox(
                   decoration: BoxDecoration(
-                    color: SandolColors.background,
+                    color: HandolColors.background,
                     shape: BoxShape.circle,
                   ),
                   child: SizedBox.square(dimension: 4),
                 ),
-                const SizedBox(width: SandolSpacing.xs),
-                Text('실시간', style: SandolTypography.body.strong.onPrimary),
+                const SizedBox(width: HandolSpacing.xs),
+                Text('실시간', style: HandolTypography.body.strong.onPrimary),
               ],
             ),
           ),
           Padding(
             padding: const EdgeInsets.symmetric(
-              horizontal: SandolMetrics.cardInset,
+              horizontal: HandolMetrics.cardInset,
               vertical: 12,
             ),
             child: Row(
               children: [
-                SvgPicture.asset(SandolAssets.busNext),
-                const SizedBox(width: SandolSpacing.md),
+                SvgPicture.asset(HandolAssets.busNext),
+                const SizedBox(width: HandolSpacing.md),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
-                    spacing: SandolSpacing.xs,
+                    spacing: HandolSpacing.xs,
                     children: [
                       Text(
                         next.headline,
@@ -405,18 +405,18 @@ class _NextBusCard extends StatelessWidget {
                       if (next.subText case final String sub)
                         Text(
                           sub,
-                          style: SandolTypography.caption,
+                          style: HandolTypography.caption,
                           maxLines: 2,
                           overflow: TextOverflow.ellipsis,
                         ),
                     ],
                   ),
                 ),
-                const SizedBox(width: SandolSpacing.sm),
-                SandolIconButton(
+                const SizedBox(width: HandolSpacing.sm),
+                HandolIconButton(
                   tooltip: '새로고침',
                   onTap: onRefresh,
-                  icon: SvgPicture.asset(SandolAssets.busRefresh),
+                  icon: SvgPicture.asset(HandolAssets.busRefresh),
                 ),
               ],
             ),
@@ -457,19 +457,19 @@ class _TransferCardState extends State<_TransferCard> {
       for (final c in connections)
         if (_showTighter || !c.tight) c,
     ];
-    return SandolCard(
+    return HandolCard(
       child: Padding(
-        padding: const EdgeInsets.all(SandolMetrics.cardInset),
+        padding: const EdgeInsets.all(HandolMetrics.cardInset),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
-          spacing: SandolSpacing.sm,
+          spacing: HandolSpacing.sm,
           children: [
             Text(
               '${widget.school}에서 갈아타기 (예상)'.keepAll,
-              style: SandolTypography.body.strong,
+              style: HandolTypography.body.strong,
             ),
             if (connections.every((c) => c.tight))
-              Text('오늘 환승 가능한 편이 없어요', style: SandolTypography.body.muted),
+              Text('오늘 환승 가능한 편이 없어요', style: HandolTypography.body.muted),
             for (final c in shown)
               Text(
                 _row(
@@ -483,8 +483,8 @@ class _TransferCardState extends State<_TransferCard> {
                 ),
                 style:
                     c.tight
-                        ? SandolTypography.body.muted
-                        : SandolTypography.body,
+                        ? HandolTypography.body.muted
+                        : HandolTypography.body,
               ),
             if (hasTighter)
               TextButton(
@@ -493,7 +493,7 @@ class _TransferCardState extends State<_TransferCard> {
               ),
             Text(
               '환승 시간은 교통 상황에 따라 달라질 수 있어요'.keepAll,
-              style: SandolTypography.caption.inactive,
+              style: HandolTypography.caption.inactive,
             ),
           ],
         ),
@@ -517,10 +517,10 @@ class _TimetableHeader extends StatelessWidget {
     child: Wrap(
       alignment: WrapAlignment.spaceBetween,
       crossAxisAlignment: WrapCrossAlignment.center,
-      spacing: SandolSpacing.sm,
+      spacing: HandolSpacing.sm,
       children: [
-        const Text('전체 시간표', style: SandolTypography.title),
-        Text(route, style: SandolTypography.body.muted),
+        const Text('전체 시간표', style: HandolTypography.title),
+        Text(route, style: HandolTypography.body.muted),
       ],
     ),
   );
@@ -554,19 +554,19 @@ class _TimetableCard extends StatelessWidget {
             ?.time
             .hour;
 
-    return SandolCard(
+    return HandolCard(
       padding: const EdgeInsets.symmetric(
-        horizontal: SandolMetrics.cardInset,
-        vertical: SandolSpacing.md,
+        horizontal: HandolMetrics.cardInset,
+        vertical: HandolSpacing.md,
       ),
       child:
           entries.isEmpty
               ? Padding(
-                padding: const EdgeInsets.symmetric(vertical: SandolSpacing.md),
+                padding: const EdgeInsets.symmetric(vertical: HandolSpacing.md),
                 child: Text(
                   '오늘은 셔틀을 운행하지 않아요',
                   textAlign: TextAlign.center,
-                  style: SandolTypography.body.inactive,
+                  style: HandolTypography.body.inactive,
                 ),
               )
               : Column(
@@ -605,10 +605,10 @@ class _HourRow extends StatelessWidget {
     final past = times.last.minutesOfDay < nowMinutes;
     final hourStyle =
         past
-            ? SandolTypography.headline.inactive
+            ? HandolTypography.headline.inactive
             : highlighted
-            ? SandolTypography.headline.strong.accent
-            : SandolTypography.headline.strong;
+            ? HandolTypography.headline.strong.accent
+            : HandolTypography.headline.strong;
 
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -625,15 +625,15 @@ class _HourRow extends StatelessWidget {
         Expanded(
           child: Wrap(
             spacing: 12,
-            runSpacing: SandolSpacing.sm,
+            runSpacing: HandolSpacing.sm,
             children: [
               for (final t in times)
                 Text(
                   '•${t.minute.toString().padLeft(2, '0')}',
                   style:
                       t.minutesOfDay < nowMinutes
-                          ? SandolTypography.body.inactive
-                          : SandolTypography.body,
+                          ? HandolTypography.body.inactive
+                          : HandolTypography.body,
                 ),
             ],
           ),
@@ -659,18 +659,18 @@ class _SegmentNote extends StatelessWidget {
     final name =
         segment.type == ShuttleEntryType.flexible ? '수시 운행' : '도착버스 탑승';
     return Column(
-      spacing: SandolSpacing.xs,
+      spacing: HandolSpacing.xs,
       children: [
         Text(
           '$range •$name',
           textAlign: TextAlign.center,
-          style: SandolTypography.body.inactive,
+          style: HandolTypography.body.inactive,
         ),
         if (segment.boardingNote case final String note)
           Text(
             note,
             textAlign: TextAlign.center,
-            style: SandolTypography.caption.inactive,
+            style: HandolTypography.caption.inactive,
           ),
       ],
     );
@@ -695,7 +695,7 @@ class _FooterNote extends StatelessWidget {
     return Text(
       '시간표는 학교 사정에 따라 변경될 수 있어요.$review\n마지막 업데이트 • 오늘 $hh:$mm',
       textAlign: TextAlign.center,
-      style: SandolTypography.caption.inactive,
+      style: HandolTypography.caption.inactive,
     );
   }
 }

@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:handori/common/component/sandol_card.dart';
-import 'package:handori/common/component/sandol_icon_button.dart';
-import 'package:handori/common/component/sandol_icon_label.dart';
-import 'package:handori/common/component/sandol_section.dart';
-import 'package:handori/core/design_system/sandol_assets.dart';
-import 'package:handori/core/design_system/sandol_tokens.dart';
+import 'package:handori/common/component/handol_card.dart';
+import 'package:handori/common/component/handol_icon_button.dart';
+import 'package:handori/common/component/handol_icon_label.dart';
+import 'package:handori/common/component/handol_section.dart';
+import 'package:handori/core/design_system/handol_assets.dart';
+import 'package:handori/core/design_system/handol_tokens.dart';
 import 'package:handori/core/utils/keep_all.dart';
 import 'package:handori/features/home/model/schedule_event.dart';
 
@@ -42,7 +42,7 @@ class ScheduleSection extends StatelessWidget {
     final event = this.event;
     return Stack(
       children: [
-        SandolSection(
+        HandolSection(
           title: '주요일정',
           child:
               event == null
@@ -54,15 +54,15 @@ class ScheduleSection extends StatelessWidget {
                   ),
         ),
         Positioned(
-          top: SandolSection.titleHeight + SandolSpacing.sm - _closeLift,
+          top: HandolSection.titleHeight + HandolSpacing.sm - _closeLift,
           right: 0,
-          child: SandolIconButton(
+          child: HandolIconButton(
             tooltip: event == null ? '닫기' : '고정 해제',
             size: _closeSize,
-            background: SandolColors.primarySoft,
+            background: HandolColors.primarySoft,
             onTap: onClose,
             // 시안(Frame 2147235019)의 '+'. 동작은 시안에 없어 기존 X 그대로.
-            icon: SvgPicture.asset(SandolAssets.close),
+            icon: SvgPicture.asset(HandolAssets.close),
           ),
         ),
       ],
@@ -83,19 +83,19 @@ class _ScheduleCard extends StatelessWidget {
   final VoidCallback onDetail;
 
   /// 시안 Frame 2147234779의 파랑 그라데이션
-  static const _gradient = SandolGradients.primaryCard;
+  static const _gradient = HandolGradients.primaryCard;
 
   @override
-  Widget build(BuildContext context) => SandolCard(
-    color: SandolColors.primary,
+  Widget build(BuildContext context) => HandolCard(
+    color: HandolColors.primary,
     child: DecoratedBox(
       decoration: const BoxDecoration(gradient: _gradient),
       child: Padding(
         padding: const EdgeInsets.fromLTRB(
-          SandolMetrics.cardInset,
-          SandolSpacing.md,
-          SandolMetrics.cardInset,
-          SandolSpacing.md,
+          HandolMetrics.cardInset,
+          HandolSpacing.md,
+          HandolMetrics.cardInset,
+          HandolSpacing.md,
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.end,
@@ -109,24 +109,24 @@ class _ScheduleCard extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         SvgPicture.asset(
-                          SandolAssets.star,
+                          HandolAssets.star,
                           colorFilter: const ColorFilter.mode(
-                            SandolColors.background,
+                            HandolColors.background,
                             BlendMode.srcIn,
                           ),
                         ),
                         const SizedBox(height: 10),
                         Text(
                           event.title.keepAll,
-                          style: SandolTypography.headline.onPrimary,
+                          style: HandolTypography.headline.onPrimary,
                           maxLines: 2,
                           overflow: TextOverflow.ellipsis,
                         ),
-                        const SizedBox(height: SandolSpacing.xs),
+                        const SizedBox(height: HandolSpacing.xs),
                         Text(
                           event.periodLabel,
-                          style: SandolTypography.body.copyWith(
-                            color: SandolColors.background.withValues(
+                          style: HandolTypography.body.copyWith(
+                            color: HandolColors.background.withValues(
                               alpha: 0.85,
                             ),
                           ),
@@ -156,7 +156,7 @@ class _EmptyScheduleCard extends StatelessWidget {
   final VoidCallback onDetail;
 
   @override
-  Widget build(BuildContext context) => SandolCard(
+  Widget build(BuildContext context) => HandolCard(
     child: SizedBox(
       height: _height,
       child: Stack(
@@ -167,19 +167,19 @@ class _EmptyScheduleCard extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                SvgPicture.asset(SandolAssets.starMuted),
+                SvgPicture.asset(HandolAssets.starMuted),
                 const SizedBox(height: 10),
-                const Text('아직 고정한 스케줄이 없어요', style: SandolTypography.body),
+                const Text('아직 고정한 스케줄이 없어요', style: HandolTypography.body),
               ],
             ),
           ),
           const Positioned(
-            right: SandolMetrics.cardInset,
+            right: HandolMetrics.cardInset,
             top: 17,
             child: _SleepingMascot(),
           ),
           Positioned(
-            right: SandolMetrics.cardInset,
+            right: HandolMetrics.cardInset,
             bottom: 10,
             child: _DetailLink(onTap: onDetail),
           ),
@@ -189,7 +189,7 @@ class _EmptyScheduleCard extends StatelessWidget {
   );
 }
 
-/// 잠자는 산돌이. 얼굴(2270:510) 위에 입 · 눈 · Z 두 개를 시안 좌표대로 겹친다.
+/// 잠자는 한돌이. 얼굴(2270:510) 위에 입 · 눈 · Z 두 개를 시안 좌표대로 겹친다.
 /// 선 레이어 SVG는 획 두께만큼 노드보다 커서, 그만큼 왼쪽 위로 당겨 놓는다.
 class _SleepingMascot extends StatelessWidget {
   const _SleepingMascot();
@@ -202,30 +202,30 @@ class _SleepingMascot extends StatelessWidget {
     child: Stack(
       clipBehavior: Clip.none,
       children: [
-        SvgPicture.asset(SandolAssets.mascotBase),
+        SvgPicture.asset(HandolAssets.mascotBase),
         Positioned(
           left: 43.586,
           top: 38.753,
           // 시안에서 좌우 반전된 레이어
           child: Transform.flip(
             flipX: true,
-            child: SvgPicture.asset(SandolAssets.mascotMouth),
+            child: SvgPicture.asset(HandolAssets.mascotMouth),
           ),
         ),
         Positioned(
           left: 17.917,
           top: 32.054,
-          child: SvgPicture.asset(SandolAssets.mascotEyes),
+          child: SvgPicture.asset(HandolAssets.mascotEyes),
         ),
         Positioned(
           left: 57.276,
           top: 18.786,
-          child: SvgPicture.asset(SandolAssets.mascotZ1),
+          child: SvgPicture.asset(HandolAssets.mascotZ1),
         ),
         Positioned(
           left: 66.340,
           top: 9.852,
-          child: SvgPicture.asset(SandolAssets.mascotZ2),
+          child: SvgPicture.asset(HandolAssets.mascotZ2),
         ),
       ],
     ),
@@ -246,7 +246,7 @@ class _DetailLink extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => InkWell(
-    borderRadius: SandolMetrics.radius,
+    borderRadius: HandolMetrics.radius,
     onTap: onTap,
     child: Row(
       mainAxisSize: MainAxisSize.min,
@@ -255,16 +255,16 @@ class _DetailLink extends StatelessWidget {
           '자세히보기',
           style:
               onGradient
-                  ? SandolTypography.caption.copyWith(color: _onGradient)
-                  : SandolTypography.caption.muted,
+                  ? HandolTypography.caption.copyWith(color: _onGradient)
+                  : HandolTypography.caption.muted,
         ),
-        const SizedBox(width: SandolSpacing.sm),
+        const SizedBox(width: HandolSpacing.sm),
         onGradient
             ? const ColorFiltered(
               colorFilter: ColorFilter.mode(_onGradient, BlendMode.srcIn),
-              child: SandolChevron(),
+              child: HandolChevron(),
             )
-            : const SandolChevron(muted: true),
+            : const HandolChevron(muted: true),
       ],
     ),
   );
@@ -281,16 +281,16 @@ class _DDayBadge extends StatelessWidget {
   Widget build(BuildContext context) => Container(
     width: _size,
     height: _size,
-    padding: const EdgeInsets.all(SandolSpacing.xs),
+    padding: const EdgeInsets.all(HandolSpacing.xs),
     decoration: const BoxDecoration(
-      color: SandolColors.background,
+      color: HandolColors.background,
       shape: BoxShape.circle,
     ),
     alignment: Alignment.center,
     // 'D-Day'처럼 긴 라벨도 원 안에 들어가게 줄인다.
     child: FittedBox(
       fit: BoxFit.scaleDown,
-      child: Text(label, style: SandolTypography.title),
+      child: Text(label, style: HandolTypography.title),
     ),
   );
 }

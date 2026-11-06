@@ -4,8 +4,8 @@ import 'package:flutter/material.dart';
 ///
 /// 시안 SVG에 원형 배경이 이미 들어 있으면 [background]를 비워 둔다.
 /// 높이와 너비가 조금 다른 SVG(33×34.6)도 모서리가 맞도록 Stadium으로 자른다.
-class SandolIconButton extends StatelessWidget {
-  const SandolIconButton({
+class HandolIconButton extends StatelessWidget {
+  const HandolIconButton({
     super.key,
     required this.icon,
     required this.tooltip,

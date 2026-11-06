@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:handori/core/design_system/sandol_tokens.dart';
+import 'package:handori/core/design_system/handol_tokens.dart';
 import 'package:handori/core/utils/external_link.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -50,7 +50,7 @@ class FacilityTile extends StatelessWidget {
     this.size = 47,
     this.selected = false,
     this.enabled = true,
-    this.labelStyle = SandolTypography.caption,
+    this.labelStyle = HandolTypography.caption,
   });
 
   final String label;
@@ -69,16 +69,16 @@ class FacilityTile extends StatelessWidget {
   Widget build(BuildContext context) {
     final iconColor =
         selected
-            ? SandolColors.background
+            ? HandolColors.background
             : enabled
-            ? SandolColors.primary
+            ? HandolColors.primary
             : MapColors.line;
     return Semantics(
       button: true,
       selected: selected,
       child: InkWell(
         onTap: onTap,
-        borderRadius: SandolMetrics.radius,
+        borderRadius: HandolMetrics.radius,
         child: SizedBox(
           width: size + 8,
           child: Column(
@@ -90,15 +90,15 @@ class FacilityTile extends StatelessWidget {
                 decoration: BoxDecoration(
                   color:
                       selected
-                          ? SandolColors.primary
+                          ? HandolColors.primary
                           : enabled
                           ? MapColors.tile
-                          : SandolColors.background,
+                          : HandolColors.background,
                   borderRadius: BorderRadius.circular(size * 12 / 47),
                 ),
                 child: Icon(icon, size: size / 2, color: iconColor),
               ),
-              const SizedBox(height: SandolSpacing.sm),
+              const SizedBox(height: HandolSpacing.sm),
               Text(
                 label,
                 maxLines: 1,
@@ -131,21 +131,21 @@ class MapButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final fg = primary ? SandolColors.background : SandolColors.text;
+    final fg = primary ? HandolColors.background : HandolColors.text;
     return Material(
-      color: primary ? SandolColors.primary : MapColors.soft,
-      borderRadius: SandolMetrics.radius,
+      color: primary ? HandolColors.primary : MapColors.soft,
+      borderRadius: HandolMetrics.radius,
       child: InkWell(
-        borderRadius: SandolMetrics.radius,
+        borderRadius: HandolMetrics.radius,
         onTap: onTap,
         child: ConstrainedBox(
           constraints: const BoxConstraints(minHeight: 38),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
-            spacing: SandolSpacing.xs,
+            spacing: HandolSpacing.xs,
             children: [
               if (icon != null) Icon(icon, size: 14, color: fg),
-              Text(label, style: SandolTypography.body.copyWith(color: fg)),
+              Text(label, style: HandolTypography.body.copyWith(color: fg)),
             ],
           ),
         ),
@@ -162,8 +162,8 @@ class MapSectionTitle extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Padding(
-    padding: const EdgeInsets.only(bottom: SandolSpacing.sm),
-    child: Text(text, style: SandolTypography.body),
+    padding: const EdgeInsets.only(bottom: HandolSpacing.sm),
+    child: Text(text, style: HandolTypography.body),
   );
 }
 

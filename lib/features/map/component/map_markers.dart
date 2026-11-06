@@ -2,7 +2,7 @@ import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_naver_map/flutter_naver_map.dart';
-import 'package:handori/core/design_system/sandol_tokens.dart';
+import 'package:handori/core/design_system/handol_tokens.dart';
 
 typedef MarkerIcon = ({NOverlayImage icon, NPoint anchor, Size size});
 
@@ -47,7 +47,7 @@ Future<MarkerIcon> buildingMarkerIcon(
 }) {
   const padH = 12.0, padV = 8.0, gap = 2.0, tipH = 9.0, tipHalfW = 8.0;
   const shadow = 8.0;
-  final fg = selected ? SandolColors.background : SandolColors.text;
+  final fg = selected ? HandolColors.background : HandolColors.text;
   final nameTp = _text(
     name,
     TextStyle(
@@ -88,13 +88,13 @@ Future<MarkerIcon> buildingMarkerIcon(
     canvas.drawPath(
       bubble.shift(const Offset(0, 4)),
       Paint()
-        ..color = SandolColors.primary.withValues(alpha: 0.35)
+        ..color = HandolColors.primary.withValues(alpha: 0.35)
         ..maskFilter = const MaskFilter.blur(BlurStyle.normal, shadow / 2),
     );
     canvas.drawPath(
       bubble,
       Paint()
-        ..color = selected ? SandolColors.primary : SandolColors.background,
+        ..color = selected ? HandolColors.primary : HandolColors.background,
     );
     nameTp.paint(canvas, const Offset(m + padH, m + padV));
     subTp.paint(canvas, Offset(m + padH, m + padV + nameTp.height + gap));
@@ -111,7 +111,7 @@ Future<MarkerIcon> placeMarkerIcon(IconData icon, {required bool selected}) {
       fontSize: side / 2,
       fontFamily: icon.fontFamily,
       package: icon.fontPackage,
-      color: SandolColors.background,
+      color: HandolColors.background,
     ),
   );
   final w = side + m * 2;
@@ -123,12 +123,12 @@ Future<MarkerIcon> placeMarkerIcon(IconData icon, {required bool selected}) {
         Radius.circular(side / 4),
       ),
       Paint()
-        ..color = SandolColors.primary.withValues(alpha: 0.3)
+        ..color = HandolColors.primary.withValues(alpha: 0.3)
         ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 2),
     );
     canvas.drawRRect(
       RRect.fromRectAndRadius(rect, Radius.circular(side / 4)),
-      Paint()..color = SandolColors.primary,
+      Paint()..color = HandolColors.primary,
     );
     glyph.paint(
       canvas,

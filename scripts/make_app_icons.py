@@ -1,4 +1,4 @@
-"""sandol_logo.png -> 런처 아이콘 소스 이미지 생성.
+"""handol_logo.png -> 런처 아이콘 소스 이미지 생성.
 
 - app_icon.png: 1024x1024 풀블리드 (iOS / 레거시 Android용).
   배경은 로고 왼쪽 가장자리에서 추출한 세로 그라데이션으로 채워
@@ -15,7 +15,7 @@
 import os
 from PIL import Image
 
-SRC = "/Users/songjeonghun/Handori/assets/img/sandol_logo.png"
+SRC = "/Users/songjeonghun/Handori/assets/img/handol_logo.png"
 OUT_DIR = "/Users/songjeonghun/Handori/assets/icon"
 SIZE = 1024
 MAIN_SCALE = 0.92  # 풀블리드 아이콘에서 로고가 차지하는 비율 (여백 조절)

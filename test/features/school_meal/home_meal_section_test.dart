@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:handori/common/component/sandol_chip.dart';
+import 'package:handori/common/component/handol_chip.dart';
 import 'package:handori/core/utils/keep_all.dart';
 import 'package:handori/core/utils/korea_time.dart';
 import 'package:handori/features/school_meal/domain/model/meal_type.dart';
@@ -65,7 +65,7 @@ void main() {
       tester.getTopLeft(find.text(text.keepAll)).dx;
   bool chipSelected(WidgetTester tester, String label) =>
       tester
-          .widget<SandolChip>(find.widgetWithText(SandolChip, label))
+          .widget<HandolChip>(find.widgetWithText(HandolChip, label))
           .selected;
 
   testWidgets('드래그 중 카드가 손가락 이동량만큼 따라온다', (tester) async {

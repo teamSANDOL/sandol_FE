@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:handori/core/design_system/sandol_tokens.dart';
+import 'package:handori/core/design_system/handol_tokens.dart';
 
-enum SandolButtonVariant {
+enum HandolButtonVariant {
   /// primary 채움 (로그인 등)
   primary,
 
@@ -12,21 +12,21 @@ enum SandolButtonVariant {
   danger,
 }
 
-class SandolButton extends StatelessWidget {
-  const SandolButton({
+class HandolButton extends StatelessWidget {
+  const HandolButton({
     super.key,
     required this.label,
     this.onPressed,
     this.loading = false,
-    this.variant = SandolButtonVariant.primary,
-    this.height = SandolMetrics.buttonHeight,
-    this.textStyle = SandolTypography.button,
+    this.variant = HandolButtonVariant.primary,
+    this.height = HandolMetrics.buttonHeight,
+    this.textStyle = HandolTypography.button,
   });
 
   final String label;
   final VoidCallback? onPressed;
   final bool loading;
-  final SandolButtonVariant variant;
+  final HandolButtonVariant variant;
   final double height;
   final TextStyle textStyle;
 
@@ -37,19 +37,19 @@ class SandolButton extends StatelessWidget {
       Color foreground,
       BorderSide side,
     ) = switch (variant) {
-      SandolButtonVariant.primary => (
-        SandolColors.primary,
-        SandolColors.background,
+      HandolButtonVariant.primary => (
+        HandolColors.primary,
+        HandolColors.background,
         BorderSide.none,
       ),
-      SandolButtonVariant.outlined => (
-        SandolColors.background,
-        SandolColors.text,
-        const BorderSide(color: SandolColors.border),
+      HandolButtonVariant.outlined => (
+        HandolColors.background,
+        HandolColors.text,
+        const BorderSide(color: HandolColors.border),
       ),
-      SandolButtonVariant.danger => (
-        SandolColors.red,
-        SandolColors.background,
+      HandolButtonVariant.danger => (
+        HandolColors.red,
+        HandolColors.background,
         BorderSide.none,
       ),
     };
@@ -60,15 +60,15 @@ class SandolButton extends StatelessWidget {
         style: FilledButton.styleFrom(
           backgroundColor: background,
           foregroundColor: foreground,
-          disabledBackgroundColor: SandolColors.muted,
-          disabledForegroundColor: SandolColors.background,
+          disabledBackgroundColor: HandolColors.muted,
+          disabledForegroundColor: HandolColors.background,
           minimumSize: Size(0, height),
           padding: const EdgeInsets.symmetric(
-            horizontal: SandolSpacing.md,
-            vertical: SandolSpacing.sm,
+            horizontal: HandolSpacing.md,
+            vertical: HandolSpacing.sm,
           ),
           shape: RoundedRectangleBorder(
-            borderRadius: SandolMetrics.radius,
+            borderRadius: HandolMetrics.radius,
             side: side,
           ),
           textStyle: textStyle,
@@ -80,7 +80,7 @@ class SandolButton extends StatelessWidget {
                   dimension: 24,
                   child: CircularProgressIndicator(
                     strokeWidth: 2,
-                    color: SandolColors.background,
+                    color: HandolColors.background,
                     semanticsLabel: label,
                   ),
                 )

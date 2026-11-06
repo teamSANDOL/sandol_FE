@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:handori/core/design_system/sandol_assets.dart';
-import 'package:handori/core/design_system/sandol_tokens.dart';
+import 'package:handori/core/design_system/handol_assets.dart';
+import 'package:handori/core/design_system/handol_tokens.dart';
 import 'package:handori/features/empty_class/component/classroom_time_range_picker.dart';
 import 'package:handori/features/empty_class/domain/model/class_period.dart';
 import 'package:handori/features/empty_class/model/class_model.dart';
@@ -10,11 +10,11 @@ import 'package:handori/features/empty_class/presentation/provider/classroom_que
 import 'package:handori/features/empty_class/presentation/provider/empty_class_provider.dart';
 import 'package:handori/features/map/component/map_common.dart';
 import 'package:handori/shared/widget/error_retry_view.dart';
-import 'package:handori/shared/widget/sandol_loading_indicator.dart';
+import 'package:handori/shared/widget/handol_loading_indicator.dart';
 
 /// 호실 상태 (2538:17489 범례). 전체 강의실 목록을 못 받으면 빈 호실만 나온다.
 enum RoomStatus {
-  empty('비어있음', MapColors.soft, SandolColors.primary),
+  empty('비어있음', MapColors.soft, HandolColors.primary),
   busy('수업예정', MapColors.busy, MapColors.busyDot);
 
   final String label;
@@ -141,10 +141,10 @@ class _EmptyClassPanelState extends ConsumerState<EmptyClassPanel> {
       // (건물 수십 개 수준이라 부담 없음).
       cacheExtent: 4000,
       padding: const EdgeInsets.fromLTRB(
-        SandolMetrics.pageGutter,
-        SandolSpacing.sm,
-        SandolMetrics.pageGutter,
-        SandolSpacing.xl,
+        HandolMetrics.pageGutter,
+        HandolSpacing.sm,
+        HandolMetrics.pageGutter,
+        HandolSpacing.xl,
       ),
       children: [
         Row(
@@ -153,28 +153,28 @@ class _EmptyClassPanelState extends ConsumerState<EmptyClassPanel> {
               tooltip: '뒤로',
               visualDensity: VisualDensity.compact,
               onPressed: widget.onBack,
-              icon: SvgPicture.asset(SandolAssets.backArrow),
+              icon: SvgPicture.asset(HandolAssets.backArrow),
             ),
             const Expanded(
-              child: Text('빈 강의실 현황', style: SandolTypography.headline),
+              child: Text('빈 강의실 현황', style: HandolTypography.headline),
             ),
-            Text('총 $total개', style: SandolTypography.caption.muted),
+            Text('총 $total개', style: HandolTypography.caption.muted),
           ],
         ),
-        const SizedBox(height: SandolSpacing.xs),
+        const SizedBox(height: HandolSpacing.xs),
         Text(
           '${query.dayName} ${query.timeLabel} 동안 비어있는 강의실',
-          style: SandolTypography.body,
+          style: HandolTypography.body,
         ),
-        const SizedBox(height: SandolSpacing.md),
+        const SizedBox(height: HandolSpacing.md),
         _QueryCard(search: _search, onSearch: () => setState(() {})),
-        const SizedBox(height: SandolSpacing.md),
+        const SizedBox(height: HandolSpacing.md),
         Row(
           children: [
             for (final s in RoomStatus.values) ...[
               _Dot(s.dot, 12),
-              const SizedBox(width: SandolSpacing.xs),
-              Text(s.label, style: SandolTypography.caption),
+              const SizedBox(width: HandolSpacing.xs),
+              Text(s.label, style: HandolTypography.caption),
               const SizedBox(width: 20),
             ],
             const Spacer(),
@@ -191,7 +191,7 @@ class _EmptyClassPanelState extends ConsumerState<EmptyClassPanel> {
             ),
           ],
         ),
-        const SizedBox(height: SandolSpacing.md),
+        const SizedBox(height: HandolSpacing.md),
         if (rows == null)
           async.hasError
               ? ErrorRetryView(
@@ -199,14 +199,14 @@ class _EmptyClassPanelState extends ConsumerState<EmptyClassPanel> {
                 onRetry: () => ref.invalidate(emptyClassesProvider),
               )
               : const Padding(
-                padding: EdgeInsets.all(SandolSpacing.xl),
-                child: Center(child: SandolLoadingIndicator()),
+                padding: EdgeInsets.all(HandolSpacing.xl),
+                child: Center(child: HandolLoadingIndicator()),
               )
         else ...[
           for (final (b, rooms) in rows)
             Padding(
               key: _cardKeys.putIfAbsent(b.className, GlobalKey.new),
-              padding: const EdgeInsets.only(bottom: SandolSpacing.md),
+              padding: const EdgeInsets.only(bottom: HandolSpacing.md),
               child: _BuildingRooms(
                 building: b,
                 rooms: rooms,
@@ -215,11 +215,11 @@ class _EmptyClassPanelState extends ConsumerState<EmptyClassPanel> {
             ),
           if (rows.isEmpty)
             Padding(
-              padding: const EdgeInsets.all(SandolSpacing.lg),
+              padding: const EdgeInsets.all(HandolSpacing.lg),
               child: Center(
                 child: Text(
                   _search.text.isEmpty ? '현재 빈 강의실이 없습니다.' : '검색 결과가 없어요',
-                  style: SandolTypography.caption.muted,
+                  style: HandolTypography.caption.muted,
                 ),
               ),
             ),
@@ -242,13 +242,13 @@ class _QueryCard extends ConsumerWidget {
     final ctrl = ref.read(classroomQueryControllerProvider.notifier);
     final period = periodLabelOf(query.startMinutes, query.endMinutes);
     final isNow = query.startMinutes == query.anchorMinutes && period == null;
-    final muted = SandolTypography.caption.muted;
+    final muted = HandolTypography.caption.muted;
 
     return Container(
       padding: const EdgeInsets.fromLTRB(20, 18, 20, 10),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: SandolMetrics.radius,
+        borderRadius: HandolMetrics.radius,
         border: Border.all(color: MapColors.line),
       ),
       child: Column(
@@ -264,8 +264,8 @@ class _QueryCard extends ConsumerWidget {
                     Text('조회 시간', style: muted),
                     const SizedBox(height: 9),
                     Wrap(
-                      spacing: SandolSpacing.sm,
-                      runSpacing: SandolSpacing.sm,
+                      spacing: HandolSpacing.sm,
+                      runSpacing: HandolSpacing.sm,
                       children: [
                         _Pill(
                           label: '지금 (현재)',
@@ -325,24 +325,24 @@ class _QueryCard extends ConsumerWidget {
             child: TextField(
               controller: search,
               onChanged: (_) => onSearch(),
-              style: SandolTypography.caption,
+              style: HandolTypography.caption,
               decoration: InputDecoration(
                 isDense: true,
                 hintText: '강의실을 검색하세요',
-                hintStyle: SandolTypography.caption.muted,
+                hintStyle: HandolTypography.caption.muted,
                 prefixIcon: const Icon(
                   Icons.search_rounded,
-                  color: SandolColors.primary,
+                  color: HandolColors.primary,
                   size: 20,
                 ),
                 contentPadding: EdgeInsets.zero,
                 enabledBorder: const OutlineInputBorder(
-                  borderRadius: SandolMetrics.radius,
+                  borderRadius: HandolMetrics.radius,
                   borderSide: BorderSide(color: MapColors.line),
                 ),
                 focusedBorder: const OutlineInputBorder(
-                  borderRadius: SandolMetrics.radius,
-                  borderSide: BorderSide(color: SandolColors.primary),
+                  borderRadius: HandolMetrics.radius,
+                  borderSide: BorderSide(color: HandolColors.primary),
                 ),
               ),
             ),
@@ -375,21 +375,21 @@ class _Pill extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final fg = selected ? SandolColors.background : SandolColors.text;
+    final fg = selected ? HandolColors.background : HandolColors.text;
     final pill = Container(
       // 높이 고정 대신 세로 여백으로 30을 맞춰 글꼴이 커지면 함께 늘어난다.
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
       decoration: BoxDecoration(
-        color: selected ? SandolColors.primary : SandolColors.background,
+        color: selected ? HandolColors.primary : HandolColors.background,
         borderRadius: BorderRadius.circular(30),
         border: Border.all(color: MapColors.line),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
-        spacing: SandolSpacing.xs,
+        spacing: HandolSpacing.xs,
         children: [
           if (icon != null) Icon(icon, size: 13, color: fg),
-          Text(label, style: SandolTypography.caption.copyWith(color: fg)),
+          Text(label, style: HandolTypography.caption.copyWith(color: fg)),
           if (trailing)
             Icon(Icons.keyboard_arrow_down_rounded, size: 16, color: fg),
         ],
@@ -445,7 +445,7 @@ class _BuildingRooms extends StatelessWidget {
 
     return Container(
       decoration: BoxDecoration(
-        borderRadius: SandolMetrics.radius,
+        borderRadius: HandolMetrics.radius,
         border: Border.all(color: MapColors.line),
       ),
       padding: const EdgeInsets.fromLTRB(20, 10, 20, 16),
@@ -454,20 +454,20 @@ class _BuildingRooms extends StatelessWidget {
         children: [
           InkWell(
             onTap: onTap,
-            borderRadius: SandolMetrics.radius,
+            borderRadius: HandolMetrics.radius,
             child: Row(
               children: [
                 Expanded(
                   child: Text(
                     building.className,
-                    style: SandolTypography.body.accent,
+                    style: HandolTypography.body.accent,
                   ),
                 ),
                 Text(
                   '${building.emptyCount}개',
-                  style: SandolTypography.headline.accent,
+                  style: HandolTypography.headline.accent,
                 ),
-                const SizedBox(width: SandolSpacing.md),
+                const SizedBox(width: HandolSpacing.md),
                 const Icon(Icons.chevron_right_rounded, size: 20),
               ],
             ),
@@ -475,13 +475,13 @@ class _BuildingRooms extends StatelessWidget {
           for (final floor in sortedFloors) ...[
             const SizedBox(height: 12),
             Row(
-              spacing: SandolSpacing.sm,
+              spacing: HandolSpacing.sm,
               children: [
-                SvgPicture.asset(SandolAssets.floor, width: 12),
-                Text(floor, style: SandolTypography.caption),
+                SvgPicture.asset(HandolAssets.floor, width: 12),
+                Text(floor, style: HandolTypography.caption),
               ],
             ),
-            const SizedBox(height: SandolSpacing.sm),
+            const SizedBox(height: HandolSpacing.sm),
             Wrap(
               spacing: 4,
               runSpacing: 4,
@@ -518,7 +518,7 @@ class _RoomChip extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       mainAxisSize: MainAxisSize.min,
       children: [
-        Text(room, style: SandolTypography.caption),
+        Text(room, style: HandolTypography.caption),
         const SizedBox(height: 4),
         Row(
           mainAxisSize: MainAxisSize.min,
@@ -527,7 +527,7 @@ class _RoomChip extends StatelessWidget {
             const SizedBox(width: 2.4),
             Text(
               status.label,
-              style: SandolTypography.caption.copyWith(fontSize: 10, height: 1),
+              style: HandolTypography.caption.copyWith(fontSize: 10, height: 1),
             ),
           ],
         ),

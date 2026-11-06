@@ -1,4 +1,4 @@
-import 'package:handori/core/design_system/sandol_assets.dart';
+import 'package:handori/core/design_system/handol_assets.dart';
 import 'package:handori/core/utils/korea_time.dart';
 import 'package:handori/features/school_meal/domain/model/meal.dart';
 import 'package:handori/features/school_meal/domain/model/meal_type.dart';
@@ -142,10 +142,10 @@ const _kLocationFallback = <String, String>{
 
 /// 식당명 부분 일치 → 사진 에셋. 사진이 있는 식당만 있다(E동은 아직 없음).
 const _kPhoto = <String, String>{
-  '가가': SandolAssets.mealGaga,
-  '세미콘': SandolAssets.mealSemicon,
-  '미가': SandolAssets.mealMiga,
-  '다솔': SandolAssets.mealDasol,
+  '가가': HandolAssets.mealGaga,
+  '세미콘': HandolAssets.mealSemicon,
+  '미가': HandolAssets.mealMiga,
+  '다솔': HandolAssets.mealDasol,
 };
 
 String? _lookupByName(Map<String, String> table, String name) {

@@ -3,7 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:handori/common/component/sandol_card.dart';
+import 'package:handori/common/component/handol_card.dart';
 import 'package:handori/core/utils/keep_all.dart';
 import 'package:handori/features/home/component/schedule_section.dart';
 import 'package:handori/features/home/model/schedule_event.dart';
@@ -59,7 +59,7 @@ void main() {
     expect((closed, detail), (1, 1));
   });
 
-  testWidgets('빈 카드(2270:498): 문구 · 잠자는 산돌이 · X 닫기 · 자세히보기', (tester) async {
+  testWidgets('빈 카드(2270:498): 문구 · 잠자는 한돌이 · X 닫기 · 자세히보기', (tester) async {
     var closed = 0, detail = 0;
     await pumpSection(
       tester,
@@ -69,10 +69,10 @@ void main() {
     );
     expect(find.text('주요일정'), findsOneWidget);
     expect(find.text('아직 고정한 스케줄이 없어요'), findsOneWidget);
-    // 별 1 + 산돌이 레이어 5 + X 1 + 셰브런 1
+    // 별 1 + 한돌이 레이어 5 + X 1 + 셰브런 1
     expect(find.byType(SvgPicture), findsNWidgets(8));
     // 시안 frame: 홈 카드 폭(412 - 33×2) × 142
-    expect(tester.getSize(find.byType(SandolCard)), const Size(346, 142));
+    expect(tester.getSize(find.byType(HandolCard)), const Size(346, 142));
     expect(tester.takeException(), isNull);
 
     await tester.tap(find.byTooltip('닫기'));

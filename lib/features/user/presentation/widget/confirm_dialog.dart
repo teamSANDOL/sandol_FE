@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:handori/core/constants/app_colors.dart';
 import 'package:handori/core/constants/app_radius.dart';
 import 'package:handori/core/utils/keep_all.dart';
-import 'package:handori/shared/widget/sandol_loading_indicator.dart';
+import 'package:handori/shared/widget/handol_loading_indicator.dart';
 
 /// 진행 중 다이얼로그를 띄운 채 [task] 를 수행한다. 예외는 그대로 올린다.
 /// 로그아웃·회원탈퇴처럼 서버를 기다리는 동안 화면을 잠근다.
@@ -14,7 +14,7 @@ Future<void> runBlocking(
     context: context,
     barrierDismissible: false,
     barrierColor: Colors.black.withValues(alpha: .5),
-    builder: (_) => const Center(child: SandolLoadingIndicator()),
+    builder: (_) => const Center(child: HandolLoadingIndicator()),
   );
   try {
     await task();

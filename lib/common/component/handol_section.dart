@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:handori/core/design_system/sandol_tokens.dart';
+import 'package:handori/core/design_system/handol_tokens.dart';
 
 /// 섹션 제목 + 본문. 홈의 주요일정 · 학식 · 셔틀버스 … 이 같은 틀을 쓴다.
-class SandolSection extends StatelessWidget {
-  const SandolSection({
+class HandolSection extends StatelessWidget {
+  const HandolSection({
     super.key,
     required this.title,
     required this.child,
@@ -27,12 +27,12 @@ class SandolSection extends StatelessWidget {
         constraints: const BoxConstraints(minHeight: titleHeight),
         child: Row(
           children: [
-            Expanded(child: Text(title, style: SandolTypography.title)),
+            Expanded(child: Text(title, style: HandolTypography.title)),
             if (trailing != null) trailing!,
           ],
         ),
       ),
-      const SizedBox(height: SandolSpacing.sm),
+      const SizedBox(height: HandolSpacing.sm),
       child,
     ],
   );
