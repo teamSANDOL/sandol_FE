@@ -56,11 +56,12 @@ class _WithdrawReasonPageState extends State<WithdrawReasonPage> {
         const HandolBottomGlow(),
         ListView(
           keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
-          padding: const EdgeInsets.fromLTRB(
+          // 기기마다 다른 시스템 내비게이션 바 높이만큼 더 띄운다.
+          padding: EdgeInsets.fromLTRB(
             HandolMetrics.pageGutter,
             0,
             HandolMetrics.pageGutter,
-            HandolSpacing.xl,
+            HandolSpacing.xl + MediaQuery.paddingOf(context).bottom,
           ),
           children: [
             Padding(

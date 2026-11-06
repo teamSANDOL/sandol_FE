@@ -76,7 +76,11 @@ class _WithdrawConfirmPageState extends ConsumerState<WithdrawConfirmPage> {
       horizontalPadding: HandolMetrics.pageGutter - 10,
     ),
     body: ListView(
-      padding: const EdgeInsets.only(top: 12, bottom: HandolSpacing.xl),
+      // 기기마다 다른 시스템 내비게이션 바 높이만큼 더 띄운다.
+      padding: EdgeInsets.only(
+        top: 12,
+        bottom: HandolSpacing.xl + MediaQuery.paddingOf(context).bottom,
+      ),
       children: [
         const Padding(
           padding: EdgeInsets.symmetric(horizontal: HandolMetrics.pageGutter),

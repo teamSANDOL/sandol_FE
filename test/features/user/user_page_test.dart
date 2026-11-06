@@ -95,4 +95,14 @@ void main() {
       findsOneWidget,
     );
   });
+
+  // 3버튼 바 · 제스처 바 · 바 없음: 기기가 알려 주는 높이만큼 끝을 띄운다.
+  for (final navBar in [48.0, 24.0, 0.0]) {
+    testWidgets('하단 여백 = 40 + 시스템 내비게이션 바($navBar)', (tester) async {
+      tester.view.padding = FakeViewPadding(bottom: navBar);
+      await pump(tester, null);
+      final list = tester.widget<ListView>(find.byType(ListView));
+      expect(list.padding!.resolve(TextDirection.ltr).bottom, 40 + navBar);
+    });
+  }
 }

@@ -63,11 +63,13 @@ class _UserPageState extends ConsumerState<UserPage> {
         children: [
           const HandolBottomGlow(),
           ListView(
-            padding: const EdgeInsets.fromLTRB(
+            // padding 을 직접 주면 ListView 가 시스템 내비게이션 바 높이를 더하지
+            // 않는다. 3버튼·제스처·없음 등 기기마다 다른 실제 높이를 더한다.
+            padding: EdgeInsets.fromLTRB(
               HandolMetrics.pageGutter,
               HandolSpacing.md,
               HandolMetrics.pageGutter,
-              HandolSpacing.xl,
+              HandolSpacing.xl + MediaQuery.paddingOf(context).bottom,
             ),
             children: [
               if (loggedIn)
