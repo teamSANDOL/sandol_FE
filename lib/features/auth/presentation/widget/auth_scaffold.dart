@@ -25,27 +25,45 @@ class AuthScaffold extends StatelessWidget {
           behavior: HitTestBehavior.translucent,
           onTap: () => FocusScope.of(context).unfocus(),
           child: SafeArea(
-            child: SingleChildScrollView(
-              keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
-              padding: EdgeInsets.fromLTRB(
-                math.min(
-                  HandolMetrics.pageGutter,
-                  MediaQuery.sizeOf(context).width * .08,
-                ),
-                math.max(16, top - MediaQuery.paddingOf(context).top),
-                math.min(
-                  HandolMetrics.pageGutter,
-                  MediaQuery.sizeOf(context).width * .08,
-                ),
-                32,
-              ),
-              child: Align(
-                alignment: Alignment.topCenter,
-                child: ConstrainedBox(
-                  constraints: const BoxConstraints(
-                    maxWidth: HandolMetrics.contentWidth,
+            child: LayoutBuilder(
+              builder: (context, viewport) => SingleChildScrollView(
+                keyboardDismissBehavior:
+                    ScrollViewKeyboardDismissBehavior.onDrag,
+                padding: EdgeInsets.symmetric(
+                  horizontal: math.min(
+                    HandolMetrics.pageGutter,
+                    MediaQuery.sizeOf(context).width * .08,
                   ),
-                  child: SizedBox(width: double.infinity, child: child),
+                ),
+                // 위 여백은 시안 위치(top)까지만 쓰고, 내용이 화면보다 길면 먼저
+                // 줄여(최소 16) 아래 버튼이 내비게이션 바 밑으로 밀리지 않게 한다.
+                child: ConstrainedBox(
+                  constraints: BoxConstraints(minHeight: viewport.maxHeight),
+                  child: IntrinsicHeight(
+                    child: Column(
+                      children: [
+                        Flexible(
+                          child: ConstrainedBox(
+                            constraints: BoxConstraints(
+                              minHeight: 16,
+                              maxHeight: math.max(
+                                16,
+                                top - MediaQuery.paddingOf(context).top,
+                              ),
+                            ),
+                            child: const SizedBox.expand(),
+                          ),
+                        ),
+                        ConstrainedBox(
+                          constraints: const BoxConstraints(
+                            maxWidth: HandolMetrics.contentWidth,
+                          ),
+                          child: SizedBox(width: double.infinity, child: child),
+                        ),
+                        const SizedBox(height: 32),
+                      ],
+                    ),
+                  ),
                 ),
               ),
             ),
