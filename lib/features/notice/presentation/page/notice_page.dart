@@ -503,8 +503,8 @@ class _SummaryRow extends StatelessWidget {
           child: Wrap(
             spacing: HandolSpacing.sm,
             children: [
-              Text('최신 공지', style: HandolTypography.caption),
-              Text('총 $total건', style: HandolTypography.caption),
+              Text('최신 공지', style: HandolTypography.headline.strong),
+              Text('총 $total건', style: HandolTypography.caption.muted),
             ],
           ),
         ),

@@ -27,7 +27,7 @@ class WithdrawActions extends StatelessWidget {
       Expanded(
         child: HandolButton(
           label: '계속 사용하기',
-          variant: HandolButtonVariant.outlined,
+          variant: HandolButtonVariant.primary,
           height: height,
           textStyle: HandolTypography.title,
           onPressed: onContinue,

@@ -127,7 +127,7 @@ class TukWorldPanel extends ConsumerWidget {
       ),
       children: [
         if (picked == null) ...[
-          const Text('표시할 시설 선택', style: HandolTypography.headline),
+          Text('표시할 시설 선택', style: HandolTypography.headline.strong),
           const SizedBox(height: HandolSpacing.lg),
         ],
         tiles,
@@ -188,7 +188,7 @@ class _PlaceRow extends StatelessWidget {
                 place.name,
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
-                style: HandolTypography.headline,
+                style: HandolTypography.headline.strong,
               ),
               const SizedBox(height: HandolSpacing.sm),
               Text(
@@ -290,7 +290,7 @@ class TukPlaceDetail extends StatelessWidget {
       const SizedBox(height: HandolSpacing.md),
       const Divider(height: 1, color: MapColors.line),
       const SizedBox(height: HandolSpacing.md),
-      const Text('이용 안내', style: HandolTypography.headline),
+      Text('이용 안내', style: HandolTypography.headline.strong),
       const SizedBox(height: HandolSpacing.md),
       Container(
         padding: const EdgeInsets.all(20),

@@ -155,8 +155,8 @@ class _EmptyClassPanelState extends ConsumerState<EmptyClassPanel> {
               onPressed: widget.onBack,
               icon: SvgPicture.asset(HandolAssets.backArrow),
             ),
-            const Expanded(
-              child: Text('빈 강의실 현황', style: HandolTypography.headline),
+            Expanded(
+              child: Text('빈 강의실 현황', style: HandolTypography.headline.strong),
             ),
             Text('총 $total개', style: HandolTypography.caption.muted),
           ],
@@ -463,12 +463,12 @@ class _BuildingRooms extends StatelessWidget {
                 Expanded(
                   child: Text(
                     building.className,
-                    style: HandolTypography.body.accent,
+                    style: HandolTypography.headline.strong.accent,
                   ),
                 ),
                 Text(
                   '${building.emptyCount}개',
-                  style: HandolTypography.headline.accent,
+                  style: HandolTypography.body.strong.accent,
                 ),
                 const SizedBox(width: HandolSpacing.md),
                 const Icon(Icons.chevron_right_rounded, size: 20),

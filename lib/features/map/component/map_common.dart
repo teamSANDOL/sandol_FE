@@ -163,7 +163,7 @@ class MapSectionTitle extends StatelessWidget {
   @override
   Widget build(BuildContext context) => Padding(
     padding: const EdgeInsets.only(bottom: HandolSpacing.sm),
-    child: Text(text, style: HandolTypography.body),
+    child: Text(text, style: HandolTypography.body.strong),
   );
 }
 
