@@ -4,14 +4,16 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:handori/core/constants/app_colors.dart';
 import 'package:handori/core/constants/app_text_styles.dart';
 import 'package:handori/core/design_system/handol_tokens.dart';
+import 'package:handori/core/utils/korea_time.dart';
 import 'package:handori/features/empty_class/domain/model/classroom_query.dart';
 import 'package:handori/features/empty_class/presentation/provider/classroom_query_provider.dart';
 import 'package:handori/core/constants/app_radius.dart';
 
-/// 조회 구간 선택기. 홈 카드와 맵 탭의 시간 설정 시트가 같이 쓴다.
+/// 조회 날짜·구간 선택기. 홈 카드와 맵 탭의 시간 설정 시트가 같이 쓴다.
 ///
-/// 지금부터 그날 마지막 정각(22:00)까지를 1시간 칸으로 깔고 두 손잡이로
-/// 구간을 잡는다. 값은 [classroomQueryControllerProvider] 하나에 저장되므로
+/// 위에서 오늘부터 일주일 중 하루를 고르고, 아래 축에서 두 손잡이로 구간을
+/// 잡는다. 축은 오늘이면 지금부터, 다른 날이면 09시부터 22시까지 1시간 칸이다.
+/// 값은 [classroomQueryControllerProvider] 하나에 저장되므로
 /// 어느 화면에서 바꾸든 모두 같은 구간을 본다.
 /// 드래그 중 미리보기 구간은 [onPreview] 로 알리고, 놓으면 null 을 보낸다.
 class ClassroomTimeRangePicker extends ConsumerStatefulWidget {
@@ -50,6 +52,14 @@ class _ClassroomTimeRangePickerState
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
+        _DayStrip(
+          selected: query.daysAhead,
+          onSelect: (d) {
+            HapticFeedback.selectionClick();
+            ref.read(classroomQueryControllerProvider.notifier).setDay(d);
+          },
+        ),
+        const SizedBox(height: 12),
         SizedBox(
           height: _thumbRadius * 2,
           child: SliderTheme(
@@ -84,11 +94,14 @@ class _ClassroomTimeRangePickerState
             ),
           ),
         ),
-        // 축의 양끝: 지금 / 마지막 정각
+        // 축의 양끝: 지금(다른 날은 첫 정각) / 마지막 정각
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            const Text('지금', style: HandolTypography.caption),
+            Text(
+              query.isToday ? '지금' : _hourLabel(ticks.first),
+              style: HandolTypography.caption,
+            ),
             Text(_hourLabel(ticks.last), style: HandolTypography.caption),
           ],
         ),
@@ -109,6 +122,90 @@ class _ClassroomTimeRangePickerState
       ref
           .read(classroomQueryControllerProvider)
           .copyWith(startMinutes: ticks[s], endMinutes: ticks[e]),
+    );
+  }
+}
+
+/// 오늘부터 일주일 날짜 칸. 22시가 지나면 오늘은 고를 수 없다.
+class _DayStrip extends StatelessWidget {
+  const _DayStrip({required this.selected, required this.onSelect});
+
+  final int selected;
+  final ValueChanged<int> onSelect;
+
+  static const _short = ['월', '화', '수', '목', '금', '토', '일'];
+
+  @override
+  Widget build(BuildContext context) {
+    final now = KoreaTime.now();
+    final todayOk = ClassroomQuery.todaySelectable(now);
+    return Row(
+      children: [
+        for (var d = 0; d <= ClassroomQuery.maxDaysAhead; d++) ...[
+          if (d > 0) const SizedBox(width: 4),
+          Expanded(
+            child: _dayChip(
+              now.add(Duration(days: d)),
+              d,
+              enabled: d > 0 || todayOk,
+            ),
+          ),
+        ],
+      ],
+    );
+  }
+
+  Widget _dayChip(DateTime date, int d, {required bool enabled}) {
+    final on = d == selected;
+    final color = on
+        ? Colors.white
+        : !enabled
+        ? HandolColors.inactive
+        : date.weekday == DateTime.sunday
+        ? HandolColors.red
+        : HandolColors.text;
+    final top = switch (d) {
+      0 => '오늘',
+      1 => '내일',
+      _ => _short[date.weekday - 1],
+    };
+    return Semantics(
+      button: true,
+      selected: on,
+      enabled: enabled,
+      label: '${date.month}월 ${date.day}일 ${_short[date.weekday - 1]}요일',
+      excludeSemantics: true,
+      child: Material(
+        color: on
+            ? HandolColors.primary
+            : HandolColors.track.withValues(alpha: .5),
+        borderRadius: HandolMetrics.radius,
+        child: InkWell(
+          borderRadius: HandolMetrics.radius,
+          onTap: enabled && !on ? () => onSelect(d) : null,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(vertical: 6),
+            child: Column(
+              children: [
+                Text(
+                  top,
+                  style: HandolTypography.caption.copyWith(
+                    color: color,
+                    fontSize: 11,
+                  ),
+                ),
+                Text(
+                  '${date.day}',
+                  style: HandolTypography.caption.copyWith(
+                    color: color,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
     );
   }
 }

@@ -27,9 +27,20 @@ class ClassroomQueryController extends _$ClassroomQueryController {
     state = state.copyWith(startMinutes: startMinutes, endMinutes: endMinutes);
   }
 
-  void setWeekday(int weekday) {
-    if (weekday == state.weekday) return;
-    state = state.copyWith(weekday: weekday);
+  /// 날짜를 바꾼다. 고른 구간이 새 축 안에 들어가면 그대로 두고(교시 선택 유지),
+  /// 아니면 그날의 기본 구간으로 맞춘다.
+  void setDay(int daysAhead) {
+    if (daysAhead == state.daysAhead) return;
+    final next = ClassroomQuery.forDay(KoreaTime.now(), daysAhead);
+    final fits =
+        state.startMinutes >= next.anchorMinutes &&
+        state.endMinutes <= ClassroomQuery.hardEnd;
+    state = fits
+        ? next.copyWith(
+            startMinutes: state.startMinutes,
+            endMinutes: state.endMinutes,
+          )
+        : next;
   }
 
   void resetToNow() => state = ClassroomQuery.defaultFor(KoreaTime.now());
@@ -38,21 +49,28 @@ class ClassroomQueryController extends _$ClassroomQueryController {
   /// 맞추므로 홈을 오갈 때마다 API 를 다시 부르지 않는다.
   void syncToNow() {
     final now = KoreaTime.now();
-    if (state.weekday != now.weekday) {
+    // 자정을 넘겨 '오늘'이 바뀌었으면 처음부터 다시 맞춘다.
+    final baseWeekday = (state.weekday - 1 - state.daysAhead) % 7 + 1;
+    if (baseWeekday != now.weekday) {
       state = ClassroomQuery.defaultFor(now);
       return;
     }
+    // 다른 날의 축은 고정이라 맞출 게 없다.
+    if (!state.isToday) return;
     final anchor = ClassroomQuery.minutesOf(now);
     if (anchor - state.anchorMinutes < ClassroomQuery.staleAfter) return;
+    if (!ClassroomQuery.todaySelectable(now)) {
+      state = ClassroomQuery.defaultFor(now); // 오늘 칸이 끝나면 내일로
+      return;
+    }
 
     final ticks = ClassroomQuery.ticksFor(anchor);
     // 시작을 "지금"에 두고 있었다면 새 지금으로 따라오고,
     // 나중 시각을 골라 뒀다면 그 정각을 그대로 유지한다.
     final keepsNow = state.startMinutes == state.anchorMinutes;
-    final s =
-        keepsNow
-            ? anchor
-            : ticks[ClassroomQuery.nearestTickIndex(ticks, state.startMinutes)];
+    final s = keepsNow
+        ? anchor
+        : ticks[ClassroomQuery.nearestTickIndex(ticks, state.startMinutes)];
     final e = ticks[ClassroomQuery.nearestTickIndex(ticks, state.endMinutes)];
     if (s >= e) {
       state = ClassroomQuery.defaultFor(now);

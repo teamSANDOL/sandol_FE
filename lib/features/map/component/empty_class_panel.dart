@@ -241,7 +241,10 @@ class _QueryCard extends ConsumerWidget {
     final query = ref.watch(classroomQueryControllerProvider);
     final ctrl = ref.read(classroomQueryControllerProvider.notifier);
     final period = periodLabelOf(query.startMinutes, query.endMinutes);
-    final isNow = query.startMinutes == query.anchorMinutes && period == null;
+    final isNow =
+        query.isToday &&
+        query.startMinutes == query.anchorMinutes &&
+        period == null;
     final muted = HandolTypography.caption.muted;
 
     return Container(
