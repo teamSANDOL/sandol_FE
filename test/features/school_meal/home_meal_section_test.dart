@@ -174,4 +174,52 @@ void main() {
       greaterThanOrEqualTo(viewRight),
     );
   });
+
+  testWidgets('카드를 끄는 동안 칩 줄이 손을 떼기 전부터 같이 밀린다', (tester) async {
+    // 칩 줄이 화면보다 길어야 스크롤된다.
+    await pump(
+      tester,
+      shown: [for (var i = 1; i <= 6; i++) _menu(i, '식당$i', 1)],
+    );
+    final chips = tester
+        .state<ScrollableState>(
+          find.descendant(
+            of: find.byType(SingleChildScrollView),
+            matching: find.byType(Scrollable),
+          ),
+        )
+        .position;
+    final cards = tester
+        .state<ScrollableState>(
+          find.descendant(
+            of: find.byType(PageView),
+            matching: find.byType(Scrollable),
+          ),
+        )
+        .position;
+    double chipCenterInView(String label) =>
+        tester.getCenter(find.widgetWithText(HandolChip, label)).dx;
+    final viewMid = tester.getCenter(find.byType(SingleChildScrollView)).dx;
+
+    // 4번째 카드로 옮겨 칩 줄이 가운데로 스크롤된 상태에서 시작한다.
+    container.read(selectedRestaurantIdProvider.notifier).select(4);
+    await tester.pumpAndSettle();
+    expect(chipCenterInView('식당4'), closeTo(viewMid, 1));
+
+    final before = chips.pixels;
+    final gesture = await tester.startGesture(
+      tester.getCenter(find.byType(PageView)),
+    );
+    await gesture.moveBy(const Offset(-20, 0));
+    await tester.pump();
+    await gesture.moveBy(const Offset(-80, 0));
+    await tester.pump();
+    // 아직 절반도 안 넘겼지만 칩 줄은 끈 비율만큼 이미 움직였다.
+    final t = cards.pixels / cards.viewportDimension - 3; // 4번째 카드 기준 소수부
+    expect(t, greaterThan(0));
+    expect(chips.pixels, greaterThan(before));
+    await gesture.up();
+    await tester.pumpAndSettle();
+    expect(chipCenterInView('식당4'), closeTo(viewMid, 1)); // 제자리로 돌아옴
+  });
 }

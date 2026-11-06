@@ -30,12 +30,14 @@ class _HomeMealSectionState extends ConsumerState<HomeMealSection> {
   /// 식당 ID → 카드 실측 높이. 드래그 중 높이 보간에 쓴다.
   final Map<int, double> _heights = {};
 
-  /// 식당 ID → 칩 위젯 키. 선택된 칩이 스크롤 영역 밖에 있을 때
-  /// `Scrollable.ensureVisible`로 찾아가기 위해 보관한다.
+  /// 식당 ID → 칩 위젯 키. 칩 줄을 카드 위치에 맞출 때 칩 위치를 잰다.
   final Map<int, GlobalKey> _chipKeys = {};
 
   GlobalKey _chipKey(int restaurantId) =>
       _chipKeys.putIfAbsent(restaurantId, () => GlobalKey());
+
+  final _chipScroll = ScrollController();
+  final _chipRowKey = GlobalKey();
 
   /// 선택된 식당의 menus 내 위치. 선택이 없거나 목록에 없으면 0.
   int _selectedIndex() {
@@ -44,29 +46,50 @@ class _HomeMealSectionState extends ConsumerState<HomeMealSection> {
     return i < 0 ? 0 : i;
   }
 
-  /// 선택된 칩이 칩 목록 스크롤 영역 밖에 있으면 보이는 위치로 스크롤한다.
-  void _revealChip(int restaurantId) {
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      final chipContext = _chipKeys[restaurantId]?.currentContext;
-      if (chipContext == null || !mounted) return;
-      Scrollable.ensureVisible(
-        chipContext,
-        alignment: 0.5,
-        duration: const Duration(milliseconds: 250),
-        curve: Curves.easeInOut,
-      );
-    });
+  /// 칩 줄을 카드 스크롤 위치(`page`)에 맞춰 매 프레임 민다. 이웃한 두 칩의
+  /// 가운데를 page 소수부로 보간해, 카드를 끄는 만큼 칩 줄도 같이 움직인다.
+  void _followPage() {
+    if (!_controller.hasClients ||
+        !_controller.position.haveDimensions ||
+        !_chipScroll.hasClients) {
+      return;
+    }
+    final menus = widget.menus;
+    final page = _controller.page!;
+    final lo = page.floor().clamp(0, menus.length - 1);
+    final hi = (lo + 1).clamp(0, menus.length - 1);
+    final a = _chipCenter(menus[lo].restaurant.id);
+    final b = _chipCenter(menus[hi].restaurant.id);
+    if (a == null || b == null) return;
+    final center = a + (b - a) * (page - lo).clamp(0.0, 1.0);
+    final pos = _chipScroll.position;
+    pos.jumpTo(
+      (center - pos.viewportDimension / 2).clamp(
+        pos.minScrollExtent,
+        pos.maxScrollExtent,
+      ),
+    );
+  }
+
+  /// 칩 줄(스크롤 내용) 기준 칩 가운데 x. 아직 그려지지 않았으면 null.
+  double? _chipCenter(int restaurantId) {
+    final chip = _chipKeys[restaurantId]?.currentContext?.findRenderObject();
+    final row = _chipRowKey.currentContext?.findRenderObject();
+    if (chip is! RenderBox || row is! RenderBox) return null;
+    return chip
+        .localToGlobal(Offset(chip.size.width / 2, 0), ancestor: row)
+        .dx;
   }
 
   @override
   void initState() {
     super.initState();
     // 상세 페이지에서 고른 식당 카드에서 바로 시작한다.
-    _controller = PageController(initialPage: _selectedIndex());
-    // 상세 페이지에서 먼 식당을 고르고 돌아온 경우 첫 프레임에 칩을 노출한다.
+    _controller = PageController(initialPage: _selectedIndex())
+      ..addListener(_followPage);
+    // 상세 페이지에서 먼 식당을 고르고 돌아온 경우 첫 프레임에 칩을 맞춘다.
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      final id = ref.read(selectedRestaurantIdProvider);
-      if (id != null) _revealChip(id);
+      if (mounted) _followPage();
     });
   }
 
@@ -89,6 +112,7 @@ class _HomeMealSectionState extends ConsumerState<HomeMealSection> {
   @override
   void dispose() {
     _controller.dispose();
+    _chipScroll.dispose();
     super.dispose();
   }
 
@@ -151,27 +175,26 @@ class _HomeMealSectionState extends ConsumerState<HomeMealSection> {
     var selected = menus.indexWhere((m) => m.restaurant.id == selectedId);
     if (selected < 0) selected = 0;
 
-    // 스와이프·상세 페이지 등 어디서 선택이 바뀌어도 해당 칩이 보이게 스크롤하고
-    // 카드 페이지도 맞춘다.
+    // 칩 탭·상세 페이지 등에서 선택이 바뀌면 카드 페이지를 옮긴다.
+    // 칩 줄은 카드가 움직이는 동안 _followPage 가 따라 민다.
     ref.listen(selectedRestaurantIdProvider, (previous, next) {
-      if (next != null && next != previous) {
-        _revealChip(next);
-        _syncPage(next);
-      }
+      if (next != null && next != previous) _syncPage(next);
     });
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // 식당 선택 칩. ListView는 화면 밖 칩을 빌드하지 않아 ensureVisible이
-        // 불가능하므로, 칩 개수가 적은 홈에서는 전부 빌드하는 Row 스크롤을 쓴다.
+        // 식당 선택 칩. 칩 위치를 재야 하므로(ListView는 화면 밖 칩을 빌드하지
+        // 않는다) 칩 개수가 적은 홈에서는 전부 빌드하는 Row 스크롤을 쓴다.
         SizedBox(
           height: HandolChip.height,
           child: SingleChildScrollView(
+            controller: _chipScroll,
             scrollDirection: Axis.horizontal,
             // 섹션은 화면 여백 안에 있지만 칩 줄은 화면 끝까지 흘러간다.
             clipBehavior: Clip.none,
             child: Row(
+              key: _chipRowKey,
               spacing: 12,
               children: [
                 for (var i = 0; i < menus.length; i++)
