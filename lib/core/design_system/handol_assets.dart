@@ -1,7 +1,7 @@
 /// 원본 노드별 Figma export. 같은 로봇이어도 시안의 표정/크롭을 구분한다.
 abstract final class HandolAssets {
   static const _base = 'assets/design_system/auth';
-  static const welcomeLogo = '$_base/welcome_logo.png'; // 2142:2366
+  static const welcomeLogo = '$_base/welcome_logo.png'; // 2142:2366 + 한돌이 BI 2530:10698
   static const kakao = '$_base/kakao.png'; // 2143:2412
   static const google = '$_base/google.png'; // 2143:2490
   static const apple = '$_base/apple.png'; // 2195:509
