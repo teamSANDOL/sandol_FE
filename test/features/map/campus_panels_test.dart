@@ -43,6 +43,23 @@ void main() {
     expect(find.text('준비중입니다'), findsOneWidget);
   });
 
+  // 갤럭시 기본 화면 밀도 450(폭 384dp)에서 6칸 줄이 넘치지 않는다.
+  testWidgets('좁은 화면(384dp)에서도 시설 타일 줄이 넘치지 않는다', (tester) async {
+    tester.view.physicalSize = const Size(384, 850);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+    await tester.pumpWidget(
+      app(
+        CampusHomePanel(
+          controller: ScrollController(),
+          onEmptyClass: () {},
+          onShowAll: () {},
+        ),
+      ),
+    );
+    expect(tester.takeException(), isNull);
+  });
+
   testWidgets('필터 시트의 두 줄 시설', (tester) async {
     phone(tester);
     await tester.pumpWidget(

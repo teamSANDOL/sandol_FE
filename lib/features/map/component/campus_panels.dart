@@ -17,7 +17,9 @@ class _TileRow extends StatelessWidget {
   Widget build(BuildContext context) => Row(
     mainAxisAlignment: MainAxisAlignment.spaceBetween,
     crossAxisAlignment: CrossAxisAlignment.start,
-    children: children,
+    // 폭이 넉넉하면 시안대로 양끝 정렬, 좁은 화면(예: 화면 밀도 450 → 폭 384)에서
+    // 6칸이 넘치면 칸마다 같은 몫으로 줄인다.
+    children: [for (final c in children) Flexible(child: c)],
   );
 }
 
@@ -62,7 +64,7 @@ class CampusHomePanel extends StatelessWidget {
       Row(
         children: [
           Expanded(
-            child: Text('지금 많이 찾는 시설', style: HandolTypography.headline.accent),
+            child: Text('지금 많이 찾는 시설', style: HandolTypography.headline.strong.accent),
           ),
           InkWell(
             onTap: onShowAll,
@@ -119,8 +121,8 @@ class FacilityFilterPanel extends StatelessWidget {
     children: [
       Row(
         children: [
-          const Expanded(
-            child: Text('표시할 시설 선택', style: HandolTypography.headline),
+          Expanded(
+            child: Text('표시할 시설 선택', style: HandolTypography.headline.strong),
           ),
           IconButton(
             tooltip: '닫기',
@@ -191,7 +193,7 @@ class BuildingPanel extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(building.className, style: HandolTypography.headline),
+              Text(building.className, style: HandolTypography.headline.strong),
               const SizedBox(height: HandolSpacing.sm),
               Text(
                 '빈 강의실 ${building.emptyCount}개',
