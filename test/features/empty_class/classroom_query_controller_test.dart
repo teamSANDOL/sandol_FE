@@ -41,7 +41,7 @@ void main() {
   test('defaultFor 의 시작은 항상 앵커', () {
     final q = ClassroomQuery.defaultFor(DateTime(2026, 9, 7, 9, 5));
     expect(q.startMinutes, q.anchorMinutes);
-    expect(q.endMinutes, 11 * 60);
+    expect(q.endMinutes, 11 * 60 + 20); // 2교시 끝
   });
 
   group('날짜 선택', () {
@@ -49,7 +49,7 @@ void main() {
     setUp(() => KoreaTime.clock = () => DateTime.utc(2026, 9, 7, 4));
     tearDown(() => KoreaTime.clock = DateTime.now);
 
-    test('다른 날을 고르면 축이 09시부터, 교시 구간은 유지', () {
+    test('다른 날을 고르면 축이 1교시부터, 교시 구간은 유지', () {
       final container = ProviderContainer();
       addTearDown(container.dispose);
       final ctrl = container.read(classroomQueryControllerProvider.notifier);
@@ -61,6 +61,14 @@ void main() {
       expect(q.timeLabel, '14:30 ~ 15:20');
       ctrl.syncToNow(); // 다른 날은 지금에 맞추지 않는다
       expect(container.read(classroomQueryControllerProvider), q);
+
+      // 30분에 시작하지 않는 저녁 교시(10교시)도 날짜를 바꿔도 그대로다
+      ctrl.setRange(18 * 60 + 15, 19 * 60 + 5);
+      ctrl.setDay(5);
+      expect(
+        container.read(classroomQueryControllerProvider).timeLabel,
+        '18:15 ~ 19:05',
+      );
     });
 
     test('오늘로 돌아올 때 지난 구간이면 기본값', () {
@@ -68,7 +76,8 @@ void main() {
       addTearDown(container.dispose);
       final ctrl = container.read(classroomQueryControllerProvider.notifier);
       ctrl.setDay(1);
-      ctrl.setDay(0); // 내일 기본 09:00~ 은 오늘 13시 축에 안 들어간다
+      ctrl.setRange(9 * 60 + 30, 10 * 60 + 20); // 내일 1교시
+      ctrl.setDay(0); // 1교시는 오늘 13시 축에선 이미 지났다
       final q = container.read(classroomQueryControllerProvider);
       expect(q.isToday, isTrue);
       expect(q.startTime, '13:00');

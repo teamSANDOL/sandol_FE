@@ -12,7 +12,8 @@ import 'package:handori/core/constants/app_radius.dart';
 /// 조회 날짜·구간 선택기. 홈 카드와 맵 탭의 시간 설정 시트가 같이 쓴다.
 ///
 /// 위에서 오늘부터 일주일 중 하루를 고르고, 아래 축에서 두 손잡이로 구간을
-/// 잡는다. 축은 오늘이면 지금부터, 다른 날이면 09시부터 22시까지 1시간 칸이다.
+/// 잡는다. 축은 오늘이면 지금부터, 다른 날이면 09:30 부터 22:30 까지이고 칸은
+/// 교시 시작·끝 시각이다.
 /// 값은 [classroomQueryControllerProvider] 하나에 저장되므로
 /// 어느 화면에서 바꾸든 모두 같은 구간을 본다.
 /// 드래그 중 미리보기 구간은 [onPreview] 로 알리고, 놓으면 null 을 보낸다.
@@ -34,8 +35,11 @@ class _ClassroomTimeRangePickerState
   static const double _thumbRadius = 12.2;
   static const double _trackHeight = 12;
 
-  static String _hourLabel(int minutes) =>
-      '${(minutes ~/ 60).toString().padLeft(2, '0')}시';
+  /// `09시`, `22시 30분`
+  static String _hourLabel(int minutes) {
+    final h = '${(minutes ~/ 60).toString().padLeft(2, '0')}시';
+    return minutes % 60 == 0 ? h : '$h ${minutes % 60}분';
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -77,7 +81,7 @@ class _ClassroomTimeRangePickerState
               inactiveTickMarkColor: Colors.transparent,
               showValueIndicator: ShowValueIndicator.never,
             ),
-            // 정각 디텐트에만 멈춘다.
+            // 교시 시작·끝 디텐트에만 멈춘다.
             child: RangeSlider(
               min: 0,
               max: (n - 1).toDouble(),
@@ -94,7 +98,7 @@ class _ClassroomTimeRangePickerState
             ),
           ),
         ),
-        // 축의 양끝: 지금(다른 날은 첫 정각) / 마지막 정각
+        // 축의 양끝: 지금(다른 날은 첫 칸) / 마지막 칸
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [

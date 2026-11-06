@@ -17,7 +17,7 @@ import 'package:handori/core/constants/app_radius.dart';
 
 /// 홈의 빈 강의실 카드 (Figma 2153:303).
 ///
-/// 지금부터 그날 마지막 정각(22:00)까지를 축으로 두 손잡이로 공강 구간을
+/// 지금부터 마지막 교시 끝(22:30)까지를 교시 시각 축으로 두 손잡이로 공강 구간을
 /// 잡으면, 그 구간 내내 비어 있는 강의실을 가까운 건물 순으로 보여준다.
 /// 축의 기준 시각은 조회 상태에 고정돼 있어 다시 그려도 흔들리지 않는다.
 class EmptyClassTimelineCard extends ConsumerStatefulWidget {

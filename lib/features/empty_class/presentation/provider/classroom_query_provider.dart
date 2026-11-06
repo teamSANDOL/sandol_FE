@@ -27,20 +27,16 @@ class ClassroomQueryController extends _$ClassroomQueryController {
     state = state.copyWith(startMinutes: startMinutes, endMinutes: endMinutes);
   }
 
-  /// 날짜를 바꾼다. 고른 구간이 새 축 안에 들어가면 그대로 두고(교시 선택 유지),
-  /// 아니면 그날의 기본 구간으로 맞춘다.
+  /// 날짜를 바꾼다. 고른 구간을 새 축의 가까운 칸에 맞춰 유지하고(교시
+  /// 시각은 칸이므로 교시 선택은 그대로 남는다), 구간이 사라지면 그날의
+  /// 기본 구간으로 맞춘다.
   void setDay(int daysAhead) {
     if (daysAhead == state.daysAhead) return;
     final next = ClassroomQuery.forDay(KoreaTime.now(), daysAhead);
-    final fits =
-        state.startMinutes >= next.anchorMinutes &&
-        state.endMinutes <= ClassroomQuery.hardEnd;
-    state = fits
-        ? next.copyWith(
-            startMinutes: state.startMinutes,
-            endMinutes: state.endMinutes,
-          )
-        : next;
+    final ticks = next.ticks;
+    final s = ticks[ClassroomQuery.nearestTickIndex(ticks, state.startMinutes)];
+    final e = ticks[ClassroomQuery.nearestTickIndex(ticks, state.endMinutes)];
+    state = s < e ? next.copyWith(startMinutes: s, endMinutes: e) : next;
   }
 
   void resetToNow() => state = ClassroomQuery.defaultFor(KoreaTime.now());
@@ -66,7 +62,7 @@ class ClassroomQueryController extends _$ClassroomQueryController {
 
     final ticks = ClassroomQuery.ticksFor(anchor);
     // 시작을 "지금"에 두고 있었다면 새 지금으로 따라오고,
-    // 나중 시각을 골라 뒀다면 그 정각을 그대로 유지한다.
+    // 나중 시각을 골라 뒀다면 그 칸을 그대로 유지한다.
     final keepsNow = state.startMinutes == state.anchorMinutes;
     final s = keepsNow
         ? anchor
