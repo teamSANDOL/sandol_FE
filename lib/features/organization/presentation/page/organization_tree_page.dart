@@ -57,6 +57,12 @@ class _OrganizationTreePageState extends ConsumerState<OrganizationTreePage> {
       ),
       body: Stack(
         children: [
+          // 화면 배경 그라데이션 (공지·학식과 같은 R BAK 스타일)
+          const Positioned.fill(
+            child: DecoratedBox(
+              decoration: BoxDecoration(gradient: HandolGradients.screen),
+            ),
+          ),
           const HandolBottomGlow(),
           RefreshIndicator(
             color: HandolColors.primary,

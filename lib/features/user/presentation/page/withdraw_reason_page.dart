@@ -53,6 +53,12 @@ class _WithdrawReasonPageState extends State<WithdrawReasonPage> {
     ),
     body: Stack(
       children: [
+        // 화면 배경 그라데이션 (공지·학식과 같은 R BAK 스타일)
+        const Positioned.fill(
+          child: DecoratedBox(
+            decoration: BoxDecoration(gradient: HandolGradients.screen),
+          ),
+        ),
         const HandolBottomGlow(),
         ListView(
           keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
@@ -68,7 +74,7 @@ class _WithdrawReasonPageState extends State<WithdrawReasonPage> {
               padding: const EdgeInsets.only(left: 11),
               child: Text(
                 '탈퇴하는 이유를 알려주세요'.keepAll,
-                style: HandolTypography.title.accent,
+                style: HandolTypography.headline,
               ),
             ),
             const SizedBox(height: 27),

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:go_router/go_router.dart';
+import 'package:handori/core/utils/keep_all.dart';
 import 'package:handori/common/component/app_top_bar.dart';
 import 'package:handori/common/component/coming_soon_snackbar.dart';
 import 'package:handori/common/component/handol_bottom_glow.dart';
@@ -61,6 +62,12 @@ class _UserPageState extends ConsumerState<UserPage> {
       ),
       body: Stack(
         children: [
+          // 화면 배경 그라데이션 (공지·학식과 같은 R BAK 스타일)
+          const Positioned.fill(
+            child: DecoratedBox(
+              decoration: BoxDecoration(gradient: HandolGradients.screen),
+            ),
+          ),
           const HandolBottomGlow(),
           ListView(
             // padding 을 직접 주면 ListView 가 시스템 내비게이션 바 높이를 더하지
@@ -218,7 +225,7 @@ class _ProfileCard extends StatelessWidget {
       children: [
         DecoratedBox(
           decoration: const BoxDecoration(
-            color: HandolColors.textSecondary,
+            color: HandolColors.primary,
             shape: BoxShape.circle,
           ),
           child: SizedBox.square(
@@ -278,7 +285,10 @@ class _LoginCard extends StatelessWidget {
                   const HandolChevron(),
                 ],
               ),
-              Text('똑똑한 학교생활을 같이 해보아요!', style: HandolTypography.body.muted),
+              Text(
+                '똑똑한 학교생활을 같이 해보아요!'.keepAll,
+                style: HandolTypography.body.muted,
+              ),
             ],
           ),
         ),

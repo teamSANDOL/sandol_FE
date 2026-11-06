@@ -43,7 +43,7 @@ void main() {
   testWidgets('둘러보기(비로그인): 로그인하기 카드, 로그아웃·회원탈퇴 없음', (tester) async {
     await pump(tester, null);
     expect(find.text('로그인하기'), findsOneWidget);
-    expect(find.text('똑똑한 학교생활을 같이 해보아요!'), findsOneWidget);
+    expect(find.text('똑똑한 학교생활을 같이 해보아요!'.keepAll), findsOneWidget);
     expect(find.byTooltip('로그아웃'), findsNothing);
     expect(find.text('회원탈퇴'), findsNothing);
     // 기타: 약관 및 정책 · 앱 버전

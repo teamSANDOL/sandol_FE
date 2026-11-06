@@ -165,7 +165,7 @@ class _Avatar extends StatelessWidget {
   @override
   Widget build(BuildContext context) => const DecoratedBox(
     decoration: BoxDecoration(
-      color: HandolColors.textSecondary,
+      color: HandolColors.primary,
       shape: BoxShape.circle,
     ),
     child: SizedBox.square(dimension: 32, child: Center(child: _AvatarIcon())),

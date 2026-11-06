@@ -75,49 +75,53 @@ class _WithdrawConfirmPageState extends ConsumerState<WithdrawConfirmPage> {
       backgroundColor: HandolColors.background,
       horizontalPadding: HandolMetrics.pageGutter - 10,
     ),
-    body: ListView(
-      // 기기마다 다른 시스템 내비게이션 바 높이만큼 더 띄운다.
-      padding: EdgeInsets.only(
-        top: 12,
-        bottom: HandolSpacing.xl + MediaQuery.paddingOf(context).bottom,
+    body: DecoratedBox(
+      // 화면 배경 그라데이션 (공지·학식과 같은 R BAK 스타일)
+      decoration: const BoxDecoration(gradient: HandolGradients.screen),
+      child: ListView(
+        // 기기마다 다른 시스템 내비게이션 바 높이만큼 더 띄운다.
+        padding: EdgeInsets.only(
+          top: 12,
+          bottom: HandolSpacing.xl + MediaQuery.paddingOf(context).bottom,
+        ),
+        children: [
+          const Padding(
+            padding: EdgeInsets.symmetric(horizontal: HandolMetrics.pageGutter),
+            child: _FarewellCard(),
+          ),
+          const SizedBox(height: 14),
+          Text(
+            '조금 더 함께하고 싶지만,\n아쉬운 마음으로 보내드릴게요. 언제든 다시 찾아주세요!'.keepAll,
+            textAlign: TextAlign.center,
+            style: HandolTypography.body,
+          ),
+          const SizedBox(height: 78),
+          const _NoticeBlock(),
+          const SizedBox(height: 9),
+          Padding(
+            padding: const EdgeInsets.symmetric(
+              horizontal: HandolMetrics.pageGutter,
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                HandolCheckbox(
+                  dense: true,
+                  label: '위 내용을 숙지하였으며 탈퇴에 동의합니다.',
+                  value: _agreed,
+                  onChanged: (v) => setState(() => _agreed = v),
+                ),
+                const SizedBox(height: 5),
+                WithdrawActions(
+                  confirmLabel: '회원 탈퇴하기',
+                  onContinue: _keepUsing,
+                  onConfirm: _agreed ? _deleteAccount : null,
+                ),
+              ],
+            ),
+          ),
+        ],
       ),
-      children: [
-        const Padding(
-          padding: EdgeInsets.symmetric(horizontal: HandolMetrics.pageGutter),
-          child: _FarewellCard(),
-        ),
-        const SizedBox(height: 14),
-        Text(
-          '조금 더 함께하고 싶지만,\n아쉬운 마음으로 보내드릴게요. 언제든 다시 찾아주세요!'.keepAll,
-          textAlign: TextAlign.center,
-          style: HandolTypography.body,
-        ),
-        const SizedBox(height: 78),
-        const _NoticeBlock(),
-        const SizedBox(height: 9),
-        Padding(
-          padding: const EdgeInsets.symmetric(
-            horizontal: HandolMetrics.pageGutter,
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              HandolCheckbox(
-                dense: true,
-                label: '위 내용을 숙지하였으며 탈퇴에 동의합니다.',
-                value: _agreed,
-                onChanged: (v) => setState(() => _agreed = v),
-              ),
-              const SizedBox(height: 5),
-              WithdrawActions(
-                confirmLabel: '회원 탈퇴하기',
-                onContinue: _keepUsing,
-                onConfirm: _agreed ? _deleteAccount : null,
-              ),
-            ],
-          ),
-        ),
-      ],
     ),
   );
 }
@@ -133,7 +137,7 @@ class _FarewellCard extends StatelessWidget {
     child: Column(
       spacing: 9,
       children: [
-        Text('정말로 떠나실 건가요?', style: HandolTypography.title.accent),
+        Text('정말로 떠나실 건가요?', style: HandolTypography.title.onPrimary),
         SvgPicture.asset(HandolAssets.myWithdrawMascot),
       ],
     ),
@@ -158,7 +162,7 @@ class _NoticeBlock extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => ColoredBox(
-    color: const Color(0x1A040404),
+    color: const Color(0xFFEEF1F6), // 2196:1183
     child: Padding(
       padding: const EdgeInsets.fromLTRB(
         HandolMetrics.pageGutter,
