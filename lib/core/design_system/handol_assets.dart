@@ -14,7 +14,7 @@ abstract final class HandolAssets {
 
   // ── 홈(2153:219) ─────────────────────────────────────────────
   static const _home = 'assets/design_system/home';
-  static const logo = '$_home/logo.svg'; // 2153:385
+  static const logo = '$_home/logo.svg'; // 2530:10698 (한돌이 BI)
   static const user = '$_home/user.svg'; // 2083:26
   static const close = '$_home/close.svg'; // 2158:706
   static const star = '$_home/star.svg'; // 2156:657
