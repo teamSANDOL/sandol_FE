@@ -73,7 +73,7 @@ class NoticeCard extends StatelessWidget {
             Padding(
               padding: const EdgeInsets.only(right: 8),
               child: Text(
-                notice.title.keepAll,
+                titleWithoutAuthor(notice).keepAll,
                 style: HandolTypography.caption.strong.copyWith(
                   color: NoticeColors.title,
                   height: 22 / 14,
@@ -94,6 +94,15 @@ class NoticeCard extends StatelessWidget {
       ),
     ),
   );
+}
+
+/// 부서 배지와 같은 `[부서]` 가 제목 앞에 또 붙어 있으면 뗀다.
+String titleWithoutAuthor(Notice notice) {
+  final prefix = '[${notice.author}]';
+  final title = notice.title.trimLeft();
+  if (!title.startsWith(prefix)) return notice.title;
+  final rest = title.substring(prefix.length).trimLeft();
+  return rest.isEmpty ? notice.title : rest;
 }
 
 class _Badge extends StatelessWidget {
