@@ -3,7 +3,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:go_router/go_router.dart';
 import 'package:handori/common/component/app_top_bar.dart';
-import 'package:handori/common/component/handol_bottom_glow.dart';
 import 'package:handori/common/component/handol_card.dart';
 import 'package:handori/core/design_system/handol_assets.dart';
 import 'package:handori/core/design_system/handol_tokens.dart';
@@ -63,7 +62,6 @@ class _OrganizationTreePageState extends ConsumerState<OrganizationTreePage> {
               decoration: BoxDecoration(gradient: HandolGradients.screen),
             ),
           ),
-          const HandolBottomGlow(),
           RefreshIndicator(
             color: HandolColors.primary,
             backgroundColor: HandolColors.background,

@@ -16,14 +16,6 @@ abstract final class HandolGradients {
     stops: [0, 0.7212, 1],
   );
 
-  /// 셔틀버스 화면 배경. 시안은 흰색 → 8B7CF6을 20%로 깔고 끝점이 화면
-  /// 높이의 2.34배라, 화면 아래끝에서 보라가 약 8.5%만 섞인다.
-  static const shuttle = LinearGradient(
-    begin: Alignment.topCenter,
-    end: Alignment.bottomCenter,
-    colors: [Color(0xFFFEFEFE), Color(0xFFF3F2FC)],
-  );
-
   /// 홈 주요일정 카드 (Frame 2147234779, 345x142). 오른쪽 아래의 진한 파랑에서
   /// 왼쪽 위의 밝은 파랑으로 번진다. 시안 변환 행렬에서 구한 시작·끝점이다.
   static const primaryCard = LinearGradient(

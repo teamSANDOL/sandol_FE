@@ -74,9 +74,27 @@ void main() {
     expect(find.text('2분 뒤 출발'), findsOneWidget);
     expect(find.text('10:05 출발'), findsOneWidget);
 
-    expect(find.text('09시'), findsOneWidget);
+    // 다 지난 09시는 접혀 있고, 지금 시간대(10시)가 표의 첫 줄.
+    expect(find.text('09시'), findsNothing);
     expect(find.text('10시'), findsOneWidget);
-    expect(find.text('17:00 ~ 18:00 •수시 운행'), findsOneWidget);
+    // 수시운행은 표 끝이 아니라 17시 자리(16시와 18시 사이)에 있다.
+    final segment = find.text('17:00 ~ 18:00 •수시 운행');
+    expect(segment, findsOneWidget);
+    expect(
+      tester.getTopLeft(segment).dy,
+      allOf(
+        greaterThan(tester.getTopLeft(find.text('16시')).dy),
+        lessThan(tester.getTopLeft(find.text('18시')).dy),
+      ),
+    );
+
+    await tester.tap(find.text('지난 시간 보기 · 09시'));
+    await tester.pumpAndSettle();
+    expect(find.text('09시'), findsOneWidget);
+    await tester.tap(find.text('지난 시간 접기'));
+    await tester.pumpAndSettle();
+    expect(find.text('09시'), findsNothing);
+
     // 안내 문구는 목록 아래쪽이라 스크롤해야 그려진다.
     await tester.scrollUntilVisible(
       find.textContaining('마지막 업데이트'),
@@ -84,6 +102,8 @@ void main() {
       scrollable: find.byType(Scrollable).first,
     );
     expect(find.textContaining('마지막 업데이트 • 오늘 10:03'), findsOneWidget);
+    // 끝까지 내려도 방면 표시는 위에 붙어 있다.
+    expect(tester.getTopLeft(find.text('한국공학대 정문 → 정왕역')).dy, greaterThan(0));
     expect(tester.takeException(), isNull);
   });
 

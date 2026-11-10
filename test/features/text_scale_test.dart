@@ -20,7 +20,6 @@ import 'package:handori/features/bus/screen/bus_time_detail_screen.dart';
 import 'package:handori/features/empty_class/presentation/provider/user_location_provider.dart';
 import 'package:handori/features/map/presentation/provider/tuk_world_provider.dart';
 import 'package:handori/features/notice/domain/model/notice.dart';
-import 'package:handori/features/notice/domain/model/shuttle.dart';
 import 'package:handori/features/notice/presentation/page/notice_page.dart';
 import 'package:handori/features/notice/presentation/provider/notice_bookmark_provider.dart';
 import 'package:handori/features/notice/presentation/provider/notice_provider.dart';
@@ -85,12 +84,6 @@ class _Notices extends NoticeListNotifier {
 class _Bookmarks extends NoticeBookmarks {
   @override
   List<Notice> build() => const [];
-}
-
-class _Shuttles extends ShuttleListNotifier {
-  @override
-  Future<PaginationState<Shuttle>> build() async =>
-      const PaginationState(hasMore: false);
 }
 
 class _Restaurants extends RestaurantListNotifier {
@@ -272,7 +265,6 @@ void main() {
               noticeListNotifierProvider(
                 isDormitory: true,
               ).overrideWith(() => _Notices([])),
-              shuttleListNotifierProvider.overrideWith(_Shuttles.new),
               noticeBookmarksProvider.overrideWith(_Bookmarks.new),
             ],
             child: _scaled(
@@ -332,9 +324,10 @@ void main() {
         await tester.pumpAndSettle();
         expect(tester.takeException(), isNull);
         expect(find.text('전체 시간표'), findsOneWidget);
-        expect(find.text('09시'), findsOneWidget);
+        // 지난 09시는 접혀 있고 지금 시간대(10시)가 첫 줄이다.
+        expect(find.text('10시'), findsOneWidget);
         // 한 줄이면 높이가 글자 한 줄 안쪽이다(줄바꿈되면 두 배 가까이 커진다).
-        expect(tester.getSize(find.text('09시')).height, lessThan(30 * scale));
+        expect(tester.getSize(find.text('10시')).height, lessThan(30 * scale));
 
         // 가운데 전환 버튼이 출발지 이름을 덮지 않는다.
         final name = tester.getRect(find.text('한국공학대 정문').first);

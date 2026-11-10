@@ -3,7 +3,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:go_router/go_router.dart';
 import 'package:handori/common/component/app_top_bar.dart';
-import 'package:handori/common/component/handol_bottom_glow.dart';
 import 'package:handori/common/component/handol_card.dart';
 import 'package:handori/common/component/handol_chip.dart';
 import 'package:handori/common/component/handol_icon_label.dart';
@@ -111,7 +110,6 @@ class _RestaurantDetailPageState extends ConsumerState<RestaurantDetailPage> {
         ),
         body: Stack(
           children: [
-            const HandolBottomGlow(),
             ListView(
               padding: const EdgeInsets.fromLTRB(
                 HandolMetrics.pageGutter,
