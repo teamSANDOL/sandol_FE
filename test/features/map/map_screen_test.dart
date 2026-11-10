@@ -63,6 +63,29 @@ void main() {
     expect(find.text('지금 많이 찾는 시설'), findsOneWidget);
   });
 
+  testWidgets('첫 시트는 중간 높이까지만 올라가고, 다른 패널은 끝까지 올라간다', (tester) async {
+    phone(tester);
+    await tester.pumpWidget(host(make()));
+    await tester.pumpAndSettle();
+    double max() =>
+        tester
+            .widget<DraggableScrollableSheet>(
+              find.byType(DraggableScrollableSheet),
+            )
+            .maxChildSize;
+
+    expect(max(), lessThan(0.5));
+
+    await tester.tap(find.text('빈 강의실'));
+    await tester.pumpAndSettle();
+    expect(max(), greaterThan(0.8));
+
+    await tester.tap(find.byTooltip('뒤로'));
+    await tester.pumpAndSettle();
+    expect(tester.takeException(), isNull);
+    expect(max(), lessThan(0.5));
+  });
+
   testWidgets('홈에서 넘긴 건물은 빈 강의실 현황으로 연다', (tester) async {
     phone(tester);
     final c = make();

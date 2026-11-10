@@ -99,6 +99,12 @@ class _MapScreenState extends ConsumerState<MapScreen> {
 
   // ── 시트 ──────────────────────────────────────────────────────────────
 
+  /// 패널이 올라갈 수 있는 최대 높이. 첫 시트는 타일 한 줄뿐이라 끝까지 올리면
+  /// 화면 대부분이 비고 뒤의 제목이 겹쳐 보여서 중간 높이에서 멈춘다.
+  static double _maxOf(_Panel p) => p == _Panel.home ? _snapFrac : _maxFrac;
+
+  double get _panelMax => _maxOf(_panel);
+
   static double _fracOf(_Panel p, TukCategory? category) => switch (p) {
     _Panel.home => 0.3,
     _Panel.filter => _snapFrac,
@@ -119,6 +125,12 @@ class _MapScreenState extends ConsumerState<MapScreen> {
   /// 시트 내용을 바꾸고 그 내용에 맞는 높이로 올린다.
   Future<void> _show(_Panel p) async {
     final tabChanged = p.isTuk != _panel.isTuk;
+    // 새 패널의 최대 높이보다 높이 올라가 있으면 먼저 내린다. 시트 최대값을
+    // 바로 줄이면 높이가 애니메이션 없이 뚝 떨어진다.
+    if (_sheetCtrl.isAttached && _sheetCtrl.size > _maxOf(p)) {
+      await _animateSheet(_fracOf(p, _tukCategory));
+      if (!mounted) return;
+    }
     setState(() {
       _panel = p;
       _focusBuilding = null;
@@ -164,7 +176,7 @@ class _MapScreenState extends ConsumerState<MapScreen> {
   void _onGripDragUpdate(DragUpdateDetails d, double minFrac, double bodyH) {
     if (!_sheetCtrl.isAttached) return;
     _sheetCtrl.jumpTo(
-      (_sheetCtrl.size - d.delta.dy / bodyH).clamp(minFrac, _maxFrac),
+      (_sheetCtrl.size - d.delta.dy / bodyH).clamp(minFrac, _panelMax),
     );
   }
 
@@ -172,13 +184,14 @@ class _MapScreenState extends ConsumerState<MapScreen> {
     if (!_sheetCtrl.isAttached) return;
     final v = -d.velocity.pixelsPerSecond.dy / bodyH; // 위로 드래그가 양수
     final cur = _sheetCtrl.size;
-    final stops = [minFrac, _snapFrac, _maxFrac];
+    final max = _panelMax;
+    final stops = {minFrac, _snapFrac, max}.where((s) => s <= max).toList();
     final double target;
     if (v.abs() > 0.9) {
       // 플링: 진행 방향의 다음 정지점으로
       target =
           v > 0
-              ? stops.firstWhere((s) => s > cur + 0.01, orElse: () => _maxFrac)
+              ? stops.firstWhere((s) => s > cur + 0.01, orElse: () => max)
               : stops.lastWhere((s) => s < cur - 0.01, orElse: () => minFrac);
     } else {
       // 가장 가까운 정지점으로
@@ -504,9 +517,10 @@ class _MapScreenState extends ConsumerState<MapScreen> {
             controller: _sheetCtrl,
             minChildSize: minFrac,
             initialChildSize: _fracOf(_Panel.home, null),
-            maxChildSize: _maxFrac,
+            maxChildSize: _panelMax,
             snap: true,
-            snapSizes: const [_snapFrac],
+            // 중간 정지점은 최소·최대 사이에 있을 때만 둔다(첫 시트는 최대가 곧 중간).
+            snapSizes: _panelMax > _snapFrac ? const [_snapFrac] : null,
             builder: (context, sc) => _buildSheet(sc, minFrac, bodyH),
           ),
         ),
