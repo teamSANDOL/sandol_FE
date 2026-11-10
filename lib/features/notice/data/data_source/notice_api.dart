@@ -1,8 +1,6 @@
 import 'package:dio/dio.dart';
 import 'package:retrofit/retrofit.dart';
 import 'package:handori/features/notice/data/dto/paginated_notice_response.dart';
-import 'package:handori/features/notice/data/dto/paginated_shuttle_response.dart';
-import 'package:handori/features/notice/data/dto/shuttle_recent_response.dart';
 
 part 'notice_api.g.dart';
 
@@ -21,13 +19,4 @@ abstract class NoticeApi {
     @Query('page') int page,
     @Query('size') int size,
   );
-
-  @GET('/notice-notification/shuttle')
-  Future<PaginatedShuttleResponse> getShuttles(
-    @Query('page') int page,
-    @Query('size') int size,
-  );
-
-  @GET('/notice-notification/shuttle/recent')
-  Future<ShuttleRecentResponse> getRecentShuttle();
 }

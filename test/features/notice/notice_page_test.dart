@@ -6,7 +6,6 @@ import 'package:handori/common/layout/root_shell.dart';
 import 'package:handori/core/utils/date_formatter.dart';
 import 'package:handori/core/utils/keep_all.dart';
 import 'package:handori/features/notice/domain/model/notice.dart';
-import 'package:handori/features/notice/domain/model/shuttle.dart';
 import 'package:handori/features/notice/presentation/page/notice_page.dart';
 import 'package:handori/features/notice/presentation/provider/notice_bookmark_provider.dart';
 import 'package:handori/features/notice/presentation/provider/notice_filter.dart';
@@ -33,12 +32,6 @@ class _Bookmarks extends NoticeBookmarks {
             ? state.where((n) => n.id != notice.id).toList()
             : [notice, ...state];
   }
-}
-
-class _Shuttles extends ShuttleListNotifier {
-  @override
-  Future<PaginationState<Shuttle>> build() async =>
-      const PaginationState(hasMore: false);
 }
 
 void main() {
@@ -109,7 +102,6 @@ void main() {
           noticeListNotifierProvider(
             isDormitory: true,
           ).overrideWith(() => _Notices([])),
-          shuttleListNotifierProvider.overrideWith(_Shuttles.new),
           noticeBookmarksProvider.overrideWith(_Bookmarks.new),
         ],
         child: MaterialApp.router(routerConfig: router),

@@ -8,14 +8,12 @@ import 'package:handori/core/design_system/handol_assets.dart';
 import 'package:handori/core/design_system/handol_tokens.dart';
 import 'package:handori/core/router/route_paths.dart';
 import 'package:handori/features/notice/domain/model/notice.dart';
-import 'package:handori/features/notice/domain/model/shuttle.dart';
 import 'package:handori/features/notice/presentation/provider/notice_bookmark_provider.dart';
 import 'package:handori/features/notice/presentation/provider/notice_filter.dart';
 import 'package:handori/features/notice/presentation/provider/notice_provider.dart';
 import 'package:handori/features/notice/presentation/provider/notice_seen_provider.dart';
 import 'package:handori/features/notice/presentation/widget/notice_card.dart';
 import 'package:handori/features/notice/presentation/widget/notice_style.dart';
-import 'package:handori/features/notice/presentation/widget/shuttle_card.dart';
 import 'package:handori/shared/model/pagination_state.dart';
 import 'package:handori/shared/widget/error_retry_view.dart';
 import 'package:handori/shared/widget/handol_loading_indicator.dart';
@@ -24,7 +22,7 @@ import 'package:handori/shared/widget/handol_loading_indicator.dart';
 ///
 /// 그라데이션 배경 위에 검색창 · 분류 칩 · 공지별 카드가 쌓인다.
 /// 공지 API 는 페이지 번호·크기만 받으므로 검색과 분류(생활관 제외)는 지금까지
-/// 불러온 목록 안에서 거른다. 셔틀 사진 공지는 시안에 자리가 없어 칩 하나로 둔다.
+/// 불러온 목록 안에서 거른다.
 class NoticePage extends ConsumerStatefulWidget {
   const NoticePage({super.key});
 
@@ -134,7 +132,6 @@ class _NoticePageState extends ConsumerState<NoticePage>
   Widget _buildList() {
     final query = _searchController.text;
     return switch (_filter) {
-      NoticeFilter.shuttle => const _ShuttleListTab(),
       NoticeFilter.saved => _SavedList(query: query),
       _ => _NoticeListTab(
         // 분류를 바꾸면 스크롤 위치도 새로 시작한다.
@@ -528,59 +525,4 @@ class _SummaryRow extends StatelessWidget {
       ],
     ),
   );
-}
-
-// ── 셔틀 사진 공지 ───────────────────────────────────────────────────────────
-
-class _ShuttleListTab extends ConsumerStatefulWidget {
-  const _ShuttleListTab();
-
-  @override
-  ConsumerState<_ShuttleListTab> createState() => _ShuttleListTabState();
-}
-
-class _ShuttleListTabState extends ConsumerState<_ShuttleListTab> {
-  late final ScrollController _scrollController = _pagingController(
-    () => ref.read(shuttleListNotifierProvider.notifier).loadNextPage(),
-  );
-
-  @override
-  void dispose() {
-    _scrollController.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return ref
-        .watch(shuttleListNotifierProvider)
-        .when(
-          data: _buildList,
-          loading: () => const Center(child: HandolLoadingIndicator()),
-          error:
-              (e, _) => ErrorRetryView(
-                title: '셔틀 정보를 불러올 수 없습니다.',
-                onRetry: () => ref.invalidate(shuttleListNotifierProvider),
-              ),
-        );
-  }
-
-  Widget _buildList(PaginationState<Shuttle> data) {
-    return RefreshIndicator(
-      color: HandolColors.primary,
-      backgroundColor: HandolColors.background,
-      onRefresh: () => ref.read(shuttleListNotifierProvider.notifier).refresh(),
-      child: ListView.builder(
-        controller: _scrollController,
-        physics: const AlwaysScrollableScrollPhysics(),
-        padding: const EdgeInsets.symmetric(vertical: HandolSpacing.sm),
-        itemCount: data.items.length + (data.isLoadingMore ? 1 : 0),
-        itemBuilder:
-            (context, index) =>
-                index == data.items.length
-                    ? const _LoadingMore()
-                    : ShuttleCard(shuttle: data.items[index]),
-      ),
-    );
-  }
 }

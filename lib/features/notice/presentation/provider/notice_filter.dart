@@ -11,8 +11,7 @@ enum NoticeFilter {
   general('일반'),
   dormitory('생활관'),
   career('취업'),
-  saved('저장한 공지'),
-  shuttle('셔틀');
+  saved('저장한 공지');
 
   const NoticeFilter(this.label);
   final String label;

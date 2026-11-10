@@ -4,8 +4,6 @@ import 'package:handori/core/network/dio_provider.dart';
 import 'package:handori/features/notice/data/data_source/notice_api.dart';
 import 'package:handori/features/notice/data/repository/notice_repository_impl.dart';
 import 'package:handori/features/notice/domain/model/notice.dart';
-import 'package:handori/features/notice/domain/model/shuttle.dart';
-import 'package:handori/features/notice/domain/model/shuttle_recent.dart';
 import 'package:handori/features/notice/domain/repository/notice_repository.dart';
 import 'package:handori/shared/model/pagination_state.dart';
 
@@ -81,63 +79,4 @@ class NoticeListNotifier extends _$NoticeListNotifier {
     state = const AsyncLoading();
     state = await AsyncValue.guard(() => _fetchPage(1));
   }
-}
-
-// ── 셔틀 목록 ────────────────────────────────────────────────────────────────
-
-@riverpod
-class ShuttleListNotifier extends _$ShuttleListNotifier {
-  static const int _pageSize = 10;
-
-  @override
-  Future<PaginationState<Shuttle>> build() async {
-    return _fetchPage(1);
-  }
-
-  Future<PaginationState<Shuttle>> _fetchPage(int page) async {
-    final repo = ref.read(noticeRepositoryProvider);
-    final result = await repo.getShuttles(page: page, size: _pageSize);
-    return PaginationState(
-      items: result.items,
-      currentPage: page,
-      hasMore: result.items.length >= _pageSize,
-    );
-  }
-
-  Future<void> loadNextPage() async {
-    final current = state.valueOrNull;
-    if (current == null || !current.hasMore || current.isLoadingMore) return;
-
-    state = AsyncData(current.copyWith(isLoadingMore: true));
-    try {
-      final repo = ref.read(noticeRepositoryProvider);
-      final result = await repo.getShuttles(
-        page: current.currentPage + 1,
-        size: _pageSize,
-      );
-      state = AsyncData(
-        current.copyWith(
-          items: [...current.items, ...result.items],
-          currentPage: current.currentPage + 1,
-          hasMore: result.items.length >= _pageSize,
-          isLoadingMore: false,
-        ),
-      );
-    } catch (_) {
-      state = AsyncData(current.copyWith(isLoadingMore: false));
-    }
-  }
-
-  Future<void> refresh() async {
-    state = const AsyncLoading();
-    state = await AsyncValue.guard(() => _fetchPage(1));
-  }
-}
-
-// ── 최근 셔틀 (단건) ──────────────────────────────────────────────────────────
-
-@riverpod
-Future<ShuttleRecent> recentShuttle(Ref ref) {
-  final repo = ref.watch(noticeRepositoryProvider);
-  return repo.getRecentShuttle();
 }
