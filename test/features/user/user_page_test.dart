@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:handori/core/router/route_paths.dart';
@@ -7,6 +8,8 @@ import 'package:handori/core/utils/keep_all.dart';
 import 'package:handori/features/auth/domain/model/auth_session.dart';
 import 'package:handori/features/auth/presentation/provider/auth_provider.dart';
 import 'package:handori/features/user/presentation/page/user_page.dart';
+import 'package:handori/features/user/presentation/provider/notification_settings_provider.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 
 class _Auth extends AuthNotifier {
   _Auth(this.session);
@@ -16,6 +19,17 @@ class _Auth extends AuthNotifier {
 }
 
 void main() {
+  setUp(() {
+    FlutterSecureStorage.setMockInitialValues({});
+    PackageInfo.setMockInitialValues(
+      appName: 'handori',
+      packageName: 'kr.sandori.app',
+      version: '0.3.15',
+      buildNumber: '3015',
+      buildSignature: '',
+    );
+  });
+
   Future<GoRouter> pump(WidgetTester tester, AuthSession? session) async {
     tester.view.physicalSize = const Size(412, 1400);
     tester.view.devicePixelRatio = 1;
@@ -49,7 +63,7 @@ void main() {
     // 기타: 약관 및 정책 · 앱 버전
     expect(find.text('약관 및 정책'), findsOneWidget);
     expect(find.text('개인정보처리방침'), findsOneWidget);
-    expect(find.text('v1.0.0 • 최신'), findsOneWidget);
+    expect(find.text('v0.3.15'), findsOneWidget);
     expect(tester.takeException(), isNull);
 
     await tester.tap(find.text('로그인하기'));
@@ -105,4 +119,22 @@ void main() {
       expect(list.padding!.resolve(TextDirection.ltr).bottom, 40 + navBar);
     });
   }
+
+  test('알림 설정은 앱을 다시 켜도(새 컨테이너) 남아 있다', () async {
+    final c1 = ProviderContainer();
+    expect(c1.read(notificationSettingsProvider).marketing, isFalse);
+    final n = c1.read(notificationSettingsProvider.notifier);
+    await n.setMarketing(true);
+    await n.setPush(false);
+    c1.dispose();
+
+    final c2 = ProviderContainer();
+    addTearDown(c2.dispose);
+    c2.read(notificationSettingsProvider);
+    await Future<void>.delayed(Duration.zero);
+    final s = c2.read(notificationSettingsProvider);
+    expect(s.marketing, isTrue);
+    expect(s.push, isFalse);
+    expect(s.benefit, isTrue);
+  });
 }

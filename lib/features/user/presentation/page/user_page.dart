@@ -13,13 +13,15 @@ import 'package:handori/core/design_system/handol_tokens.dart';
 import 'package:handori/core/router/route_paths.dart';
 import 'package:handori/features/user/data/policy_document.dart';
 import 'package:handori/features/auth/presentation/provider/auth_provider.dart';
+import 'package:handori/features/user/presentation/provider/app_version_provider.dart';
+import 'package:handori/features/user/presentation/provider/notification_settings_provider.dart';
 import 'package:handori/features/user/presentation/widget/confirm_dialog.dart';
 
 /// 마이페이지 (Figma 2158:997).
 ///
 /// 로그인 상태면 프로필 카드와 오른쪽 위 로그아웃, 둘러보기(비로그인)면
 /// '로그인하기' 카드(2195:462)를 보여준다. 로그아웃·회원탈퇴는 실제 Keycloak
-/// 세션/계정에 반영된다. 알림 토글은 서버 연동 전이라 화면 내 상태만 유지한다.
+/// 세션/계정에 반영된다. 알림 토글은 서버 연동 전이라 기기에만 저장한다.
 class UserPage extends ConsumerStatefulWidget {
   const UserPage({super.key});
 
@@ -28,14 +30,12 @@ class UserPage extends ConsumerStatefulWidget {
 }
 
 class _UserPageState extends ConsumerState<UserPage> {
-  bool _pushEnabled = true;
-  bool _benefitEnabled = true;
-  bool _marketingEnabled = false;
-
   @override
   Widget build(BuildContext context) {
     final session = ref.watch(authNotifierProvider).valueOrNull;
     final loggedIn = session != null;
+    final settings = ref.watch(notificationSettingsProvider);
+    final notifier = ref.read(notificationSettingsProvider.notifier);
 
     return Scaffold(
       backgroundColor: HandolColors.background,
@@ -90,20 +90,20 @@ class _UserPageState extends ConsumerState<UserPage> {
                   _ToggleRow(
                     icon: HandolAssets.myBell,
                     label: '푸시 알림',
-                    value: _pushEnabled,
-                    onChanged: (v) => setState(() => _pushEnabled = v),
+                    value: settings.push,
+                    onChanged: notifier.setPush,
                   ),
                   _ToggleRow(
                     icon: HandolAssets.myGift,
                     label: '혜택 • 이벤트 알림',
-                    value: _benefitEnabled,
-                    onChanged: (v) => setState(() => _benefitEnabled = v),
+                    value: settings.benefit,
+                    onChanged: notifier.setBenefit,
                   ),
                   _ToggleRow(
                     icon: HandolAssets.myMegaphone,
                     label: '마케팅 정보 수신',
-                    value: _marketingEnabled,
-                    onChanged: (v) => setState(() => _marketingEnabled = v),
+                    value: settings.marketing,
+                    onChanged: notifier.setMarketing,
                   ),
                 ],
               ),
@@ -153,11 +153,12 @@ class _UserPageState extends ConsumerState<UserPage> {
                           RoutePaths.policy(PolicyDocument.privacy.name),
                         ),
                   ),
-                  const _LinkRow(
+                  _LinkRow(
                     icon: HandolAssets.myVersion,
                     label: '앱 버전',
-                    // pubspec.yaml version 과 함께 갱신한다.
-                    trailingText: 'v1.0.0 • 최신',
+                    // 읽는 동안(또는 실패 시)에는 글을 비워 둔다.
+                    trailingText:
+                        ref.watch(appVersionProvider).valueOrNull ?? '',
                   ),
                   // 비로그인(게스트)에게는 지울 계정이 없다.
                   if (loggedIn)
