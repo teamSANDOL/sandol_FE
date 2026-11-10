@@ -5,15 +5,13 @@ import 'package:go_router/go_router.dart';
 import 'package:handori/core/utils/keep_all.dart';
 import 'package:handori/common/component/app_top_bar.dart';
 import 'package:handori/common/component/coming_soon_snackbar.dart';
-import 'package:handori/common/component/handol_bottom_glow.dart';
 import 'package:handori/common/component/handol_card.dart';
 import 'package:handori/common/component/handol_icon_button.dart';
 import 'package:handori/common/component/handol_icon_label.dart';
-import 'package:handori/core/constants/api_constants.dart';
 import 'package:handori/core/design_system/handol_assets.dart';
 import 'package:handori/core/design_system/handol_tokens.dart';
 import 'package:handori/core/router/route_paths.dart';
-import 'package:handori/core/utils/external_link.dart';
+import 'package:handori/features/user/data/policy_document.dart';
 import 'package:handori/features/auth/presentation/provider/auth_provider.dart';
 import 'package:handori/features/user/presentation/widget/confirm_dialog.dart';
 
@@ -68,7 +66,6 @@ class _UserPageState extends ConsumerState<UserPage> {
               decoration: BoxDecoration(gradient: HandolGradients.screen),
             ),
           ),
-          const HandolBottomGlow(),
           ListView(
             // padding 을 직접 주면 ListView 가 시스템 내비게이션 바 높이를 더하지
             // 않는다. 3버튼·제스처·없음 등 기기마다 다른 실제 높이를 더한다.
@@ -144,18 +141,16 @@ class _UserPageState extends ConsumerState<UserPage> {
                     icon: HandolAssets.myTerms,
                     label: '약관 및 정책',
                     onTap:
-                        () => openExternalLink(
-                          context,
-                          ApiConstants.termsOfServiceUrl,
+                        () => context.push(
+                          RoutePaths.policy(PolicyDocument.terms.name),
                         ),
                   ),
                   _LinkRow(
                     icon: HandolAssets.myTerms,
                     label: '개인정보처리방침',
                     onTap:
-                        () => openExternalLink(
-                          context,
-                          ApiConstants.privacyPolicyUrl,
+                        () => context.push(
+                          RoutePaths.policy(PolicyDocument.privacy.name),
                         ),
                   ),
                   const _LinkRow(

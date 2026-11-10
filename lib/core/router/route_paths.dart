@@ -5,6 +5,7 @@ abstract class RoutePaths {
   static const user = '/user';
   static const withdraw = '/user/withdraw';
   static const withdrawConfirm = '/user/withdraw/confirm';
+  static String policy(String doc) => '/user/policy/$doc';
 
   // ── 탭 브랜치 루트 ──────────────────────────────────────────
   // 순서가 AppBottomNav 인덱스와 일치한다.

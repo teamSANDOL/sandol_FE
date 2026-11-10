@@ -12,6 +12,8 @@ import 'package:handori/features/notice/presentation/page/notice_page.dart';
 import 'package:handori/features/organization/presentation/page/organization_search_page.dart';
 import 'package:handori/features/organization/presentation/page/organization_tree_page.dart';
 import 'package:handori/features/school_meal/presentation/page/restaurant_detail_page.dart';
+import 'package:handori/features/user/data/policy_document.dart';
+import 'package:handori/features/user/presentation/page/policy_page.dart';
 import 'package:handori/features/user/presentation/page/user_page.dart';
 import 'package:handori/features/user/presentation/page/withdraw_confirm_page.dart';
 import 'package:handori/features/user/presentation/page/withdraw_reason_page.dart';
@@ -27,6 +29,14 @@ final appRouter = GoRouter(
       path: RoutePaths.user,
       builder: (_, _) => const UserPage(),
       routes: [
+        // 약관 · 개인정보처리방침 (앱 안에서 보기)
+        GoRoute(
+          path: 'policy/:doc',
+          builder:
+              (_, state) => PolicyPage(
+                doc: PolicyDocument.values.byName(state.pathParameters['doc']!),
+              ),
+        ),
         // 회원탈퇴: 이유 선택 → 최종 확인
         GoRoute(
           path: 'withdraw',
