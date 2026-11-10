@@ -130,7 +130,7 @@ class _ClassroomTimeRangePickerState
   }
 }
 
-/// 오늘부터 일주일 날짜 칸. 22시가 지나면 오늘은 고를 수 없다.
+/// 오늘부터 일주일 날짜 칸. 마지막 교시 시작(21:40)이 지나면 오늘은 고를 수 없다.
 class _DayStrip extends StatelessWidget {
   const _DayStrip({required this.selected, required this.onSelect});
 
