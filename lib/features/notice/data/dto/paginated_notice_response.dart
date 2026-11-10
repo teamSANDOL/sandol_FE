@@ -1,6 +1,6 @@
 import 'package:json_annotation/json_annotation.dart';
-import 'package:handori/features/notice/data/dto/notice_item_response.dart';
-import 'package:handori/features/notice/domain/model/notice.dart';
+import 'package:handol/features/notice/data/dto/notice_item_response.dart';
+import 'package:handol/features/notice/domain/model/notice.dart';
 
 part 'paginated_notice_response.g.dart';
 

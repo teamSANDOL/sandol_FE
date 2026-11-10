@@ -1,6 +1,6 @@
 import 'package:dio/dio.dart';
 import 'package:retrofit/retrofit.dart';
-import 'package:handori/features/map/data/tuk_place.dart';
+import 'package:handol/features/map/data/tuk_place.dart';
 
 part 'tuk_world_api.g.dart';
 

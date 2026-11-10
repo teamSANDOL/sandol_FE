@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:handori/core/constants/app_text_styles.dart';
+import 'package:handol/core/constants/app_text_styles.dart';
 
 class HeaderText extends StatelessWidget {
   final String title;

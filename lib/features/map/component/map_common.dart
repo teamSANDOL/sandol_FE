@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:handori/core/design_system/handol_tokens.dart';
-import 'package:handori/core/utils/external_link.dart';
+import 'package:handol/core/design_system/handol_tokens.dart';
+import 'package:handol/core/utils/external_link.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 /// 맵 탭에서만 쓰는 색 (Figma '맵' 2451:1122 계열). 공용 토큰에 없는 값만 둔다.
@@ -177,7 +177,7 @@ Future<void> openDirections(
   final label = Uri.encodeComponent(name);
   final app = Uri.parse(
     'nmap://route/walk?dlat=$latitude&dlng=$longitude&dname=$label'
-    '&appname=kr.sandori.handori',
+    '&appname=app.handol.student',
   );
   try {
     if (await launchUrl(app, mode: LaunchMode.externalApplication)) return;

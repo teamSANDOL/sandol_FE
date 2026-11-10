@@ -1,10 +1,10 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
-import 'package:handori/core/network/meal_dio_provider.dart';
-import 'package:handori/features/school_meal/data/data_source/restaurant_api.dart';
-import 'package:handori/features/school_meal/data/repository/restaurant_repository_impl.dart';
-import 'package:handori/features/school_meal/domain/model/restaurant.dart';
-import 'package:handori/features/school_meal/domain/repository/restaurant_repository.dart';
+import 'package:handol/core/network/meal_dio_provider.dart';
+import 'package:handol/features/school_meal/data/data_source/restaurant_api.dart';
+import 'package:handol/features/school_meal/data/repository/restaurant_repository_impl.dart';
+import 'package:handol/features/school_meal/domain/model/restaurant.dart';
+import 'package:handol/features/school_meal/domain/repository/restaurant_repository.dart';
 
 part 'restaurant_list_notifier.g.dart';
 

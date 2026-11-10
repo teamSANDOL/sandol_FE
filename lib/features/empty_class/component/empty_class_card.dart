@@ -1,19 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:handori/common/component/handol_card.dart';
-import 'package:handori/common/component/handol_icon_label.dart';
-import 'package:handori/core/constants/app_colors.dart';
-import 'package:handori/core/constants/app_text_styles.dart';
-import 'package:handori/core/design_system/handol_tokens.dart';
-import 'package:handori/features/empty_class/component/classroom_time_range_picker.dart';
-import 'package:handori/features/empty_class/domain/model/building_sort.dart';
-import 'package:handori/features/empty_class/domain/model/classroom_query.dart';
-import 'package:handori/features/empty_class/domain/model/nearby_empty_class.dart';
-import 'package:handori/features/empty_class/presentation/provider/building_sort_provider.dart';
-import 'package:handori/features/empty_class/presentation/provider/classroom_query_provider.dart';
-import 'package:handori/features/empty_class/presentation/provider/empty_class_provider.dart';
-import 'package:handori/shared/widget/handol_loading_indicator.dart';
-import 'package:handori/core/constants/app_radius.dart';
+import 'package:handol/common/component/handol_card.dart';
+import 'package:handol/common/component/handol_icon_label.dart';
+import 'package:handol/core/constants/app_colors.dart';
+import 'package:handol/core/constants/app_text_styles.dart';
+import 'package:handol/core/design_system/handol_tokens.dart';
+import 'package:handol/features/empty_class/component/classroom_time_range_picker.dart';
+import 'package:handol/features/empty_class/domain/model/building_sort.dart';
+import 'package:handol/features/empty_class/domain/model/classroom_query.dart';
+import 'package:handol/features/empty_class/domain/model/nearby_empty_class.dart';
+import 'package:handol/features/empty_class/presentation/provider/building_sort_provider.dart';
+import 'package:handol/features/empty_class/presentation/provider/classroom_query_provider.dart';
+import 'package:handol/features/empty_class/presentation/provider/empty_class_provider.dart';
+import 'package:handol/shared/widget/handol_loading_indicator.dart';
+import 'package:handol/core/constants/app_radius.dart';
 
 /// 홈의 빈 강의실 카드 (Figma 2153:303).
 ///

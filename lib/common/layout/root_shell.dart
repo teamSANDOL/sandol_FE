@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:handori/common/component/app_bottom_nav.dart';
+import 'package:handol/common/component/app_bottom_nav.dart';
 
 /// 5개 탭을 감싸는 셸.
 ///
@@ -39,11 +39,12 @@ class RootShell extends StatelessWidget {
         body: navigationShell,
         bottomNavigationBar: AppBottomNav(
           currentIndex: navigationShell.currentIndex,
-          onTap: (index) => navigationShell.goBranch(
-            index,
-            // 이미 선택된 탭을 다시 누르면 그 탭의 첫 화면으로 돌아간다.
-            initialLocation: index == navigationShell.currentIndex,
-          ),
+          onTap:
+              (index) => navigationShell.goBranch(
+                index,
+                // 이미 선택된 탭을 다시 누르면 그 탭의 첫 화면으로 돌아간다.
+                initialLocation: index == navigationShell.currentIndex,
+              ),
         ),
       ),
     );

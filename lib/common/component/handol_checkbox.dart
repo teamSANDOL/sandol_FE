@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:handori/core/design_system/handol_tokens.dart';
+import 'package:handol/core/design_system/handol_tokens.dart';
 
 class HandolCheckbox extends StatelessWidget {
   const HandolCheckbox({

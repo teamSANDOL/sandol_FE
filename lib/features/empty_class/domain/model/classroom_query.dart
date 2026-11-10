@@ -1,4 +1,4 @@
-import 'package:handori/features/empty_class/domain/model/class_period.dart';
+import 'package:handol/features/empty_class/domain/model/class_period.dart';
 
 /// 빈 강의실 조회 조건: 날짜(오늘부터 [daysAhead] 일 뒤) + 시각 구간
 /// (0시 기준 분, 양끝 포함). 백엔드는 요일만 받으므로 날짜는 요일로 보낸다.
@@ -55,10 +55,12 @@ class ClassroomQuery {
   /// 30분에 시작하지 않으므로(17:25, 18:15 …) 교시표 시각을 그대로 칸으로 쓴다.
   /// 밤늦게 칸이 없으면 30분 뒤(최대 23:50)를 하나 붙여 최소 한 칸은 만든다.
   static List<int> ticksFor(int anchor) {
-    final ticks = {
-      anchor,
-      for (final p in classPeriods) ...[p.start, p.end],
-    }.where((t) => t >= anchor).toList()..sort();
+    final ticks =
+        {
+            anchor,
+            for (final p in classPeriods) ...[p.start, p.end],
+          }.where((t) => t >= anchor).toList()
+          ..sort();
     if (ticks.length < 2) {
       ticks.add((anchor + 30).clamp(anchor + 1, hardEnd));
     }

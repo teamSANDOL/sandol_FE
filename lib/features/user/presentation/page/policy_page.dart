@@ -2,14 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:go_router/go_router.dart';
-import 'package:handori/common/component/app_top_bar.dart';
-import 'package:handori/common/component/handol_card.dart';
-import 'package:handori/core/design_system/handol_assets.dart';
-import 'package:handori/core/design_system/handol_tokens.dart';
-import 'package:handori/core/utils/external_link.dart';
-import 'package:handori/core/utils/keep_all.dart';
-import 'package:handori/features/user/data/policy_document.dart';
-import 'package:handori/shared/widget/handol_loading_indicator.dart';
+import 'package:handol/common/component/app_top_bar.dart';
+import 'package:handol/common/component/handol_card.dart';
+import 'package:handol/core/design_system/handol_assets.dart';
+import 'package:handol/core/design_system/handol_tokens.dart';
+import 'package:handol/core/utils/external_link.dart';
+import 'package:handol/core/utils/keep_all.dart';
+import 'package:handol/features/user/data/policy_document.dart';
+import 'package:handol/shared/widget/handol_loading_indicator.dart';
 
 /// 서비스 이용약관 · 개인정보처리방침을 앱 안에서 보여 준다.
 class PolicyPage extends ConsumerWidget {

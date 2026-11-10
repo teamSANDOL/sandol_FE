@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:handori/common/component/coming_soon_snackbar.dart';
-import 'package:handori/core/design_system/handol_tokens.dart';
-import 'package:handori/features/empty_class/model/class_model.dart';
-import 'package:handori/features/map/component/map_common.dart';
+import 'package:handol/common/component/coming_soon_snackbar.dart';
+import 'package:handol/core/design_system/handol_tokens.dart';
+import 'package:handol/features/empty_class/model/class_model.dart';
+import 'package:handol/features/map/component/map_common.dart';
 
 // 교내 시설(식당 · 카페 · 편의점 등)은 위치·운영 정보 API가 아직 없어
 // 빈 강의실 외 시설은 누르면 '준비중' 안내만 띄운다.
@@ -64,7 +64,10 @@ class CampusHomePanel extends StatelessWidget {
       Row(
         children: [
           Expanded(
-            child: Text('지금 많이 찾는 시설', style: HandolTypography.headline.strong.accent),
+            child: Text(
+              '지금 많이 찾는 시설',
+              style: HandolTypography.headline.strong.accent,
+            ),
           ),
           InkWell(
             onTap: onShowAll,

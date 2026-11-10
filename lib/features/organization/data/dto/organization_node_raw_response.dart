@@ -1,5 +1,5 @@
 import 'package:json_annotation/json_annotation.dart';
-import 'package:handori/features/organization/domain/model/organization_node.dart';
+import 'package:handol/features/organization/domain/model/organization_node.dart';
 
 part 'organization_node_raw_response.g.dart';
 

@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:handori/common/component/app_bottom_nav.dart';
-import 'package:handori/features/empty_class/model/class_model.dart';
-import 'package:handori/features/map/component/campus_panels.dart';
+import 'package:handol/common/component/app_bottom_nav.dart';
+import 'package:handol/features/empty_class/model/class_model.dart';
+import 'package:handol/features/map/component/campus_panels.dart';
 
 void main() {
   void phone(WidgetTester tester) {

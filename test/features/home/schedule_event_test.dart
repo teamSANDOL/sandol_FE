@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:handori/features/home/model/schedule_event.dart';
+import 'package:handol/features/home/model/schedule_event.dart';
 
 void main() {
   final festival = ScheduleEvent(

@@ -1,11 +1,11 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
-import 'package:handori/core/network/static_info_dio_provider.dart';
-import 'package:handori/features/organization/data/data_source/organization_api.dart';
-import 'package:handori/features/organization/data/repository/organization_repository_impl.dart';
-import 'package:handori/features/organization/domain/model/organization_node.dart';
-import 'package:handori/features/organization/domain/model/organization_search_result.dart';
-import 'package:handori/features/organization/domain/repository/organization_repository.dart';
+import 'package:handol/core/network/static_info_dio_provider.dart';
+import 'package:handol/features/organization/data/data_source/organization_api.dart';
+import 'package:handol/features/organization/data/repository/organization_repository_impl.dart';
+import 'package:handol/features/organization/domain/model/organization_node.dart';
+import 'package:handol/features/organization/domain/model/organization_search_result.dart';
+import 'package:handol/features/organization/domain/repository/organization_repository.dart';
 
 part 'organization_provider.g.dart';
 

@@ -1,4 +1,4 @@
-import 'package:handori/features/school_meal/domain/model/meal_type.dart';
+import 'package:handol/features/school_meal/domain/model/meal_type.dart';
 
 /// 개별 식사(식당 + 식사 유형 단위) 도메인 모델
 class Meal {

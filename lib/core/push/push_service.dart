@@ -7,10 +7,10 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import 'package:handori/core/router/app_router.dart';
-import 'package:handori/core/router/route_paths.dart';
-import 'package:handori/features/auth/presentation/provider/auth_provider.dart';
-import 'package:handori/features/notice/domain/model/notice.dart';
+import 'package:handol/core/router/app_router.dart';
+import 'package:handol/core/router/route_paths.dart';
+import 'package:handol/features/auth/presentation/provider/auth_provider.dart';
+import 'package:handol/features/notice/domain/model/notice.dart';
 
 // 서버 푸시 수신 기반. 형식·서버 쪽 할 일은 docs/PUSH.md 참고.
 // Firebase 설정 파일(google-services.json / GoogleService-Info.plist)이 없으면

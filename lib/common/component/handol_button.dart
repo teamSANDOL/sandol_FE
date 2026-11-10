@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:handori/core/design_system/handol_tokens.dart';
+import 'package:handol/core/design_system/handol_tokens.dart';
 
 enum HandolButtonVariant {
   /// primary 채움 (로그인 등)

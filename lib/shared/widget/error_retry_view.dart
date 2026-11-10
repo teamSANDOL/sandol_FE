@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:handori/core/constants/app_colors.dart';
-import 'package:handori/core/utils/keep_all.dart';
+import 'package:handol/core/constants/app_colors.dart';
+import 'package:handol/core/utils/keep_all.dart';
 
 /// 목록·트리를 못 불러왔을 때 공통으로 쓰는 오류 화면.
 ///

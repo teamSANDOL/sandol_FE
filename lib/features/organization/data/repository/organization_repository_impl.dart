@@ -1,6 +1,6 @@
-import 'package:handori/features/organization/data/data_source/organization_api.dart';
-import 'package:handori/features/organization/domain/model/organization_node.dart';
-import 'package:handori/features/organization/domain/repository/organization_repository.dart';
+import 'package:handol/features/organization/data/data_source/organization_api.dart';
+import 'package:handol/features/organization/domain/model/organization_node.dart';
+import 'package:handol/features/organization/domain/repository/organization_repository.dart';
 
 class OrganizationRepositoryImpl implements OrganizationRepository {
   final OrganizationApi _api;

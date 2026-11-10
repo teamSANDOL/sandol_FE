@@ -1,4 +1,4 @@
-import 'package:handori/features/organization/domain/model/organization_node.dart';
+import 'package:handol/features/organization/domain/model/organization_node.dart';
 
 /// 조직도 트리 안에서 검색에 걸린 노드와, 루트(제외)부터 그 노드까지의 상위 경로.
 class OrganizationSearchResult {

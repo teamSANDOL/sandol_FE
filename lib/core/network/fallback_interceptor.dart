@@ -25,9 +25,8 @@ class FallbackInterceptor extends Interceptor {
 
   /// [dio] 는 이 인터셉터가 붙는 Dio. [fallbackBaseUrl] 이 null·빈 값이면 비활성이다.
   FallbackInterceptor(this._dio, {String? fallbackBaseUrl})
-    : _fallbackBaseUrl = (fallbackBaseUrl?.isEmpty ?? true)
-          ? null
-          : fallbackBaseUrl;
+    : _fallbackBaseUrl =
+          (fallbackBaseUrl?.isEmpty ?? true) ? null : fallbackBaseUrl;
 
   /// `.env` 의 API_FALLBACK_BASE_URL 로 만든다.
   factory FallbackInterceptor.fromEnv(Dio dio) => FallbackInterceptor(

@@ -3,7 +3,7 @@ import 'dart:typed_data';
 
 import 'package:dio/dio.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:handori/core/network/fallback_interceptor.dart';
+import 'package:handol/core/network/fallback_interceptor.dart';
 
 /// 호스트별로 정해진 상태코드를 돌려주고 받은 요청을 기록하는 어댑터.
 class _FakeAdapter implements HttpClientAdapter {

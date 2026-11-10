@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:handori/features/user/data/policy_document.dart';
+import 'package:handol/features/user/data/policy_document.dart';
 
 String _item(String marker, String body) =>
     '<div class="flex gap-3"><span>$marker</span><div>$body</div></div>';

@@ -2,10 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:go_router/go_router.dart';
-import 'package:handori/core/constants/app_colors.dart';
-import 'package:handori/core/constants/app_text_styles.dart';
-import 'package:handori/core/design_system/handol_assets.dart';
-import 'package:handori/core/router/route_paths.dart';
+import 'package:handol/core/constants/app_colors.dart';
+import 'package:handol/core/constants/app_text_styles.dart';
+import 'package:handol/core/design_system/handol_assets.dart';
+import 'package:handol/core/router/route_paths.dart';
 
 /// 앱 전체 공통 상단 바.
 ///

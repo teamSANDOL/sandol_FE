@@ -1,6 +1,6 @@
-import 'package:handori/features/notice/data/data_source/notice_api.dart';
-import 'package:handori/features/notice/domain/model/notice.dart';
-import 'package:handori/features/notice/domain/repository/notice_repository.dart';
+import 'package:handol/features/notice/data/data_source/notice_api.dart';
+import 'package:handol/features/notice/domain/model/notice.dart';
+import 'package:handol/features/notice/domain/repository/notice_repository.dart';
 
 class NoticeRepositoryImpl implements NoticeRepository {
   final NoticeApi _api;

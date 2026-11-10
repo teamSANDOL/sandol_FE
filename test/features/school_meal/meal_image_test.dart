@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:handori/core/design_system/handol_assets.dart';
-import 'package:handori/features/school_meal/data/dto/meal_response.dart';
-import 'package:handori/features/school_meal/data/dto/restaurant_response.dart';
-import 'package:handori/features/school_meal/domain/model/meal.dart';
-import 'package:handori/features/school_meal/domain/model/meal_type.dart';
-import 'package:handori/features/school_meal/domain/model/restaurant.dart';
-import 'package:handori/features/school_meal/presentation/model/restaurant_menu.dart';
-import 'package:handori/shared/widget/remote_image.dart';
+import 'package:handol/core/design_system/handol_assets.dart';
+import 'package:handol/features/school_meal/data/dto/meal_response.dart';
+import 'package:handol/features/school_meal/data/dto/restaurant_response.dart';
+import 'package:handol/features/school_meal/domain/model/meal.dart';
+import 'package:handol/features/school_meal/domain/model/meal_type.dart';
+import 'package:handol/features/school_meal/domain/model/restaurant.dart';
+import 'package:handol/features/school_meal/presentation/model/restaurant_menu.dart';
+import 'package:handol/shared/widget/remote_image.dart';
 
 Map<String, Object?> _restaurantJson({Object? imageUrl}) => {
   'id': 1,

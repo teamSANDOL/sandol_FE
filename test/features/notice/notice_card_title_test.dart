@@ -1,6 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:handori/features/notice/domain/model/notice.dart';
-import 'package:handori/features/notice/presentation/widget/notice_card.dart';
+import 'package:handol/features/notice/domain/model/notice.dart';
+import 'package:handol/features/notice/presentation/widget/notice_card.dart';
 
 Notice _n(String title, String author) => Notice(
   id: 1,

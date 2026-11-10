@@ -1,6 +1,6 @@
 import 'package:dio/dio.dart';
 import 'package:retrofit/retrofit.dart';
-import 'package:handori/features/notice/data/dto/paginated_notice_response.dart';
+import 'package:handol/features/notice/data/dto/paginated_notice_response.dart';
 
 part 'notice_api.g.dart';
 

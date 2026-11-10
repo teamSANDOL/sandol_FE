@@ -1,14 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:handori/common/component/handol_chip.dart';
-import 'package:handori/core/utils/keep_all.dart';
-import 'package:handori/core/utils/korea_time.dart';
-import 'package:handori/features/school_meal/domain/model/meal_type.dart';
-import 'package:handori/features/school_meal/domain/model/restaurant.dart';
-import 'package:handori/features/school_meal/presentation/model/restaurant_menu.dart';
-import 'package:handori/features/school_meal/presentation/provider/selected_restaurant_id_notifier.dart';
-import 'package:handori/features/school_meal/presentation/widget/meal_card.dart';
+import 'package:handol/common/component/handol_chip.dart';
+import 'package:handol/core/utils/keep_all.dart';
+import 'package:handol/core/utils/korea_time.dart';
+import 'package:handol/features/school_meal/domain/model/meal_type.dart';
+import 'package:handol/features/school_meal/domain/model/restaurant.dart';
+import 'package:handol/features/school_meal/presentation/model/restaurant_menu.dart';
+import 'package:handol/features/school_meal/presentation/provider/selected_restaurant_id_notifier.dart';
+import 'package:handol/features/school_meal/presentation/widget/meal_card.dart';
 
 RestaurantMenu _menu(int id, String name, int itemCount) => RestaurantMenu(
   restaurant: Restaurant(id: id, name: name, establishmentType: ''),
@@ -181,22 +181,24 @@ void main() {
       tester,
       shown: [for (var i = 1; i <= 6; i++) _menu(i, '식당$i', 1)],
     );
-    final chips = tester
-        .state<ScrollableState>(
-          find.descendant(
-            of: find.byType(SingleChildScrollView),
-            matching: find.byType(Scrollable),
-          ),
-        )
-        .position;
-    final cards = tester
-        .state<ScrollableState>(
-          find.descendant(
-            of: find.byType(PageView),
-            matching: find.byType(Scrollable),
-          ),
-        )
-        .position;
+    final chips =
+        tester
+            .state<ScrollableState>(
+              find.descendant(
+                of: find.byType(SingleChildScrollView),
+                matching: find.byType(Scrollable),
+              ),
+            )
+            .position;
+    final cards =
+        tester
+            .state<ScrollableState>(
+              find.descendant(
+                of: find.byType(PageView),
+                matching: find.byType(Scrollable),
+              ),
+            )
+            .position;
     double chipCenterInView(String label) =>
         tester.getCenter(find.widgetWithText(HandolChip, label)).dx;
     final viewMid = tester.getCenter(find.byType(SingleChildScrollView)).dx;

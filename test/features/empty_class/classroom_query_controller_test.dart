@@ -1,8 +1,8 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:handori/core/utils/korea_time.dart';
-import 'package:handori/features/empty_class/domain/model/classroom_query.dart';
-import 'package:handori/features/empty_class/presentation/provider/classroom_query_provider.dart';
+import 'package:handol/core/utils/korea_time.dart';
+import 'package:handol/features/empty_class/domain/model/classroom_query.dart';
+import 'package:handol/features/empty_class/presentation/provider/classroom_query_provider.dart';
 
 void main() {
   test('setRangeByTick 은 디텐트 시각으로 구간을 바꾼다', () {

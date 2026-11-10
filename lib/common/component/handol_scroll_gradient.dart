@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:handori/core/design_system/handol_tokens.dart';
+import 'package:handol/core/design_system/handol_tokens.dart';
 
 /// 스크롤 내용 전체에 걸쳐 번지는 화면 배경 그라데이션 (Figma R BAK).
 ///

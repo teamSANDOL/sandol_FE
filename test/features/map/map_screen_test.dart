@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:handori/features/empty_class/model/class_model.dart';
-import 'package:handori/features/empty_class/presentation/provider/empty_class_focus_provider.dart';
-import 'package:handori/features/empty_class/presentation/provider/empty_class_provider.dart';
-import 'package:handori/features/map/component/empty_class_panel.dart';
-import 'package:handori/features/map/component/tuk_world_panel.dart';
-import 'package:handori/features/map/presentation/provider/tuk_world_provider.dart';
-import 'package:handori/features/map/screen/map_screen.dart';
+import 'package:handol/features/empty_class/model/class_model.dart';
+import 'package:handol/features/empty_class/presentation/provider/empty_class_focus_provider.dart';
+import 'package:handol/features/empty_class/presentation/provider/empty_class_provider.dart';
+import 'package:handol/features/map/component/empty_class_panel.dart';
+import 'package:handol/features/map/component/tuk_world_panel.dart';
+import 'package:handol/features/map/presentation/provider/tuk_world_provider.dart';
+import 'package:handol/features/map/screen/map_screen.dart';
 
 void main() {
   const e = EmptyClass(

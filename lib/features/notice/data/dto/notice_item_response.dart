@@ -1,5 +1,5 @@
 import 'package:json_annotation/json_annotation.dart';
-import 'package:handori/features/notice/domain/model/notice.dart';
+import 'package:handol/features/notice/domain/model/notice.dart';
 
 part 'notice_item_response.g.dart';
 

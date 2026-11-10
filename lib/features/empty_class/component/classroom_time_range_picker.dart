@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:handori/core/constants/app_colors.dart';
-import 'package:handori/core/constants/app_text_styles.dart';
-import 'package:handori/core/design_system/handol_tokens.dart';
-import 'package:handori/core/utils/korea_time.dart';
-import 'package:handori/features/empty_class/domain/model/classroom_query.dart';
-import 'package:handori/features/empty_class/presentation/provider/classroom_query_provider.dart';
-import 'package:handori/core/constants/app_radius.dart';
+import 'package:handol/core/constants/app_colors.dart';
+import 'package:handol/core/constants/app_text_styles.dart';
+import 'package:handol/core/design_system/handol_tokens.dart';
+import 'package:handol/core/utils/korea_time.dart';
+import 'package:handol/features/empty_class/domain/model/classroom_query.dart';
+import 'package:handol/features/empty_class/presentation/provider/classroom_query_provider.dart';
+import 'package:handol/core/constants/app_radius.dart';
 
 /// 조회 날짜·구간 선택기. 홈 카드와 맵 탭의 시간 설정 시트가 같이 쓴다.
 ///
@@ -161,13 +161,14 @@ class _DayStrip extends StatelessWidget {
 
   Widget _dayChip(DateTime date, int d, {required bool enabled}) {
     final on = d == selected;
-    final color = on
-        ? Colors.white
-        : !enabled
-        ? HandolColors.inactive
-        : date.weekday == DateTime.sunday
-        ? HandolColors.red
-        : HandolColors.text;
+    final color =
+        on
+            ? Colors.white
+            : !enabled
+            ? HandolColors.inactive
+            : date.weekday == DateTime.sunday
+            ? HandolColors.red
+            : HandolColors.text;
     final top = switch (d) {
       0 => '오늘',
       1 => '내일',
@@ -180,9 +181,10 @@ class _DayStrip extends StatelessWidget {
       label: '${date.month}월 ${date.day}일 ${_short[date.weekday - 1]}요일',
       excludeSemantics: true,
       child: Material(
-        color: on
-            ? HandolColors.primary
-            : HandolColors.track.withValues(alpha: .5),
+        color:
+            on
+                ? HandolColors.primary
+                : HandolColors.track.withValues(alpha: .5),
         borderRadius: HandolMetrics.radius,
         child: InkWell(
           borderRadius: HandolMetrics.radius,

@@ -3,11 +3,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:handori/common/component/handol_card.dart';
-import 'package:handori/core/utils/keep_all.dart';
-import 'package:handori/features/home/component/schedule_section.dart';
-import 'package:handori/features/home/model/schedule_event.dart';
-import 'package:handori/features/home/presentation/provider/home_static_provider.dart';
+import 'package:handol/common/component/handol_card.dart';
+import 'package:handol/core/utils/keep_all.dart';
+import 'package:handol/features/home/component/schedule_section.dart';
+import 'package:handol/features/home/model/schedule_event.dart';
+import 'package:handol/features/home/presentation/provider/home_static_provider.dart';
 
 void main() {
   final event = ScheduleEvent(

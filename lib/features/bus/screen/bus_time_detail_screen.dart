@@ -2,20 +2,20 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:go_router/go_router.dart';
-import 'package:handori/common/component/app_top_bar.dart';
-import 'package:handori/common/component/handol_scroll_gradient.dart';
-import 'package:handori/common/component/handol_card.dart';
-import 'package:handori/common/component/handol_icon_button.dart';
-import 'package:handori/common/layout/root_shell.dart';
-import 'package:handori/core/design_system/handol_assets.dart';
-import 'package:handori/core/design_system/handol_tokens.dart';
-import 'package:handori/core/utils/keep_all.dart';
-import 'package:handori/features/bus/domain/model/shuttle_schedule.dart';
-import 'package:handori/features/bus/domain/usecase/next_shuttle_calculator.dart';
-import 'package:handori/features/bus/domain/usecase/shuttle_transfer.dart';
-import 'package:handori/features/bus/presentation/provider/next_shuttle_provider.dart';
-import 'package:handori/features/bus/presentation/provider/shuttle_direction_provider.dart';
-import 'package:handori/features/empty_class/presentation/provider/user_location_provider.dart';
+import 'package:handol/common/component/app_top_bar.dart';
+import 'package:handol/common/component/handol_scroll_gradient.dart';
+import 'package:handol/common/component/handol_card.dart';
+import 'package:handol/common/component/handol_icon_button.dart';
+import 'package:handol/common/layout/root_shell.dart';
+import 'package:handol/core/design_system/handol_assets.dart';
+import 'package:handol/core/design_system/handol_tokens.dart';
+import 'package:handol/core/utils/keep_all.dart';
+import 'package:handol/features/bus/domain/model/shuttle_schedule.dart';
+import 'package:handol/features/bus/domain/usecase/next_shuttle_calculator.dart';
+import 'package:handol/features/bus/domain/usecase/shuttle_transfer.dart';
+import 'package:handol/features/bus/presentation/provider/next_shuttle_provider.dart';
+import 'package:handol/features/bus/presentation/provider/shuttle_direction_provider.dart';
+import 'package:handol/features/empty_class/presentation/provider/user_location_provider.dart';
 
 /// 셔틀버스 탭 (Figma 2156:451).
 ///

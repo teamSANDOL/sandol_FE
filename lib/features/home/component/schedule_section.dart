@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:handori/common/component/handol_card.dart';
-import 'package:handori/common/component/handol_icon_button.dart';
-import 'package:handori/common/component/handol_icon_label.dart';
-import 'package:handori/common/component/handol_section.dart';
-import 'package:handori/core/design_system/handol_assets.dart';
-import 'package:handori/core/design_system/handol_tokens.dart';
-import 'package:handori/core/utils/keep_all.dart';
-import 'package:handori/features/home/model/schedule_event.dart';
+import 'package:handol/common/component/handol_card.dart';
+import 'package:handol/common/component/handol_icon_button.dart';
+import 'package:handol/common/component/handol_icon_label.dart';
+import 'package:handol/common/component/handol_section.dart';
+import 'package:handol/core/design_system/handol_assets.dart';
+import 'package:handol/core/design_system/handol_tokens.dart';
+import 'package:handol/core/utils/keep_all.dart';
+import 'package:handol/features/home/model/schedule_event.dart';
 
 /// 홈 '주요일정' 섹션.
 ///

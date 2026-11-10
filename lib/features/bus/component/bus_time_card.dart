@@ -1,15 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:handori/common/component/handol_card.dart';
-import 'package:handori/common/component/handol_icon_button.dart';
-import 'package:handori/common/component/handol_icon_label.dart';
-import 'package:handori/core/design_system/handol_assets.dart';
-import 'package:handori/core/design_system/handol_tokens.dart';
-import 'package:handori/features/bus/domain/model/shuttle_schedule.dart';
-import 'package:handori/features/bus/domain/usecase/next_shuttle_calculator.dart';
-import 'package:handori/features/bus/presentation/provider/next_shuttle_provider.dart';
-import 'package:handori/features/bus/presentation/provider/shuttle_direction_provider.dart';
+import 'package:handol/common/component/handol_card.dart';
+import 'package:handol/common/component/handol_icon_button.dart';
+import 'package:handol/common/component/handol_icon_label.dart';
+import 'package:handol/core/design_system/handol_assets.dart';
+import 'package:handol/core/design_system/handol_tokens.dart';
+import 'package:handol/features/bus/domain/model/shuttle_schedule.dart';
+import 'package:handol/features/bus/domain/usecase/next_shuttle_calculator.dart';
+import 'package:handol/features/bus/presentation/provider/next_shuttle_provider.dart';
+import 'package:handol/features/bus/presentation/provider/shuttle_direction_provider.dart';
 
 /// 홈 셔틀버스 카드 (Figma 2153:253).
 ///

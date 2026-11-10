@@ -1,16 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:handori/core/design_system/handol_assets.dart';
-import 'package:handori/core/design_system/handol_tokens.dart';
-import 'package:handori/features/empty_class/component/classroom_time_range_picker.dart';
-import 'package:handori/features/empty_class/domain/model/class_period.dart';
-import 'package:handori/features/empty_class/model/class_model.dart';
-import 'package:handori/features/empty_class/presentation/provider/classroom_query_provider.dart';
-import 'package:handori/features/empty_class/presentation/provider/empty_class_provider.dart';
-import 'package:handori/features/map/component/map_common.dart';
-import 'package:handori/shared/widget/error_retry_view.dart';
-import 'package:handori/shared/widget/handol_loading_indicator.dart';
+import 'package:handol/core/design_system/handol_assets.dart';
+import 'package:handol/core/design_system/handol_tokens.dart';
+import 'package:handol/features/empty_class/component/classroom_time_range_picker.dart';
+import 'package:handol/features/empty_class/domain/model/class_period.dart';
+import 'package:handol/features/empty_class/model/class_model.dart';
+import 'package:handol/features/empty_class/presentation/provider/classroom_query_provider.dart';
+import 'package:handol/features/empty_class/presentation/provider/empty_class_provider.dart';
+import 'package:handol/features/map/component/map_common.dart';
+import 'package:handol/shared/widget/error_retry_view.dart';
+import 'package:handol/shared/widget/handol_loading_indicator.dart';
 
 /// 호실 상태 (2538:17489 범례). 전체 강의실 목록을 못 받으면 빈 호실만 나온다.
 enum RoomStatus {

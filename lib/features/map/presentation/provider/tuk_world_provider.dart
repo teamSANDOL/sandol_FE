@@ -1,8 +1,8 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
-import 'package:handori/core/network/static_info_dio_provider.dart';
-import 'package:handori/features/map/data/tuk_place.dart';
-import 'package:handori/features/map/data/tuk_world_api.dart';
+import 'package:handol/core/network/static_info_dio_provider.dart';
+import 'package:handol/features/map/data/tuk_place.dart';
+import 'package:handol/features/map/data/tuk_world_api.dart';
 
 part 'tuk_world_provider.g.dart';
 

@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:handori/features/empty_class/domain/model/classroom_query.dart';
+import 'package:handol/features/empty_class/domain/model/classroom_query.dart';
 
 void main() {
   group('ClassroomQuery (시간 축, 교시 시작·끝 디텐트)', () {

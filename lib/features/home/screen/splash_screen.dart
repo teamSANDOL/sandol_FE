@@ -2,17 +2,17 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:handori/core/design_system/handol_assets.dart';
-import 'package:handori/core/design_system/handol_tokens.dart';
-import 'package:handori/core/push/push_service.dart';
-import 'package:handori/core/router/route_paths.dart';
-import 'package:handori/features/auth/domain/model/auth_session.dart';
-import 'package:handori/features/auth/presentation/provider/auth_provider.dart';
-import 'package:handori/features/empty_class/presentation/provider/empty_class_provider.dart';
-import 'package:handori/features/home/presentation/provider/home_static_provider.dart';
-import 'package:handori/features/organization/presentation/provider/organization_provider.dart';
-import 'package:handori/features/school_meal/presentation/provider/meal_list_notifier.dart';
-import 'package:handori/features/school_meal/presentation/provider/restaurant_list_notifier.dart';
+import 'package:handol/core/design_system/handol_assets.dart';
+import 'package:handol/core/design_system/handol_tokens.dart';
+import 'package:handol/core/push/push_service.dart';
+import 'package:handol/core/router/route_paths.dart';
+import 'package:handol/features/auth/domain/model/auth_session.dart';
+import 'package:handol/features/auth/presentation/provider/auth_provider.dart';
+import 'package:handol/features/empty_class/presentation/provider/empty_class_provider.dart';
+import 'package:handol/features/home/presentation/provider/home_static_provider.dart';
+import 'package:handol/features/organization/presentation/provider/organization_provider.dart';
+import 'package:handol/features/school_meal/presentation/provider/meal_list_notifier.dart';
+import 'package:handol/features/school_meal/presentation/provider/restaurant_list_notifier.dart';
 import 'package:video_player/video_player.dart';
 
 class Splashscreen extends ConsumerStatefulWidget {

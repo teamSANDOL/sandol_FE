@@ -3,12 +3,12 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:go_router/go_router.dart';
-import 'package:handori/common/layout/root_shell.dart';
-import 'package:handori/core/utils/keep_all.dart';
-import 'package:handori/features/bus/data/data_source/shuttle_schedule_data.dart';
-import 'package:handori/features/bus/presentation/provider/next_shuttle_provider.dart';
-import 'package:handori/features/empty_class/presentation/provider/user_location_provider.dart';
-import 'package:handori/features/bus/screen/bus_time_detail_screen.dart';
+import 'package:handol/common/layout/root_shell.dart';
+import 'package:handol/core/utils/keep_all.dart';
+import 'package:handol/features/bus/data/data_source/shuttle_schedule_data.dart';
+import 'package:handol/features/bus/presentation/provider/next_shuttle_provider.dart';
+import 'package:handol/features/empty_class/presentation/provider/user_location_provider.dart';
+import 'package:handol/features/bus/screen/bus_time_detail_screen.dart';
 
 /// [ShuttleClock]을 고정 시각으로 바꿔 요일·시각에 따른 표시를 검사한다.
 class _FixedClock extends ShuttleClock {

@@ -1,4 +1,4 @@
-import 'package:handori/features/notice/domain/model/notice.dart';
+import 'package:handol/features/notice/domain/model/notice.dart';
 
 /// 공지 화면의 분류 칩. 공지 API 는 분류를 주지 않으므로
 /// 학사·장학·비교과·취업·일반은 이미 받아 둔 공지의 작성 부서·제목에

@@ -2,21 +2,21 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:go_router/go_router.dart';
-import 'package:handori/common/component/app_top_bar.dart';
-import 'package:handori/common/layout/root_shell.dart';
-import 'package:handori/core/design_system/handol_assets.dart';
-import 'package:handori/core/design_system/handol_tokens.dart';
-import 'package:handori/core/router/route_paths.dart';
-import 'package:handori/features/notice/domain/model/notice.dart';
-import 'package:handori/features/notice/presentation/provider/notice_bookmark_provider.dart';
-import 'package:handori/features/notice/presentation/provider/notice_filter.dart';
-import 'package:handori/features/notice/presentation/provider/notice_provider.dart';
-import 'package:handori/features/notice/presentation/provider/notice_seen_provider.dart';
-import 'package:handori/features/notice/presentation/widget/notice_card.dart';
-import 'package:handori/features/notice/presentation/widget/notice_style.dart';
-import 'package:handori/shared/model/pagination_state.dart';
-import 'package:handori/shared/widget/error_retry_view.dart';
-import 'package:handori/shared/widget/handol_loading_indicator.dart';
+import 'package:handol/common/component/app_top_bar.dart';
+import 'package:handol/common/layout/root_shell.dart';
+import 'package:handol/core/design_system/handol_assets.dart';
+import 'package:handol/core/design_system/handol_tokens.dart';
+import 'package:handol/core/router/route_paths.dart';
+import 'package:handol/features/notice/domain/model/notice.dart';
+import 'package:handol/features/notice/presentation/provider/notice_bookmark_provider.dart';
+import 'package:handol/features/notice/presentation/provider/notice_filter.dart';
+import 'package:handol/features/notice/presentation/provider/notice_provider.dart';
+import 'package:handol/features/notice/presentation/provider/notice_seen_provider.dart';
+import 'package:handol/features/notice/presentation/widget/notice_card.dart';
+import 'package:handol/features/notice/presentation/widget/notice_style.dart';
+import 'package:handol/shared/model/pagination_state.dart';
+import 'package:handol/shared/widget/error_retry_view.dart';
+import 'package:handol/shared/widget/handol_loading_indicator.dart';
 
 /// 공지사항 탭 (Figma 공지사항2).
 ///

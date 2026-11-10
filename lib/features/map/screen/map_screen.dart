@@ -3,19 +3,19 @@ import 'package:flutter/services.dart';
 import 'package:flutter_naver_map/flutter_naver_map.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:geolocator/geolocator.dart';
-import 'package:handori/common/component/handol_card.dart';
-import 'package:handori/common/component/handol_icon_label.dart';
-import 'package:handori/core/design_system/handol_tokens.dart';
-import 'package:handori/features/empty_class/model/class_model.dart';
-import 'package:handori/features/empty_class/presentation/provider/empty_class_focus_provider.dart';
-import 'package:handori/features/empty_class/presentation/provider/empty_class_provider.dart';
-import 'package:handori/features/map/component/campus_panels.dart';
-import 'package:handori/features/map/component/empty_class_panel.dart';
-import 'package:handori/features/map/component/map_common.dart';
-import 'package:handori/features/map/component/map_markers.dart';
-import 'package:handori/features/map/component/tuk_world_panel.dart';
-import 'package:handori/features/map/data/tuk_place.dart';
-import 'package:handori/features/map/presentation/provider/tuk_world_provider.dart';
+import 'package:handol/common/component/handol_card.dart';
+import 'package:handol/common/component/handol_icon_label.dart';
+import 'package:handol/core/design_system/handol_tokens.dart';
+import 'package:handol/features/empty_class/model/class_model.dart';
+import 'package:handol/features/empty_class/presentation/provider/empty_class_focus_provider.dart';
+import 'package:handol/features/empty_class/presentation/provider/empty_class_provider.dart';
+import 'package:handol/features/map/component/campus_panels.dart';
+import 'package:handol/features/map/component/empty_class_panel.dart';
+import 'package:handol/features/map/component/map_common.dart';
+import 'package:handol/features/map/component/map_markers.dart';
+import 'package:handol/features/map/component/tuk_world_panel.dart';
+import 'package:handol/features/map/data/tuk_place.dart';
+import 'package:handol/features/map/presentation/provider/tuk_world_provider.dart';
 
 /// 시트에 무엇을 보여줄지. TUK 월드 시트면 상단 탭도 'TUK 월드'다.
 enum _Panel {

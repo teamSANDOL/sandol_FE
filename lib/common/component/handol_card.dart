@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:handori/core/design_system/handol_tokens.dart';
+import 'package:handol/core/design_system/handol_tokens.dart';
 
 /// 새 디자인의 카드 틀: 배경 + 테두리 + 12 모서리 + 옅은 그림자.
 ///

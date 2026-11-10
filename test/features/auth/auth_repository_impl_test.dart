@@ -9,9 +9,9 @@ import 'package:dio/dio.dart';
 import 'package:flutter_appauth_platform_interface/flutter_appauth_platform_interface.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:handori/features/auth/data/repository/auth_repository_impl.dart';
-import 'package:handori/features/auth/data/token_storage.dart';
-import 'package:handori/features/auth/domain/model/auth_session.dart';
+import 'package:handol/features/auth/data/repository/auth_repository_impl.dart';
+import 'package:handol/features/auth/data/token_storage.dart';
+import 'package:handol/features/auth/domain/model/auth_session.dart';
 
 /// flutter_appauth 의 플랫폼 채널을 대체하는 가짜. token() 호출 횟수와
 /// 결과(성공/예외)를 테스트가 제어한다.
@@ -22,7 +22,8 @@ class _FakeAppAuthPlatform extends FlutterAppAuthPlatform {
 
   @override
   Future<AuthorizationTokenResponse> authorizeAndExchangeCode(
-      AuthorizationTokenRequest request) async {
+    AuthorizationTokenRequest request,
+  ) async {
     authorizeRequests.add(request);
     return AuthorizationTokenResponse(
       'login-access',
@@ -114,22 +115,22 @@ void main() {
   final futureRefreshExp = DateTime.now().add(const Duration(days: 1));
 
   AuthSession expiredSession({DateTime? refreshExp}) => AuthSession(
-        accessToken: 'old-access',
-        refreshToken: 'old-refresh',
-        accessTokenExpiresAt: expiredAccess,
-        refreshTokenExpiresAt: refreshExp ?? futureRefreshExp,
-        username: 'tester',
-      );
+    accessToken: 'old-access',
+    refreshToken: 'old-refresh',
+    accessTokenExpiresAt: expiredAccess,
+    refreshTokenExpiresAt: refreshExp ?? futureRefreshExp,
+    username: 'tester',
+  );
 
   TokenResponse okResponse() => TokenResponse(
-        'new-access',
-        _jwt({'exp': _epoch(futureRefreshExp)}),
-        DateTime.now().add(const Duration(minutes: 10)),
-        null,
-        'Bearer',
-        null,
-        null,
-      );
+    'new-access',
+    _jwt({'exp': _epoch(futureRefreshExp)}),
+    DateTime.now().add(const Duration(minutes: 10)),
+    null,
+    'Bearer',
+    null,
+    null,
+  );
 
   setUp(() {
     FlutterSecureStorage.setMockInitialValues({});
@@ -146,8 +147,7 @@ void main() {
     );
   });
 
-  test('로그아웃 중 늦게 도착한 리프레시 응답은 버리고 새 토큰을 폐기한다',
-      () async {
+  test('로그아웃 중 늦게 도착한 리프레시 응답은 버리고 새 토큰을 폐기한다', () async {
     await storage.save(expiredSession());
     final tokenGate = Completer<TokenResponse>();
     platform.onToken = (_) => tokenGate.future;
@@ -220,8 +220,7 @@ void main() {
     await sub.cancel();
   });
 
-  test('로그아웃 중 리프레시가 실패로 끝나도 현재 상태를 건드리지 않는다',
-      () async {
+  test('로그아웃 중 리프레시가 실패로 끝나도 현재 상태를 건드리지 않는다', () async {
     await storage.save(expiredSession());
     final tokenGate = Completer<TokenResponse>();
     platform.onToken = (_) => tokenGate.future;
@@ -244,10 +243,7 @@ void main() {
   group('expiryFromJwt', () {
     test('exp 클레임을 시각으로 변환한다', () {
       final exp = DateTime(2030, 1, 1, 12);
-      expect(
-        AuthRepositoryImpl.expiryFromJwt(_jwt({'exp': _epoch(exp)})),
-        exp,
-      );
+      expect(AuthRepositoryImpl.expiryFromJwt(_jwt({'exp': _epoch(exp)})), exp);
     });
 
     test('오프라인 토큰처럼 exp 가 0 이거나 없으면 null', () {
@@ -258,11 +254,13 @@ void main() {
   });
 
   test('액세스 토큰이 유효하면 서버에 묻지 않는다', () async {
-    await storage.save(AuthSession(
-      accessToken: 'a',
-      refreshToken: 'r',
-      accessTokenExpiresAt: DateTime.now().add(const Duration(minutes: 5)),
-    ));
+    await storage.save(
+      AuthSession(
+        accessToken: 'a',
+        refreshToken: 'r',
+        accessTokenExpiresAt: DateTime.now().add(const Duration(minutes: 5)),
+      ),
+    );
     expect(await repo.getValidAccessToken(), 'a');
     expect(platform.tokenCalls, 0);
   });
@@ -314,8 +312,7 @@ void main() {
     expect(platform.tokenCalls, 1);
   });
 
-  test('서버 5xx 등 invalid_grant 가 아닌 OAuth 오류도 세션을 유지한다',
-      () async {
+  test('서버 5xx 등 invalid_grant 가 아닌 OAuth 오류도 세션을 유지한다', () async {
     await storage.save(expiredSession());
     platform.onToken = (_) async => throw _oauthError('server_error');
     expect(await repo.restoreSession(), isNotNull);
@@ -339,11 +336,12 @@ void main() {
     expect(platform.tokenCalls, 1);
   });
 
-  test('리프레시 토큰 만료가 시계 오차 허용치(1시간)보다 지났으면 서버에 묻지 않고 바로 로그아웃',
-      () async {
-    await storage.save(expiredSession(
-      refreshExp: DateTime.now().subtract(const Duration(hours: 2)),
-    ));
+  test('리프레시 토큰 만료가 시계 오차 허용치(1시간)보다 지났으면 서버에 묻지 않고 바로 로그아웃', () async {
+    await storage.save(
+      expiredSession(
+        refreshExp: DateTime.now().subtract(const Duration(hours: 2)),
+      ),
+    );
     platform.onToken = (_) async => okResponse();
 
     expect(await repo.restoreSession(), isNull);
@@ -351,20 +349,20 @@ void main() {
     expect(await storage.read(), isNull);
   });
 
-  test('리프레시 토큰 만료가 오차 허용치 안이면 기기 시계를 믿지 않고 서버에 묻는다',
-      () async {
+  test('리프레시 토큰 만료가 오차 허용치 안이면 기기 시계를 믿지 않고 서버에 묻는다', () async {
     // 기기 시계가 앞서 있으면 멀쩡한 토큰의 exp 가 "조금 지난 것"으로 보인다.
-    await storage.save(expiredSession(
-      refreshExp: DateTime.now().subtract(const Duration(minutes: 1)),
-    ));
+    await storage.save(
+      expiredSession(
+        refreshExp: DateTime.now().subtract(const Duration(minutes: 1)),
+      ),
+    );
     platform.onToken = (_) async => okResponse();
 
     expect((await repo.restoreSession())?.accessToken, 'new-access');
     expect(platform.tokenCalls, 1);
   });
 
-  test('invalid_scope 같은 영구 OAuth 오류도 세션을 지운다(좀비 세션 방지)',
-      () async {
+  test('invalid_scope 같은 영구 OAuth 오류도 세션을 지운다(좀비 세션 방지)', () async {
     await storage.save(expiredSession());
     platform.onToken = (_) async => throw _oauthError('invalid_scope');
 
@@ -381,9 +379,11 @@ void main() {
       await repo.logout();
       await repo.login(useKakao: true);
       expect(lastPrompt(), ['login']);
-      expect(platform.authorizeRequests.last.additionalParameters,
-          {'kc_idp_hint': 'Kakao'},
-          reason: '카카오 경로에도 prompt=login 이 함께 간다');
+      expect(
+        platform.authorizeRequests.last.additionalParameters,
+        {'kc_idp_hint': 'Kakao'},
+        reason: '카카오 경로에도 prompt=login 이 함께 간다',
+      );
       // 유지 로그인에 성공하면 표시를 지운다.
       await repo.login();
       expect(lastPrompt(), isNull);
@@ -404,7 +404,10 @@ void main() {
 
     test('유지하면 offline_access 를 요청하고 디스크에 저장한다', () async {
       await repo.login();
-      expect(platform.authorizeRequests.last.scopes, contains('offline_access'));
+      expect(
+        platform.authorizeRequests.last.scopes,
+        contains('offline_access'),
+      );
       final reopened = TokenStorage(const FlutterSecureStorage());
       expect((await reopened.read())?.accessToken, 'login-access');
     });
@@ -412,14 +415,19 @@ void main() {
     test('유지하지 않으면 메모리에만 두고, 앱 재시작 뒤엔 비로그인', () async {
       await storage.save(expiredSession());
       await repo.login(rememberMe: false);
-      expect(platform.authorizeRequests.last.scopes,
-          isNot(contains('offline_access')));
+      expect(
+        platform.authorizeRequests.last.scopes,
+        isNot(contains('offline_access')),
+      );
       expect(await repo.getValidAccessToken(), 'login-access');
       // 새 프로세스 = 새 TokenStorage. 이전 유지 세션도 지워져 있어야 한다.
       final reopened = TokenStorage(const FlutterSecureStorage());
       expect(await reopened.read(), isNull);
-      expect(await reopened.readForceLogin(), isTrue,
-          reason: '비유지 세션은 조용히 끝나므로 다음 로그인에 재인증');
+      expect(
+        await reopened.readForceLogin(),
+        isTrue,
+        reason: '비유지 세션은 조용히 끝나므로 다음 로그인에 재인증',
+      );
     });
 
     test('비유지 세션의 리프레시도 같은 스코프로, 메모리에만 저장한다', () async {

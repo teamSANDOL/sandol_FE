@@ -1,7 +1,7 @@
 import 'package:dio/dio.dart';
 import 'package:retrofit/retrofit.dart';
-import 'package:handori/features/empty_class/data/dto/available_classrooms_response.dart';
-import 'package:handori/features/empty_class/data/dto/building_classrooms_response.dart';
+import 'package:handol/features/empty_class/data/dto/available_classrooms_response.dart';
+import 'package:handol/features/empty_class/data/dto/building_classrooms_response.dart';
 
 part 'classroom_api.g.dart';
 

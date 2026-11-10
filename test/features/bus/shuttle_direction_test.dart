@@ -1,12 +1,12 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:geolocator/geolocator.dart';
-import 'package:handori/features/bus/data/data_source/shuttle_schedule_data.dart';
-import 'package:handori/features/bus/domain/model/shuttle_schedule.dart';
-import 'package:handori/features/bus/domain/usecase/nearest_shuttle_origin.dart';
-import 'package:handori/features/bus/presentation/provider/next_shuttle_provider.dart';
-import 'package:handori/features/bus/presentation/provider/shuttle_direction_provider.dart';
-import 'package:handori/features/empty_class/presentation/provider/user_location_provider.dart';
+import 'package:handol/features/bus/data/data_source/shuttle_schedule_data.dart';
+import 'package:handol/features/bus/domain/model/shuttle_schedule.dart';
+import 'package:handol/features/bus/domain/usecase/nearest_shuttle_origin.dart';
+import 'package:handol/features/bus/presentation/provider/next_shuttle_provider.dart';
+import 'package:handol/features/bus/presentation/provider/shuttle_direction_provider.dart';
+import 'package:handol/features/empty_class/presentation/provider/user_location_provider.dart';
 
 Position _at(double lat, double lng) => Position(
   latitude: lat,

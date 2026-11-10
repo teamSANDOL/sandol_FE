@@ -3,9 +3,9 @@ import 'dart:convert';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
-import 'package:handori/common/repository/static_repository.dart';
-import 'package:handori/core/utils/korea_time.dart';
-import 'package:handori/features/home/model/schedule_event.dart';
+import 'package:handol/common/repository/static_repository.dart';
+import 'package:handol/core/utils/korea_time.dart';
+import 'package:handol/features/home/model/schedule_event.dart';
 
 part 'home_static_provider.g.dart';
 

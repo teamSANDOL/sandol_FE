@@ -1,6 +1,6 @@
 import 'package:riverpod_annotation/riverpod_annotation.dart';
-import 'package:handori/core/utils/korea_time.dart';
-import 'package:handori/features/empty_class/domain/model/classroom_query.dart';
+import 'package:handol/core/utils/korea_time.dart';
+import 'package:handol/features/empty_class/domain/model/classroom_query.dart';
 
 part 'classroom_query_provider.g.dart';
 
@@ -64,9 +64,10 @@ class ClassroomQueryController extends _$ClassroomQueryController {
     // 시작을 "지금"에 두고 있었다면 새 지금으로 따라오고,
     // 나중 시각을 골라 뒀다면 그 칸을 그대로 유지한다.
     final keepsNow = state.startMinutes == state.anchorMinutes;
-    final s = keepsNow
-        ? anchor
-        : ticks[ClassroomQuery.nearestTickIndex(ticks, state.startMinutes)];
+    final s =
+        keepsNow
+            ? anchor
+            : ticks[ClassroomQuery.nearestTickIndex(ticks, state.startMinutes)];
     final e = ticks[ClassroomQuery.nearestTickIndex(ticks, state.endMinutes)];
     if (s >= e) {
       state = ClassroomQuery.defaultFor(now);

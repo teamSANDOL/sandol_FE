@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:handori/core/design_system/handol_assets.dart';
-import 'package:handori/core/design_system/handol_tokens.dart';
+import 'package:handol/core/design_system/handol_assets.dart';
+import 'package:handol/core/design_system/handol_tokens.dart';
 
 class HandolBrand extends StatelessWidget {
   const HandolBrand({super.key});

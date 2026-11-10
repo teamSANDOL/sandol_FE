@@ -1,5 +1,5 @@
-import 'package:handori/features/bus/data/data_source/korean_public_holidays.dart';
-import 'package:handori/features/bus/domain/model/shuttle_schedule.dart';
+import 'package:handol/features/bus/data/data_source/korean_public_holidays.dart';
+import 'package:handol/features/bus/domain/model/shuttle_schedule.dart';
 
 /// 셔틀버스 시간표 원본(하드코딩) 데이터 소스. 서버도 기기 캐시도 못 쓸 때의
 /// 대체 경로다.

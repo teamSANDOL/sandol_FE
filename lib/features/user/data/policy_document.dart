@@ -1,6 +1,6 @@
 import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:handori/core/constants/api_constants.dart';
+import 'package:handol/core/constants/api_constants.dart';
 import 'package:html/dom.dart';
 import 'package:html/parser.dart' as html;
 

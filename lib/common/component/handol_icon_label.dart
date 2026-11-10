@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:handori/core/design_system/handol_assets.dart';
-import 'package:handori/core/design_system/handol_tokens.dart';
-import 'package:handori/core/utils/keep_all.dart';
+import 'package:handol/core/design_system/handol_assets.dart';
+import 'package:handol/core/design_system/handol_tokens.dart';
+import 'package:handol/core/utils/keep_all.dart';
 
 /// 아이콘 + 글자 한 줄. 시계 · 정류장 · 출발 시각 · 안내 줄이 모두 이 모양이다.
 class HandolIconLabel extends StatelessWidget {

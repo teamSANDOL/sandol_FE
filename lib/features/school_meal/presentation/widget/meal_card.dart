@@ -2,13 +2,13 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:handori/common/component/handol_card.dart';
-import 'package:handori/common/component/handol_chip.dart';
-import 'package:handori/core/design_system/handol_tokens.dart';
-import 'package:handori/core/utils/keep_all.dart';
-import 'package:handori/features/school_meal/presentation/model/restaurant_menu.dart';
-import 'package:handori/features/school_meal/presentation/provider/selected_restaurant_id_notifier.dart';
-import 'package:handori/shared/widget/remote_image.dart';
+import 'package:handol/common/component/handol_card.dart';
+import 'package:handol/common/component/handol_chip.dart';
+import 'package:handol/core/design_system/handol_tokens.dart';
+import 'package:handol/core/utils/keep_all.dart';
+import 'package:handol/features/school_meal/presentation/model/restaurant_menu.dart';
+import 'package:handol/features/school_meal/presentation/provider/selected_restaurant_id_notifier.dart';
+import 'package:handol/shared/widget/remote_image.dart';
 
 class HomeMealSection extends ConsumerStatefulWidget {
   final List<RestaurantMenu> menus;
@@ -76,9 +76,7 @@ class _HomeMealSectionState extends ConsumerState<HomeMealSection> {
     final chip = _chipKeys[restaurantId]?.currentContext?.findRenderObject();
     final row = _chipRowKey.currentContext?.findRenderObject();
     if (chip is! RenderBox || row is! RenderBox) return null;
-    return chip
-        .localToGlobal(Offset(chip.size.width / 2, 0), ancestor: row)
-        .dx;
+    return chip.localToGlobal(Offset(chip.size.width / 2, 0), ancestor: row).dx;
   }
 
   @override

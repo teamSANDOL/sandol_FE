@@ -2,17 +2,17 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:go_router/go_router.dart';
-import 'package:handori/common/component/app_top_bar.dart';
-import 'package:handori/common/component/handol_card.dart';
-import 'package:handori/core/design_system/handol_assets.dart';
-import 'package:handori/core/design_system/handol_tokens.dart';
-import 'package:handori/features/organization/domain/model/organization_node.dart';
-import 'package:handori/features/organization/domain/model/organization_search_result.dart';
-import 'package:handori/features/organization/presentation/provider/organization_provider.dart';
-import 'package:handori/features/organization/presentation/widget/organization_node_card.dart';
-import 'package:handori/features/organization/presentation/widget/organization_search_result_card.dart';
-import 'package:handori/shared/widget/error_retry_view.dart';
-import 'package:handori/shared/widget/handol_loading_indicator.dart';
+import 'package:handol/common/component/app_top_bar.dart';
+import 'package:handol/common/component/handol_card.dart';
+import 'package:handol/core/design_system/handol_assets.dart';
+import 'package:handol/core/design_system/handol_tokens.dart';
+import 'package:handol/features/organization/domain/model/organization_node.dart';
+import 'package:handol/features/organization/domain/model/organization_search_result.dart';
+import 'package:handol/features/organization/presentation/provider/organization_provider.dart';
+import 'package:handol/features/organization/presentation/widget/organization_node_card.dart';
+import 'package:handol/features/organization/presentation/widget/organization_search_result_card.dart';
+import 'package:handol/shared/widget/error_retry_view.dart';
+import 'package:handol/shared/widget/handol_loading_indicator.dart';
 
 /// 학과/부서 조직도 (Figma 2158:882).
 ///

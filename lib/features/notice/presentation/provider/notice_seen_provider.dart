@@ -2,9 +2,9 @@ import 'dart:convert';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-import 'package:handori/core/utils/date_formatter.dart';
-import 'package:handori/core/utils/korea_time.dart';
-import 'package:handori/features/notice/domain/model/notice.dart';
+import 'package:handol/core/utils/date_formatter.dart';
+import 'package:handol/core/utils/korea_time.dart';
+import 'package:handol/features/notice/domain/model/notice.dart';
 
 /// 지난번 공지 목록을 떠날 때 이미 있던 공지. 기기 로컬(flutter_secure_storage)에
 /// `공지 키 → 게시일(KST yyyy-MM-dd)` 를 JSON 으로 둔다. `null` 은 첫 실행이다.

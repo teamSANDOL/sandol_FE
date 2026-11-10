@@ -1,11 +1,11 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
-import 'package:handori/core/network/dio_provider.dart';
-import 'package:handori/features/notice/data/data_source/notice_api.dart';
-import 'package:handori/features/notice/data/repository/notice_repository_impl.dart';
-import 'package:handori/features/notice/domain/model/notice.dart';
-import 'package:handori/features/notice/domain/repository/notice_repository.dart';
-import 'package:handori/shared/model/pagination_state.dart';
+import 'package:handol/core/network/dio_provider.dart';
+import 'package:handol/features/notice/data/data_source/notice_api.dart';
+import 'package:handol/features/notice/data/repository/notice_repository_impl.dart';
+import 'package:handol/features/notice/domain/model/notice.dart';
+import 'package:handol/features/notice/domain/repository/notice_repository.dart';
+import 'package:handol/shared/model/pagination_state.dart';
 
 part 'notice_provider.g.dart';
 

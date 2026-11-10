@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:handori/features/organization/domain/model/organization_node.dart';
-import 'package:handori/features/organization/presentation/page/organization_tree_page.dart';
-import 'package:handori/features/organization/presentation/provider/organization_provider.dart';
-import 'package:handori/features/organization/presentation/widget/organization_node_card.dart';
+import 'package:handol/features/organization/domain/model/organization_node.dart';
+import 'package:handol/features/organization/presentation/page/organization_tree_page.dart';
+import 'package:handol/features/organization/presentation/provider/organization_provider.dart';
+import 'package:handol/features/organization/presentation/widget/organization_node_card.dart';
 
 class _Tree extends OrganizationTreeNotifier {
   _Tree(this.root);

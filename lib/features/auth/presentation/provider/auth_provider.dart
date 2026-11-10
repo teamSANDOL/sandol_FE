@@ -3,12 +3,12 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
-import 'package:handori/core/constants/api_constants.dart';
-import 'package:handori/features/auth/data/guest_access_storage.dart';
-import 'package:handori/features/auth/data/repository/auth_repository_impl.dart';
-import 'package:handori/features/auth/data/token_storage.dart';
-import 'package:handori/features/auth/domain/model/auth_session.dart';
-import 'package:handori/features/auth/domain/repository/auth_repository.dart';
+import 'package:handol/core/constants/api_constants.dart';
+import 'package:handol/features/auth/data/guest_access_storage.dart';
+import 'package:handol/features/auth/data/repository/auth_repository_impl.dart';
+import 'package:handol/features/auth/data/token_storage.dart';
+import 'package:handol/features/auth/domain/model/auth_session.dart';
+import 'package:handol/features/auth/domain/repository/auth_repository.dart';
 
 part 'auth_provider.g.dart';
 

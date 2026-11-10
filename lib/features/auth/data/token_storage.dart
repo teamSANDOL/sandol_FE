@@ -1,6 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-import 'package:handori/features/auth/domain/model/auth_session.dart';
+import 'package:handol/features/auth/domain/model/auth_session.dart';
 
 /// 토큰을 기기 보안 저장소(Keychain/Keystore)에 보관한다.
 /// 매 API 요청마다 저장소를 읽지 않도록 마지막 세션을 메모리에 캐시한다.
@@ -50,17 +50,18 @@ class TokenStorage {
       }
     }
     final accessToken = values[_kAccessToken];
-    _cached = accessToken == null
-        ? null
-        : AuthSession(
-            accessToken: accessToken,
-            refreshToken: values[_kRefreshToken],
-            idToken: values[_kIdToken],
-            accessTokenExpiresAt: _parseDateTime(values[_kExpiresAt]),
-            refreshTokenExpiresAt: _parseDateTime(values[_kRefreshExpiresAt]),
-            username: values[_kUsername],
-            email: values[_kEmail],
-          );
+    _cached =
+        accessToken == null
+            ? null
+            : AuthSession(
+              accessToken: accessToken,
+              refreshToken: values[_kRefreshToken],
+              idToken: values[_kIdToken],
+              accessTokenExpiresAt: _parseDateTime(values[_kExpiresAt]),
+              refreshTokenExpiresAt: _parseDateTime(values[_kRefreshExpiresAt]),
+              username: values[_kUsername],
+              email: values[_kEmail],
+            );
     _loaded = true;
     return _cached;
   }
@@ -113,9 +114,8 @@ class TokenStorage {
     _loaded = true;
   }
 
-  Future<void> _deleteAll() => Future.wait([
-        for (final key in _allKeys) _storage.delete(key: key),
-      ]);
+  Future<void> _deleteAll() =>
+      Future.wait([for (final key in _allKeys) _storage.delete(key: key)]);
 
   /// 다음 로그인에 재인증(prompt=login)이 필요한지. 읽기 실패 시 안전한 쪽(true).
   Future<bool> readForceLogin() async {
@@ -139,7 +139,8 @@ class TokenStorage {
   static DateTime? _parseDateTime(String? raw) =>
       raw == null ? null : DateTime.tryParse(raw);
 
-  Future<void> _writeOrDelete(String key, String? value) => value == null
-      ? _storage.delete(key: key)
-      : _storage.write(key: key, value: value);
+  Future<void> _writeOrDelete(String key, String? value) =>
+      value == null
+          ? _storage.delete(key: key)
+          : _storage.write(key: key, value: value);
 }

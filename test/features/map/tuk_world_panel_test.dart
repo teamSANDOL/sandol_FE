@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:handori/core/utils/keep_all.dart';
-import 'package:handori/features/map/component/tuk_world_panel.dart';
-import 'package:handori/features/map/data/tuk_place.dart';
-import 'package:handori/features/map/presentation/provider/tuk_world_provider.dart';
+import 'package:handol/core/utils/keep_all.dart';
+import 'package:handol/features/map/component/tuk_world_panel.dart';
+import 'package:handol/features/map/data/tuk_place.dart';
+import 'package:handol/features/map/presentation/provider/tuk_world_provider.dart';
 
 Map<String, dynamic> _json(int id, String name, String? category) => {
   'id': id,

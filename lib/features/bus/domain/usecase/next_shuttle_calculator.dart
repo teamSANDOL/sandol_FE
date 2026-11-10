@@ -1,4 +1,4 @@
-import 'package:handori/features/bus/domain/model/shuttle_schedule.dart';
+import 'package:handol/features/bus/domain/model/shuttle_schedule.dart';
 
 /// 현재 시각 기준 다음 셔틀을 계산하는 순수 로직.
 ///

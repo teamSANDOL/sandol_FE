@@ -1,6 +1,6 @@
 import 'dart:convert';
 
-import 'package:handori/features/bus/domain/model/shuttle_schedule.dart';
+import 'package:handol/features/bus/domain/model/shuttle_schedule.dart';
 
 /// static-info `GET /static-info/bus/timetable?date=` 응답(하루치)을 도메인
 /// 시간표로 바꾼 것.

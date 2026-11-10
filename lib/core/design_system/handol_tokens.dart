@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:handori/core/constants/app_colors.dart';
-import 'package:handori/core/constants/app_radius.dart';
+import 'package:handol/core/constants/app_colors.dart';
+import 'package:handol/core/constants/app_radius.dart';
 
 /// Figma 화면 배경·카드 그라데이션.
 ///

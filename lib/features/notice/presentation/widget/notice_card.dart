@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:handori/core/design_system/handol_tokens.dart';
-import 'package:handori/core/utils/date_formatter.dart';
-import 'package:handori/core/utils/keep_all.dart';
-import 'package:handori/features/notice/domain/model/notice.dart';
-import 'package:handori/features/notice/presentation/widget/notice_style.dart';
+import 'package:handol/core/design_system/handol_tokens.dart';
+import 'package:handol/core/utils/date_formatter.dart';
+import 'package:handol/core/utils/keep_all.dart';
+import 'package:handol/features/notice/domain/model/notice.dart';
+import 'package:handol/features/notice/presentation/widget/notice_style.dart';
 
 /// 공지 한 건 (Figma 공지사항2 > Frame 2147234780): 작성 부서 배지 · NEW ·
 /// 저장 아이콘 / 제목 / 날짜. 본문 미리보기와 D-day 는 API 에 없어 그리지 않는다.

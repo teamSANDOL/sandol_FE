@@ -1,4 +1,4 @@
-import 'package:handori/features/empty_class/model/class_model.dart';
+import 'package:handol/features/empty_class/model/class_model.dart';
 
 /// 홈 카드용: 건물별 빈 강의실 + 내 위치로부터의 거리.
 class NearbyEmptyClass {

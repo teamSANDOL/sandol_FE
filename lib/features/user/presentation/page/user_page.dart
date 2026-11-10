@@ -2,20 +2,20 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:go_router/go_router.dart';
-import 'package:handori/core/utils/keep_all.dart';
-import 'package:handori/common/component/app_top_bar.dart';
-import 'package:handori/common/component/coming_soon_snackbar.dart';
-import 'package:handori/common/component/handol_card.dart';
-import 'package:handori/common/component/handol_icon_button.dart';
-import 'package:handori/common/component/handol_icon_label.dart';
-import 'package:handori/core/design_system/handol_assets.dart';
-import 'package:handori/core/design_system/handol_tokens.dart';
-import 'package:handori/core/router/route_paths.dart';
-import 'package:handori/features/user/data/policy_document.dart';
-import 'package:handori/features/auth/presentation/provider/auth_provider.dart';
-import 'package:handori/features/user/presentation/provider/app_version_provider.dart';
-import 'package:handori/features/user/presentation/provider/notification_settings_provider.dart';
-import 'package:handori/features/user/presentation/widget/confirm_dialog.dart';
+import 'package:handol/core/utils/keep_all.dart';
+import 'package:handol/common/component/app_top_bar.dart';
+import 'package:handol/common/component/coming_soon_snackbar.dart';
+import 'package:handol/common/component/handol_card.dart';
+import 'package:handol/common/component/handol_icon_button.dart';
+import 'package:handol/common/component/handol_icon_label.dart';
+import 'package:handol/core/design_system/handol_assets.dart';
+import 'package:handol/core/design_system/handol_tokens.dart';
+import 'package:handol/core/router/route_paths.dart';
+import 'package:handol/features/user/data/policy_document.dart';
+import 'package:handol/features/auth/presentation/provider/auth_provider.dart';
+import 'package:handol/features/user/presentation/provider/app_version_provider.dart';
+import 'package:handol/features/user/presentation/provider/notification_settings_provider.dart';
+import 'package:handol/features/user/presentation/widget/confirm_dialog.dart';
 
 /// 마이페이지 (Figma 2158:997).
 ///

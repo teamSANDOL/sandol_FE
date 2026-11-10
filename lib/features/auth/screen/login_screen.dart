@@ -2,13 +2,13 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:handori/common/component/handol_button.dart';
-import 'package:handori/common/component/handol_checkbox.dart';
-import 'package:handori/core/design_system/handol_assets.dart';
-import 'package:handori/core/design_system/handol_tokens.dart';
-import 'package:handori/core/router/route_paths.dart';
-import 'package:handori/features/auth/presentation/provider/auth_provider.dart';
-import 'package:handori/features/auth/presentation/widget/auth_scaffold.dart';
+import 'package:handol/common/component/handol_button.dart';
+import 'package:handol/common/component/handol_checkbox.dart';
+import 'package:handol/core/design_system/handol_assets.dart';
+import 'package:handol/core/design_system/handol_tokens.dart';
+import 'package:handol/core/router/route_paths.dart';
+import 'package:handol/features/auth/presentation/provider/auth_provider.dart';
+import 'package:handol/features/auth/presentation/widget/auth_scaffold.dart';
 
 /// 로그인 시작 화면. 아이디·비밀번호는 앱에서 받지 않는다 — 로그인과
 /// 회원가입은 모두 시스템 브라우저의 Keycloak 화면에서 한다.
@@ -73,17 +73,21 @@ class _LoginscreenState extends ConsumerState<Loginscreen> {
                 _SocialButton(
                   asset: HandolAssets.google,
                   label: 'Google로 로그인',
-                  onPressed: busy
-                      ? null
-                      : () => showAuthNotice(context, 'Google 로그인은 준비 중이에요.'),
+                  onPressed:
+                      busy
+                          ? null
+                          : () =>
+                              showAuthNotice(context, 'Google 로그인은 준비 중이에요.'),
                 ),
                 const SizedBox(width: HandolSpacing.md),
                 _SocialButton(
                   asset: HandolAssets.apple,
                   label: 'Apple로 로그인',
-                  onPressed: busy
-                      ? null
-                      : () => showAuthNotice(context, 'Apple 로그인은 준비 중이에요.'),
+                  onPressed:
+                      busy
+                          ? null
+                          : () =>
+                              showAuthNotice(context, 'Apple 로그인은 준비 중이에요.'),
                 ),
               ],
             ),

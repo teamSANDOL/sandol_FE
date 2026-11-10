@@ -1,5 +1,5 @@
-import 'package:handori/core/utils/korea_time.dart';
-import 'package:handori/features/home/model/schedule_event.dart';
+import 'package:handol/core/utils/korea_time.dart';
+import 'package:handol/features/home/model/schedule_event.dart';
 
 class StaticDataRepository {
   /// 홈 '주요일정'. 학사일정 API가 생기기 전까지의 자리표시 데이터.
@@ -17,5 +17,4 @@ class StaticDataRepository {
       ),
     ];
   }
-
 }

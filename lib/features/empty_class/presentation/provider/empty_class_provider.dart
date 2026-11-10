@@ -1,17 +1,17 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
-import 'package:handori/core/network/static_info_dio_provider.dart';
-import 'package:handori/features/empty_class/data/building_locations.dart';
-import 'package:handori/features/empty_class/data/data_source/classroom_api.dart';
-import 'package:handori/features/empty_class/data/repository/empty_class_repository_impl.dart';
-import 'package:handori/features/empty_class/domain/model/building_sort.dart';
-import 'package:handori/features/empty_class/domain/model/nearby_empty_class.dart';
-import 'package:handori/features/empty_class/domain/repository/empty_class_repository.dart';
-import 'package:handori/features/empty_class/model/class_model.dart';
-import 'package:handori/features/empty_class/presentation/provider/building_sort_provider.dart';
-import 'package:handori/features/empty_class/presentation/provider/classroom_query_provider.dart';
-import 'package:handori/features/empty_class/presentation/provider/user_location_provider.dart';
+import 'package:handol/core/network/static_info_dio_provider.dart';
+import 'package:handol/features/empty_class/data/building_locations.dart';
+import 'package:handol/features/empty_class/data/data_source/classroom_api.dart';
+import 'package:handol/features/empty_class/data/repository/empty_class_repository_impl.dart';
+import 'package:handol/features/empty_class/domain/model/building_sort.dart';
+import 'package:handol/features/empty_class/domain/model/nearby_empty_class.dart';
+import 'package:handol/features/empty_class/domain/repository/empty_class_repository.dart';
+import 'package:handol/features/empty_class/model/class_model.dart';
+import 'package:handol/features/empty_class/presentation/provider/building_sort_provider.dart';
+import 'package:handol/features/empty_class/presentation/provider/classroom_query_provider.dart';
+import 'package:handol/features/empty_class/presentation/provider/user_location_provider.dart';
 
 part 'empty_class_provider.g.dart';
 

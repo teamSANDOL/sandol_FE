@@ -1,9 +1,9 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:handori/features/empty_class/data/data_source/classroom_api.dart';
-import 'package:handori/features/empty_class/data/dto/available_classrooms_response.dart';
-import 'package:handori/features/empty_class/data/dto/building_classrooms_response.dart';
-import 'package:handori/features/empty_class/data/repository/empty_class_repository_impl.dart';
-import 'package:handori/features/empty_class/domain/model/classroom_query.dart';
+import 'package:handol/features/empty_class/data/data_source/classroom_api.dart';
+import 'package:handol/features/empty_class/data/dto/available_classrooms_response.dart';
+import 'package:handol/features/empty_class/data/dto/building_classrooms_response.dart';
+import 'package:handol/features/empty_class/data/repository/empty_class_repository_impl.dart';
+import 'package:handol/features/empty_class/domain/model/classroom_query.dart';
 
 class _FakeApi implements ClassroomApi {
   _FakeApi({this.failRooms = false});

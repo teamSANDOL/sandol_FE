@@ -5,13 +5,13 @@ import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:handori/core/network/fallback_interceptor.dart';
-import 'package:handori/core/network/static_info_dio_provider.dart';
-import 'package:handori/core/utils/korea_time.dart';
-import 'package:handori/features/bus/data/data_source/remote_shuttle_schedule.dart';
-import 'package:handori/features/bus/domain/model/shuttle_schedule.dart';
-import 'package:handori/features/bus/domain/usecase/next_shuttle_calculator.dart';
-import 'package:handori/features/bus/presentation/provider/next_shuttle_provider.dart';
+import 'package:handol/core/network/fallback_interceptor.dart';
+import 'package:handol/core/network/static_info_dio_provider.dart';
+import 'package:handol/core/utils/korea_time.dart';
+import 'package:handol/features/bus/data/data_source/remote_shuttle_schedule.dart';
+import 'package:handol/features/bus/domain/model/shuttle_schedule.dart';
+import 'package:handol/features/bus/domain/usecase/next_shuttle_calculator.dart';
+import 'package:handol/features/bus/presentation/provider/next_shuttle_provider.dart';
 
 /// 계약(2026-10-22) 예시를 바탕으로 만든 응답. [segments]로 방향별 구간을
 /// 바꾸고, 주지 않은 방향은 `segments: []`(운행 없음)다.

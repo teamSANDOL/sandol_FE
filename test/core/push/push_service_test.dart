@@ -1,9 +1,9 @@
 import 'dart:async';
 
 import 'package:flutter_test/flutter_test.dart';
-import 'package:handori/core/push/push_service.dart';
-import 'package:handori/core/router/route_paths.dart';
-import 'package:handori/features/notice/domain/model/notice.dart';
+import 'package:handol/core/push/push_service.dart';
+import 'package:handol/core/router/route_paths.dart';
+import 'package:handol/features/notice/domain/model/notice.dart';
 
 class _RecordingRegistrar implements PushTokenRegistrar {
   final calls = <(String, bool)>[];

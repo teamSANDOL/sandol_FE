@@ -1,7 +1,7 @@
-import 'package:handori/features/school_meal/data/data_source/meal_api.dart';
-import 'package:handori/features/school_meal/domain/model/meal.dart';
-import 'package:handori/features/school_meal/domain/model/meal_type.dart';
-import 'package:handori/features/school_meal/domain/repository/meal_repository.dart';
+import 'package:handol/features/school_meal/data/data_source/meal_api.dart';
+import 'package:handol/features/school_meal/domain/model/meal.dart';
+import 'package:handol/features/school_meal/domain/model/meal_type.dart';
+import 'package:handol/features/school_meal/domain/repository/meal_repository.dart';
 
 class MealRepositoryImpl implements MealRepository {
   final MealApi _api;

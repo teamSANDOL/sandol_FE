@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:handori/core/design_system/handol_tokens.dart';
+import 'package:handol/core/design_system/handol_tokens.dart';
 
 /// 시안 값을 흰색(또는 FDFDFD) 위에 합성한 결과와 맞는지 확인한다.
 void main() {

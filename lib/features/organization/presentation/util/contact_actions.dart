@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:url_launcher/url_launcher.dart';
-import 'package:handori/core/utils/external_link.dart';
+import 'package:handol/core/utils/external_link.dart';
 
 /// 조직도 연락처(전화 / 링크 / 이메일) 공용 액션.
 ///

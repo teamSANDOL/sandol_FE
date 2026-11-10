@@ -1,7 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:handori/features/bus/data/data_source/shuttle_schedule_data.dart';
-import 'package:handori/features/bus/domain/model/shuttle_schedule.dart';
-import 'package:handori/features/bus/domain/usecase/shuttle_transfer.dart';
+import 'package:handol/features/bus/data/data_source/shuttle_schedule_data.dart';
+import 'package:handol/features/bus/domain/model/shuttle_schedule.dart';
+import 'package:handol/features/bus/domain/usecase/shuttle_transfer.dart';
 
 /// 내장 시간표로 [direction]의 본교 환승 연결을 "출발→환승" 문자열로.
 List<String> _connections(ShuttleDirection direction, DateTime now) {

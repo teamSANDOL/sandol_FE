@@ -1,7 +1,7 @@
 import 'package:dio/dio.dart';
 import 'package:retrofit/retrofit.dart';
-import 'package:handori/features/organization/data/dto/organization_group_response.dart';
-import 'package:handori/features/organization/data/dto/organization_node_raw_response.dart';
+import 'package:handol/features/organization/data/dto/organization_group_response.dart';
+import 'package:handol/features/organization/data/dto/organization_node_raw_response.dart';
 
 part 'organization_api.g.dart';
 

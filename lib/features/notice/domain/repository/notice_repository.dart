@@ -1,4 +1,4 @@
-import 'package:handori/features/notice/domain/model/notice.dart';
+import 'package:handol/features/notice/domain/model/notice.dart';
 
 abstract class NoticeRepository {
   Future<({List<Notice> items, int total})> getNotices({

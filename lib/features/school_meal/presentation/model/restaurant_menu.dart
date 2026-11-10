@@ -1,8 +1,8 @@
-import 'package:handori/core/design_system/handol_assets.dart';
-import 'package:handori/core/utils/korea_time.dart';
-import 'package:handori/features/school_meal/domain/model/meal.dart';
-import 'package:handori/features/school_meal/domain/model/meal_type.dart';
-import 'package:handori/features/school_meal/domain/model/restaurant.dart';
+import 'package:handol/core/design_system/handol_assets.dart';
+import 'package:handol/core/utils/korea_time.dart';
+import 'package:handol/features/school_meal/domain/model/meal.dart';
+import 'package:handol/features/school_meal/domain/model/meal_type.dart';
+import 'package:handol/features/school_meal/domain/model/restaurant.dart';
 
 /// 한 식당의 한 식사 시간대 (조식/점심/저녁/브런치) — 도메인 모델로부터 파생된
 /// presentation 전용 view model. (DTO 미참조, §1 준수)
