@@ -21,7 +21,7 @@ class HomeMealSection extends ConsumerStatefulWidget {
 }
 
 class _HomeMealSectionState extends ConsumerState<HomeMealSection> {
-  late final PageController _controller;
+  late PageController _controller;
 
   /// provider 변경에 따른 `animateToPage` 진행 중 여부. 이동 중 지나치는 중간
   /// 페이지의 `onPageChanged`가 선택을 되돌려 쓰는 피드백 루프를 막는다.
@@ -79,12 +79,38 @@ class _HomeMealSectionState extends ConsumerState<HomeMealSection> {
     return chip.localToGlobal(Offset(chip.size.width / 2, 0), ancestor: row).dx;
   }
 
+  /// 이웃 카드 사이 간격
+  static const double _cardGap = 12;
+
+  /// 카드 영역은 화면 여백 안쪽이지만 PageView는 화면 폭 전체를 쓴다.
+  /// PageView가 자기 폭 밖의 페이지는 그리지 않으므로, 한 페이지를
+  /// `카드 + 간격`으로 좁혀 이웃 카드가 양옆 여백에 비치게 한다.
+  double? _viewportFraction;
+
   @override
-  void initState() {
-    super.initState();
-    // 상세 페이지에서 고른 식당 카드에서 바로 시작한다.
-    _controller = PageController(initialPage: _selectedIndex())
-      ..addListener(_followPage);
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final screen = MediaQuery.sizeOf(context).width;
+    if (screen <= 0) return;
+    final fraction = ((screen - 2 * HandolMetrics.pageGutter + _cardGap) /
+            screen)
+        .clamp(0.1, 1.0);
+    if (fraction == _viewportFraction) return;
+    final first = _viewportFraction == null;
+    final old = first ? null : _controller;
+    _viewportFraction = fraction;
+    // 상세 페이지에서 고른 식당 카드에서 바로 시작한다. 화면 폭이 바뀌면
+    // 보던 카드에서 다시 시작한다.
+    _controller = PageController(
+      initialPage:
+          old != null && old.hasClients
+              ? (old.page ?? 0).round()
+              : _selectedIndex(),
+      viewportFraction: fraction,
+    )..addListener(_followPage);
+    if (old != null) {
+      WidgetsBinding.instance.addPostFrameCallback((_) => old.dispose());
+    }
     // 상세 페이지에서 먼 식당을 고르고 돌아온 경우 첫 프레임에 칩을 맞춘다.
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) _followPage();
@@ -221,50 +247,65 @@ class _HomeMealSectionState extends ConsumerState<HomeMealSection> {
               child: SizedBox(height: height ?? 0, child: child),
             );
           },
-          child: ClipRect(
-            // 가로는 PageView 폭에서 잘라 옆 카드가 여백 밖에 비치지 않게 하고,
-            // 세로는 카드 그림자가 잘리지 않게 여유를 둔다.
-            clipper: const _ShadowClipper(),
-            child: PageView.builder(
-              controller: _controller,
-              // 카드 그림자가 잘리지 않게 하고, 이웃 카드 높이를 미리 재도록
-              // 양옆 한 화면만큼 미리 빌드한다.
-              clipBehavior: Clip.none,
-              allowImplicitScrolling: true,
-              scrollCacheExtent: const ScrollCacheExtent.viewport(1),
-              itemCount: menus.length,
-              onPageChanged: (index) {
-                if (!_animating) _select(index);
-              },
-              itemBuilder: (context, index) {
-                final menu = menus[index];
-                return OverflowBox(
-                  alignment: Alignment.topCenter,
-                  minHeight: 0,
-                  maxHeight: double.infinity,
-                  child: _HeightReporter(
-                    onHeight: (h) => _setHeight(menu.restaurant.id, h),
-                    child: GestureDetector(
-                      onTap: () {
-                        // 상세 페이지가 동일한 식당으로 진입하도록 선택 ID를 확정한다.
-                        _select(index);
-                        widget.onTap?.call();
-                      },
-                      child: _MealMenuCard(menu: menu),
-                    ),
+          // 섹션 여백 밖으로 화면 끝까지 넓혀, 이웃 카드가 양옆 여백에 비치게 한다.
+          child: LayoutBuilder(
+            builder:
+                (context, c) => OverflowBox(
+                  minWidth: c.maxWidth + 2 * HandolMetrics.pageGutter,
+                  maxWidth: c.maxWidth + 2 * HandolMetrics.pageGutter,
+                  child: ClipRect(
+                    // 가로는 화면 끝까지, 세로는 카드 그림자가 잘리지 않게 여유를 둔다.
+                    clipper: const _ShadowClipper(),
+                    child: _pages(),
                   ),
-                );
-              },
-            ),
+                ),
           ),
         ),
       ],
     );
   }
+
+  Widget _pages() {
+    final menus = widget.menus;
+    return PageView.builder(
+      controller: _controller,
+      // 카드 그림자가 잘리지 않게 하고, 이웃 카드 높이를 미리 재도록
+      // 양옆 한 화면만큼 미리 빌드한다.
+      clipBehavior: Clip.none,
+      allowImplicitScrolling: true,
+      scrollCacheExtent: const ScrollCacheExtent.viewport(1),
+      itemCount: menus.length,
+      onPageChanged: (index) {
+        if (!_animating) _select(index);
+      },
+      itemBuilder: (context, index) {
+        final menu = menus[index];
+        return OverflowBox(
+          alignment: Alignment.topCenter,
+          minHeight: 0,
+          maxHeight: double.infinity,
+          child: _HeightReporter(
+            onHeight: (h) => _setHeight(menu.restaurant.id, h),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: _cardGap / 2),
+              child: GestureDetector(
+                onTap: () {
+                  // 상세 페이지가 동일한 식당으로 진입하도록 선택 ID를 확정한다.
+                  _select(index);
+                  widget.onTap?.call();
+                },
+                child: _MealMenuCard(menu: menu),
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
 }
 
-/// 가로는 자기 폭 그대로, 세로는 카드 그림자(offset 4 + blur 4)만큼 위아래로
-/// 넓힌 클립 영역.
+/// 가로는 자기 폭(화면 폭) 그대로, 세로는 카드 그림자(offset 4 + blur 4)만큼
+/// 위아래로 넓힌 클립 영역.
 class _ShadowClipper extends CustomClipper<Rect> {
   const _ShadowClipper();
 
@@ -351,7 +392,7 @@ class _MealMenuCard extends StatelessWidget {
                 vertical: HandolSpacing.md,
               ),
               child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
                 spacing: HandolSpacing.sm,
                 children: [
                   Row(
@@ -359,25 +400,31 @@ class _MealMenuCard extends StatelessWidget {
                       Expanded(
                         child: Text(
                           menu.name.keepAll,
-                          style: HandolTypography.caption,
+                          style: HandolTypography.caption.strong,
                         ),
                       ),
                       if (price != null)
                         Text(
                           '${price ~/ 1000},${(price % 1000).toString().padLeft(3, '0')}원',
-                          style: HandolTypography.caption.accent,
+                          style: HandolTypography.caption.strong.accent,
                         ),
                     ],
                   ),
+                  // 메뉴는 가운데 정렬 (Figma 2153:244).
                   if (items.isEmpty)
                     // 홈 카드는 늘 오늘 식단이라 날짜 분기는 두지 않는다.
                     Text(
                       '오늘 메뉴가 아직 등록되지 않았어요'.keepAll,
+                      textAlign: TextAlign.center,
                       style: HandolTypography.caption.muted,
                     )
                   else
                     for (final item in items)
-                      Text(item.keepAll, style: HandolTypography.caption),
+                      Text(
+                        item.keepAll,
+                        textAlign: TextAlign.center,
+                        style: HandolTypography.caption,
+                      ),
                 ],
               ),
             ),

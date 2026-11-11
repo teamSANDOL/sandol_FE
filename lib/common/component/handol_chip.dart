@@ -3,8 +3,8 @@ import 'package:handol/core/design_system/handol_tokens.dart';
 
 /// 선택되지 않은 칩의 모양.
 enum HandolChipStyle {
-  /// main40 바탕에 검은 글씨 (홈 2153:231)
-  tint,
+  /// 흰 바탕 · 회색 테두리 · 진회색 글씨 (홈 2153:231)
+  outline,
 
   /// 회색 바탕에 흰 글씨 (학식 2158:731)
   solid,
@@ -17,7 +17,7 @@ class HandolChip extends StatelessWidget {
     required this.label,
     required this.selected,
     required this.onTap,
-    this.style = HandolChipStyle.tint,
+    this.style = HandolChipStyle.outline,
   });
 
   static const double height = 39;
@@ -34,10 +34,16 @@ class HandolChip extends StatelessWidget {
         selected
             ? HandolColors.primary
             : switch (style) {
-              HandolChipStyle.tint => HandolColors.primary40,
+              HandolChipStyle.outline => HandolColors.background,
               HandolChipStyle.solid => HandolColors.inactive,
             },
-    borderRadius: HandolMetrics.radius,
+    shape: RoundedRectangleBorder(
+      borderRadius: HandolMetrics.radius,
+      side:
+          !selected && style == HandolChipStyle.outline
+              ? const BorderSide(color: HandolColors.border)
+              : BorderSide.none,
+    ),
     child: InkWell(
       borderRadius: HandolMetrics.radius,
       onTap: onTap,
@@ -52,7 +58,8 @@ class HandolChip extends StatelessWidget {
               selected
                   ? HandolTypography.caption.strong.onPrimary
                   : switch (style) {
-                    HandolChipStyle.tint => HandolTypography.caption,
+                    HandolChipStyle.outline => HandolTypography.caption
+                        .copyWith(color: HandolColors.textSecondary),
                     HandolChipStyle.solid => HandolTypography.caption.onPrimary,
                   },
         ),

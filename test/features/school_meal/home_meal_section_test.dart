@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:handol/common/component/handol_card.dart';
+import 'package:handol/core/design_system/handol_tokens.dart';
 import 'package:handol/common/component/handol_chip.dart';
 import 'package:handol/core/utils/keep_all.dart';
 import 'package:handol/core/utils/korea_time.dart';
@@ -156,23 +158,30 @@ void main() {
     expect(find.textContaining('운영하지 않아요'), findsNothing);
   });
 
-  testWidgets('옆 카드는 PageView 폭 밖에 그려지지 않는다', (tester) async {
+  testWidgets('옆 카드가 화면 여백 안에서만 살짝 비친다', (tester) async {
     await pump(tester);
     final clip = tester.widget<ClipRect>(
       find.ancestor(of: find.byType(PageView), matching: find.byType(ClipRect)),
     );
     final size = tester.getSize(find.byType(PageView));
     final rect = clip.clipper!.getClip(size);
-    // 가로는 PageView 폭 그대로, 세로는 그림자만큼만 넓다.
+    // 가로는 PageView(화면 폭) 그대로, 세로는 그림자만큼 넓다.
     expect((rect.left, rect.right), (0, size.width));
     expect(rect.top, lessThan(0));
     expect(rect.bottom, greaterThan(size.height));
-    // 정지 상태에서 옆(B) 카드는 PageView 오른쪽 경계 밖에 놓인다.
+    // 정지 상태에서 옆(B) 카드의 왼쪽 끝이 화면 오른쪽 여백(33)에 들어와 비친다.
     final viewRight = tester.getTopRight(find.byType(PageView)).dx;
-    expect(
-      tester.getTopLeft(find.text('B식당 메뉴0'.keepAll, skipOffstage: false)).dx,
-      greaterThanOrEqualTo(viewRight),
-    );
+    final bLeft =
+        tester
+            .getTopLeft(
+              find.ancestor(
+                of: find.text('B식당'.keepAll, skipOffstage: false).last,
+                matching: find.byType(HandolCard, skipOffstage: false),
+              ),
+            )
+            .dx;
+    expect(bLeft, lessThan(viewRight));
+    expect(bLeft, greaterThan(viewRight - HandolMetrics.pageGutter));
   });
 
   testWidgets('카드를 끄는 동안 칩 줄이 손을 떼기 전부터 같이 밀린다', (tester) async {
@@ -209,6 +218,7 @@ void main() {
     expect(chipCenterInView('식당4'), closeTo(viewMid, 1));
 
     final before = chips.pixels;
+    final cardsBefore = cards.pixels;
     final gesture = await tester.startGesture(
       tester.getCenter(find.byType(PageView)),
     );
@@ -217,8 +227,7 @@ void main() {
     await gesture.moveBy(const Offset(-80, 0));
     await tester.pump();
     // 아직 절반도 안 넘겼지만 칩 줄은 끈 비율만큼 이미 움직였다.
-    final t = cards.pixels / cards.viewportDimension - 3; // 4번째 카드 기준 소수부
-    expect(t, greaterThan(0));
+    expect(cards.pixels, greaterThan(cardsBefore));
     expect(chips.pixels, greaterThan(before));
     await gesture.up();
     await tester.pumpAndSettle();
