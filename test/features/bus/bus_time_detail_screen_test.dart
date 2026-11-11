@@ -74,26 +74,32 @@ void main() {
     expect(find.text('2분 뒤 출발'), findsOneWidget);
     expect(find.text('10:05 출발'), findsOneWidget);
 
-    // 다 지난 09시는 접혀 있고, 지금 시간대(10시)가 표의 첫 줄.
-    expect(find.text('09시'), findsNothing);
-    expect(find.text('10시'), findsOneWidget);
-    // 수시운행은 표 끝이 아니라 17시 자리(16시와 18시 사이)에 있다.
-    final segment = find.text('17:00 ~ 18:00 •수시 운행');
+    // 다 지난 09:00~10:00 편은 접혀 있고, 다음 편(10:05)이 표의 첫 줄.
+    expect(find.text('09:00'), findsNothing);
+    expect(find.text('10:00'), findsNothing);
+    expect(find.text('10:05'), findsOneWidget);
+    expect(find.text('다음 출발'), findsOneWidget);
+    expect(find.text('약 2분 후'), findsOneWidget);
+    expect(find.text('약 7분 후'), findsOneWidget); // 10:10
+    // 수시운행은 표 끝이 아니라 17시 자리(16:50과 18:00 사이)에 있다.
+    final segment = find.text('17:00 ~ 18:00');
     expect(segment, findsOneWidget);
+    expect(find.text('수시 운행'), findsOneWidget);
     expect(
       tester.getTopLeft(segment).dy,
       allOf(
-        greaterThan(tester.getTopLeft(find.text('16시')).dy),
-        lessThan(tester.getTopLeft(find.text('18시')).dy),
+        greaterThan(tester.getTopLeft(find.text('16:50')).dy),
+        lessThan(tester.getTopLeft(find.text('18:00')).dy),
       ),
     );
+    expect(find.text('막차'), findsOneWidget);
 
-    await tester.tap(find.text('지난 시간 보기 · 09시'));
+    await tester.tap(find.text('지난 시간 보기 · 09~10시'));
     await tester.pumpAndSettle();
-    expect(find.text('09시'), findsOneWidget);
+    expect(find.text('09:00'), findsOneWidget);
     await tester.tap(find.text('지난 시간 접기'));
     await tester.pumpAndSettle();
-    expect(find.text('09시'), findsNothing);
+    expect(find.text('09:00'), findsNothing);
 
     // 안내 문구는 목록 아래쪽이라 스크롤해야 그려진다.
     await tester.scrollUntilVisible(
@@ -127,6 +133,13 @@ void main() {
     await tester.tap(find.text('정왕역').last);
     await tester.pumpAndSettle();
     expect(find.text('정왕역 → 한국공학대 정문'), findsOneWidget);
+  });
+
+  testWidgets('정류장 이름을 눌러도 선택 시트가 뜬다', (tester) async {
+    await pump(tester, weekday);
+    await tester.tap(find.text('정왕역'));
+    await tester.pumpAndSettle();
+    expect(find.text('도착 정류장'), findsOneWidget);
   });
 
   testWidgets('제2캠퍼스를 도착으로 고르면 본교 → 제2캠퍼스(내장 시간표)', (tester) async {

@@ -40,9 +40,6 @@ abstract final class HandolColors {
   static const link = Color(0xCC3882D3);
   static const error = AppColors.danger;
 
-  /// main40. 선택되지 않은 칩 · 홈 하단 광원
-  static const primary40 = Color(0x663882D3);
-
   /// primary 20%(field)를 배경 위에 합성한 불투명 값. 아래 테두리나
   /// 그림자가 비치면 안 되는 곳(겹치는 원형 버튼, 그림자 있는 카드)에 쓴다.
   static const primarySoft = Color(0xFFD5E4F4);
@@ -55,6 +52,9 @@ abstract final class HandolColors {
 
   /// 정류장 이름처럼 본문보다 한 단계 약한 진회색 (Figma 2156:483)
   static const textSecondary = Color(0xFF404756);
+
+  /// 시간표 '수시 운행' 배지 (Figma 2683:3198)
+  static const orange = Color(0xFFD97745);
 
   /// MAIN RED. 회원탈퇴처럼 되돌릴 수 없는 동작
   static const red = Color(0xFFC9273F);

@@ -55,6 +55,8 @@ abstract final class HandolAssets {
   static const busSwap = '$_bus/swap.svg'; // 2156:474
   static const busRefresh = '$_bus/refresh.svg'; // 2156:508
   static const busNext = '$_bus/bus.svg'; // 2156:500
+  /// 시간표 줄 아이콘. 몸체가 currentColor라 줄 상태에 따라 색을 바꾼다.
+  static const busRow = '$_bus/bus_row.svg'; // 2683:3146
 
   // ── 학식(2158:714) ───────────────────────────────────────────
   static const _meal = 'assets/design_system/meal';

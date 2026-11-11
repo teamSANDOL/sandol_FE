@@ -324,10 +324,10 @@ void main() {
         await tester.pumpAndSettle();
         expect(tester.takeException(), isNull);
         expect(find.text('전체 시간표'), findsOneWidget);
-        // 지난 09시는 접혀 있고 지금 시간대(10시)가 첫 줄이다.
-        expect(find.text('10시'), findsOneWidget);
+        // 지난 편은 접혀 있고 다음 편(10:05)이 첫 줄이다.
+        expect(find.text('10:05'), findsOneWidget);
         // 한 줄이면 높이가 글자 한 줄 안쪽이다(줄바꿈되면 두 배 가까이 커진다).
-        expect(tester.getSize(find.text('10시')).height, lessThan(30 * scale));
+        expect(tester.getSize(find.text('10:05')).height, lessThan(30 * scale));
 
         // 가운데 전환 버튼이 출발지 이름을 덮지 않는다.
         final name = tester.getRect(find.text('한국공학대 정문').first);
