@@ -4,15 +4,12 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:go_router/go_router.dart';
 import 'package:handol/common/component/app_top_bar.dart';
 import 'package:handol/common/component/handol_scroll_gradient.dart';
-import 'package:handol/common/component/coming_soon_snackbar.dart';
 import 'package:handol/common/component/handol_section.dart';
 import 'package:handol/common/layout/root_shell.dart';
 import 'package:handol/core/design_system/handol_assets.dart';
 import 'package:handol/core/design_system/handol_tokens.dart';
 import 'package:handol/core/router/route_paths.dart';
-import 'package:handol/core/utils/external_link.dart';
 import 'package:handol/core/utils/keep_all.dart';
-import 'package:handol/core/utils/korea_time.dart';
 import 'package:handol/features/bus/component/bus_time_card.dart';
 import 'package:handol/features/bus/presentation/provider/next_shuttle_provider.dart';
 import 'package:handol/features/empty_class/component/empty_class_card.dart';
@@ -21,9 +18,8 @@ import 'package:handol/features/empty_class/presentation/provider/empty_class_fo
 import 'package:handol/features/empty_class/presentation/provider/empty_class_provider.dart';
 import 'package:handol/features/empty_class/presentation/provider/user_location_provider.dart';
 import 'package:handol/features/home/component/organization_quick_card.dart';
-import 'package:handol/features/home/component/schedule_section.dart';
-import 'package:handol/features/home/model/schedule_event.dart';
-import 'package:handol/features/home/presentation/provider/home_static_provider.dart';
+import 'package:handol/features/home/component/home_banner_carousel.dart';
+import 'package:handol/features/home/data/home_banners.dart';
 import 'package:handol/features/organization/presentation/provider/organization_provider.dart';
 import 'package:handol/features/school_meal/presentation/model/restaurant_menu.dart';
 import 'package:handol/features/school_meal/presentation/provider/meal_list_notifier.dart';
@@ -31,7 +27,7 @@ import 'package:handol/features/school_meal/presentation/provider/restaurant_lis
 import 'package:handol/features/school_meal/presentation/widget/meal_card.dart';
 import 'package:handol/shared/widget/handol_loading_indicator.dart';
 
-/// 홈 (Figma 2153:219)
+/// 홈 (Figma 홈_re 2890:2393)
 class HomeScreen extends ConsumerStatefulWidget {
   const HomeScreen({super.key});
 
@@ -40,9 +36,6 @@ class HomeScreen extends ConsumerStatefulWidget {
 }
 
 class _HomeScreenState extends ConsumerState<HomeScreen> {
-  /// 빈 주요일정 카드를 X로 닫았는가. 앱을 다시 켜면 다시 보인다.
-  bool _emptyScheduleClosed = false;
-
   /// 배경 그라데이션을 스크롤 내용과 함께 움직이기 위해 쓴다.
   final _scroll = ScrollController();
 
@@ -57,9 +50,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final scheduleAsync = ref.watch(homeScheduleProvider);
-    final schedule = scheduleAsync.valueOrNull;
-
     return Scaffold(
       backgroundColor: HandolColors.background,
       appBar: AppTopBar(
@@ -69,7 +59,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
         // 로고를 본문 여백(33)에 맞춘다. 뒤로가기 없는 바는 앞에 12를 더 둔다.
         horizontalPadding: HandolMetrics.pageGutter - 12,
       ),
-      // 시안 2153:219 는 프레임이 스크롤 전체(1900)라 배경도 내용 전체에 번진다.
+      // 시안 2890:2393 은 프레임이 스크롤 전체(1900)라 배경도 내용 전체에 번진다.
       body: HandolScrollGradient(
         controller: _scroll,
         child: RefreshIndicator(
@@ -90,25 +80,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
               crossAxisAlignment: CrossAxisAlignment.stretch,
               spacing: HandolSpacing.xl,
               children: [
-                // 고정 해제 목록을 읽기 전에는 섹션을 비워 둔다.
-                if (scheduleAsync.hasValue &&
-                    (schedule != null || !_emptyScheduleClosed))
-                  ScheduleSection(
-                    event: schedule,
-                    today: KoreaTime.now(),
-                    onClose: switch (schedule) {
-                      final ScheduleEvent event =>
-                        () => ref
-                            .read(dismissedSchedulesProvider.notifier)
-                            .dismiss(event.id),
-                      null => () => setState(() => _emptyScheduleClosed = true),
-                    },
-                    // 일정 목록 화면이 생기기 전까지 링크 없는 일정은 준비중 안내
-                    onDetail: switch (schedule?.url) {
-                      final String url => () => openExternalLink(context, url),
-                      null => () => showComingSoonSnackBar(context),
-                    },
-                  ),
+                const HomeBannerCarousel(banners: homeBanners),
                 HandolSection(title: '학식', child: _buildMealSection()),
                 HandolSection(
                   title: '셔틀버스',
@@ -161,7 +133,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   /// 어느 하나가 실패해도 인디케이터는 정상적으로 내려간다.
   Future<void> _refreshAll() async {
     ref.read(classroomQueryControllerProvider.notifier).syncToNow();
-    ref.invalidate(homeScheduleProvider);
     ref.invalidate(restaurantListNotifierProvider);
     ref.invalidate(mealListNotifierProvider);
     ref.read(shuttleClockProvider.notifier).refresh();

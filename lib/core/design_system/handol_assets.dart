@@ -16,18 +16,9 @@ abstract final class HandolAssets {
   // ── 홈(2153:219) ─────────────────────────────────────────────
   static const _home = 'assets/design_system/home';
   static const logo = '$_home/logo.svg'; // 2530:10698 (한돌이 BI)
+  // 홈 광고 카드 (2901:1129, 글자까지 구운 3배 그림). 디자이너 임시 광고.
+  static const adFestival = '$_home/ad_festival.jpg';
   static const user = '$_home/user.svg'; // 2083:26
-  static const close = '$_home/close.svg'; // 2158:706
-  static const star = '$_home/star.svg'; // 2156:657
-  static const starMuted = '$_home/star_muted.svg'; // 2270:508
-
-  // 잠자는 한돌이(2270:510 외 4개 레이어). 겹쳐 그리는 위치는
-  // ScheduleSection의 _SleepingMascot에 있다.
-  static const mascotBase = '$_home/mascot_base.svg'; // 2270:510
-  static const mascotMouth = '$_home/mascot_mouth.svg'; // 2270:520
-  static const mascotEyes = '$_home/mascot_eyes.svg'; // 2270:521
-  static const mascotZ1 = '$_home/mascot_z1.svg'; // 2270:524
-  static const mascotZ2 = '$_home/mascot_z2.svg'; // 2270:525
   // 두 셰브런은 왼쪽을 향한다. 시안처럼 180° 돌려 쓴다.
   static const chevron = '$_home/chevron.svg'; // 2153:382
   static const chevronMuted = '$_home/chevron_muted.svg'; // 2156:439

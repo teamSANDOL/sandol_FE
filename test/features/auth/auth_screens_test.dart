@@ -15,8 +15,7 @@ import 'package:handol/features/auth/domain/model/auth_session.dart';
 import 'package:handol/features/auth/presentation/provider/auth_provider.dart';
 import 'package:handol/features/auth/screen/login_screen.dart';
 import 'package:handol/features/empty_class/presentation/provider/empty_class_provider.dart';
-import 'package:handol/features/home/model/schedule_event.dart';
-import 'package:handol/features/home/presentation/provider/home_static_provider.dart';
+import 'package:handol/features/empty_class/model/class_model.dart';
 import 'package:handol/features/home/screen/splash_screen.dart';
 import 'package:handol/features/organization/presentation/provider/organization_provider.dart';
 import 'package:handol/features/school_meal/domain/model/meal.dart';
@@ -59,7 +58,7 @@ Future<GoRouter> host(
   Size size = const Size(412, 917),
   double textScale = 1,
   Future<AuthSession?>? session,
-  Future<ScheduleEvent?>? schedule,
+  Future<List<EmptyClass>>? emptyClasses,
 }) async {
   tester.view.physicalSize = size;
   tester.view.devicePixelRatio = 1;
@@ -81,12 +80,11 @@ Future<GoRouter> host(
       overrides: [
         authNotifierProvider.overrideWith(() => _TestAuth(session)),
         // 스플래시가 선로딩하는 홈 데이터. 테스트에선 네트워크 대신 빈 값.
-        homeScheduleProvider.overrideWith(
-          (_) => schedule ?? Future.value(null),
-        ),
         restaurantListNotifierProvider.overrideWith(_EmptyRestaurants.new),
         mealListNotifierProvider().overrideWith(_EmptyMeals.new),
-        emptyClassesProvider.overrideWith((_) async => []),
+        emptyClassesProvider.overrideWith(
+          (_) => emptyClasses ?? Future.value(const []),
+        ),
         pinnedOrganizationUnitsProvider.overrideWith((_) async => []),
       ],
       child: MaterialApp.router(
@@ -254,16 +252,16 @@ void main() {
   });
 
   testWidgets('스플래시는 홈 데이터 선로딩이 끝나야 홈으로 간다', (tester) async {
-    final schedule = Completer<ScheduleEvent?>();
+    final emptyClasses = Completer<List<EmptyClass>>();
     final router = await host(
       tester,
       initial: RoutePaths.splash,
       session: Future.value(const AuthSession(accessToken: 'test-only')),
-      schedule: schedule.future,
+      emptyClasses: emptyClasses.future,
     );
     await tester.pump(const Duration(seconds: 1));
     expect(router.routeInformationProvider.value.uri.path, RoutePaths.splash);
-    schedule.complete(null);
+    emptyClasses.complete(const []);
     await tester.pumpAndSettle();
     expect(find.text('HOME'), findsOneWidget);
   });

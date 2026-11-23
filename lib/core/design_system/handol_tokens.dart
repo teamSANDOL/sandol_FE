@@ -16,7 +16,7 @@ abstract final class HandolGradients {
     stops: [0, 0.7212, 1],
   );
 
-  /// 홈 주요일정 카드 (Frame 2147234779, 345x142). 오른쪽 아래의 진한 파랑에서
+  /// 홈 기능 소개 배너 (옛 주요일정 카드 Frame 2147234779, 345x142). 오른쪽 아래의 진한 파랑에서
   /// 왼쪽 위의 밝은 파랑으로 번진다. 시안 변환 행렬에서 구한 시작·끝점이다.
   static const primaryCard = LinearGradient(
     begin: Alignment(0.4029, 2.4699),

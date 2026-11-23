@@ -9,7 +9,6 @@ import 'package:handol/core/router/route_paths.dart';
 import 'package:handol/features/auth/domain/model/auth_session.dart';
 import 'package:handol/features/auth/presentation/provider/auth_provider.dart';
 import 'package:handol/features/empty_class/presentation/provider/empty_class_provider.dart';
-import 'package:handol/features/home/presentation/provider/home_static_provider.dart';
 import 'package:handol/features/organization/presentation/provider/organization_provider.dart';
 import 'package:handol/features/school_meal/presentation/provider/meal_list_notifier.dart';
 import 'package:handol/features/school_meal/presentation/provider/restaurant_list_notifier.dart';
@@ -29,7 +28,6 @@ class _SplashscreenState extends ConsumerState<Splashscreen> {
   /// 홈 첫 화면이 쓰는 네트워크 데이터. 위치(빈 강의실 거리순)는 권한 창이
   /// 스플래시 위에 뜨지 않도록 홈에서 받는다. 셔틀은 내장 시간표라 제외.
   List<ProviderListenable<Future<Object?>>> get _homeData => [
-    homeScheduleProvider.future,
     restaurantListNotifierProvider.future,
     mealListNotifierProvider().future,
     emptyClassesProvider.future,
