@@ -435,7 +435,7 @@ class _RestaurantCard extends StatelessWidget {
                     height: 89,
                     child: RemoteImage(
                       url: menu.photoUrlFor(slot),
-                      asset: photo,
+                      asset: photo ?? HandolAssets.mealNoPhoto,
                     ),
                   ),
                 ),

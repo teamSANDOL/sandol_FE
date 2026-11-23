@@ -64,6 +64,8 @@ abstract final class HandolAssets {
   static const mealLunch = '$_meal/lunch.svg'; // 2158:765
   static const mealDinner = '$_meal/dinner.svg'; // 2158:790
   static const mealPin = '$_meal/pin.svg'; // 2158:744
+  // 사진 없는 식당 (2901:1237, 89 정사각을 102×89 칸에 맞게 흰 여백을 더함)
+  static const mealNoPhoto = '$_meal/no_photo.jpg';
 
   // ── 빈 강의실(2158:806) ─────────────────────────────────────
   static const floor = 'assets/design_system/empty_class/floor.svg'; // 2158:827
