@@ -10,6 +10,7 @@ import 'package:handol/common/layout/root_shell.dart';
 import 'package:handol/core/design_system/handol_assets.dart';
 import 'package:handol/core/design_system/handol_tokens.dart';
 import 'package:handol/core/utils/keep_all.dart';
+import 'package:handol/features/bus/component/shuttle_timetable_section.dart';
 import 'package:handol/features/bus/domain/model/shuttle_schedule.dart';
 import 'package:handol/features/bus/domain/usecase/next_shuttle_calculator.dart';
 import 'package:handol/features/bus/domain/usecase/shuttle_transfer.dart';
@@ -17,7 +18,7 @@ import 'package:handol/features/bus/presentation/provider/next_shuttle_provider.
 import 'package:handol/features/bus/presentation/provider/shuttle_direction_provider.dart';
 import 'package:handol/features/empty_class/presentation/provider/user_location_provider.dart';
 
-/// 셔틀버스 탭 (Figma 2156:451).
+/// 셔틀버스 탭 (Figma 2683:2828).
 ///
 /// 출발·도착 카드, 다음 버스 카드, 오늘 전체 시간표를 한 화면에 둔다.
 /// 다음 버스·지나간 시각 판정은 홈 카드와 같은 [shuttleClockProvider] ·
@@ -76,9 +77,6 @@ class _BusTimeDetailScreenState extends ConsumerState<BusTimeDetailScreen> {
     final next = ref.watch(
       nextShuttleProvider(route: direction.route, direction: direction),
     );
-    final timetable = ref.watch(
-      shuttleTimetableProvider(route: direction.route, direction: direction),
-    );
     final stops = ref.watch(shuttleStopsProvider);
     final transfers = ref.watch(shuttleTransfersProvider(direction: direction));
     final needsReview =
@@ -133,55 +131,26 @@ class _BusTimeDetailScreenState extends ConsumerState<BusTimeDetailScreen> {
                         connections: transfers,
                       ),
                     ],
-                  ],
-                ),
-              ),
-              // 시간표를 내려 읽는 동안 어느 방면인지 위에 붙여 둔다.
-              // 헤더 뒤에는 그 자리의 배경 그라데이션을 그대로 깔아, 아래로
-              // 지나가는 표는 가리고 배경과는 이음매 없이 맞춘다.
-              SliverLayoutBuilder(
-                builder:
-                    (context, c) => PinnedHeaderSliver(
-                      child: HandolGradientSlice(
-                        top: c.precedingScrollExtent + c.scrollOffset,
-                        extent:
-                            HandolScrollGradient.extentOf(_scroll) ??
-                            MediaQuery.sizeOf(context).height,
-                        child: Padding(
-                          padding: const EdgeInsets.fromLTRB(
-                            HandolMetrics.pageGutter,
-                            HandolSpacing.sm,
-                            HandolMetrics.pageGutter,
-                            12,
-                          ),
-                          child: _TimetableHeader(
-                            route:
-                                '${stops[direction.origin]!.name} → '
-                                '${stops[direction.destination]!.name}'
-                                '${direction.viaSchool ? ' (${stops['main_campus']!.name} 경유)' : ''}',
-                          ),
-                        ),
-                      ),
-                    ),
-              ),
-              SliverPadding(
-                padding: const EdgeInsets.fromLTRB(
-                  HandolMetrics.pageGutter,
-                  0,
-                  HandolMetrics.pageGutter,
-                  HandolSpacing.xl,
-                ),
-                sliver: SliverToBoxAdapter(
-                  child: _TimetableCard(
-                    // 방면이 바뀌면 지난 시간 펼침도 처음(접힘)으로.
-                    key: ValueKey(direction),
-                    timetable: timetable,
-                    nowMinutes: now.hour * 60 + now.minute,
-                    footer: _FooterNote(
-                      lastUpdated: now,
+                    const SizedBox(height: 28),
+                    ShuttleTimetableSection(
+                      // 방면이 바뀌면 지난 시간 펼침도 처음(접힘)으로.
+                      key: ValueKey(direction),
+                      now: now,
                       needsReview: needsReview,
+                      cards: [
+                        for (final d in [direction, direction.reversed])
+                          (
+                            title: _routeTitle(d, stops),
+                            timetable: ref.watch(
+                              shuttleTimetableProvider(
+                                route: d.route,
+                                direction: d,
+                              ),
+                            ),
+                          ),
+                      ],
                     ),
-                  ),
+                  ],
                 ),
               ),
             ],
@@ -191,6 +160,11 @@ class _BusTimeDetailScreenState extends ConsumerState<BusTimeDetailScreen> {
     );
   }
 }
+
+/// 시간표 카드 제목 `출발 → 도착` (Figma 2905:2318)
+String _routeTitle(ShuttleDirection d, Map<String, ShuttleStop> stops) =>
+    '${stops[d.origin]!.name} → ${stops[d.destination]!.name}'
+    '${d.viaSchool ? ' (${stops['main_campus']!.name} 경유)' : ''}';
 
 /// 고를 수 있는 정류장(서버 정류장 id). 이름·안내는 [shuttleStopsProvider]에서 찾는다.
 const _stopIds = ['main_campus', 'jeongwang', 'campus2'];
@@ -553,371 +527,6 @@ class _TransferCardState extends State<_TransferCard> {
           ],
         ),
       ),
-    );
-  }
-}
-
-// ── 전체 시간표 (2156:511 · 2156:514) ────────────────────────────────────────
-
-class _TimetableHeader extends StatelessWidget {
-  const _TimetableHeader({required this.route});
-
-  /// `출발 → 도착` 정류장 이름.
-  final String route;
-
-  @override
-  Widget build(BuildContext context) => ConstrainedBox(
-    constraints: const BoxConstraints(minHeight: 30),
-    // 큰 글꼴에서 제목과 경로가 한 줄에 안 들어가면 경로가 아래 줄로 내려간다.
-    child: Wrap(
-      alignment: WrapAlignment.spaceBetween,
-      crossAxisAlignment: WrapCrossAlignment.center,
-      spacing: HandolSpacing.sm,
-      children: [
-        const Text('전체 시간표', style: HandolTypography.title),
-        Text(route, style: HandolTypography.body.muted),
-      ],
-    ),
-  );
-}
-
-/// 출발 한 편(또는 수시운행 같은 구간)마다 한 줄 (Figma 2683:3145).
-/// 다음 출발 · 수시 운행 · 막차는 배지로, 오른쪽엔 남은 시간을 적는다.
-/// 다 지나간 줄은 맨 위 '지난 시간 보기' 한 줄로 접어 두어 지금 시각이
-/// 표의 첫 줄이 되게 한다. 안내 문구는 카드 맨 아래에 둔다.
-class _TimetableCard extends StatefulWidget {
-  const _TimetableCard({
-    super.key,
-    required this.timetable,
-    required this.nowMinutes,
-    required this.footer,
-  });
-
-  final ShuttleTimetable? timetable;
-  final int nowMinutes;
-  final Widget footer;
-
-  @override
-  State<_TimetableCard> createState() => _TimetableCardState();
-}
-
-class _TimetableCardState extends State<_TimetableCard> {
-  bool _showPast = false;
-
-  @override
-  Widget build(BuildContext context) {
-    final now = widget.nowMinutes;
-    final entries = widget.timetable?.entries ?? const <ShuttleEntry>[];
-    // 다음 버스 카드와 같은 기준: 지금 이후 첫 정시편.
-    final next =
-        entries
-            .where((e) => !e.isSegment && e.time.minutesOfDay >= now)
-            .firstOrNull;
-    // 정시편으로 하루가 끝날 때만 막차. 뒤에 수시운행이 이어지면 막차가 아니다.
-    final last = entries.lastOrNull;
-
-    bool isPast(ShuttleEntry e) =>
-        e.isSegment
-            ? e.endTime != null && e.endTime!.minutesOfDay <= now
-            : e.time.minutesOfDay < now;
-    Widget row(ShuttleEntry e) => _EntryRow(
-      entry: e,
-      nowMinutes: now,
-      past: isPast(e),
-      isNext: identical(e, next),
-      isLast: !e.isSegment && identical(e, last),
-    );
-
-    final past = [
-      for (final e in entries)
-        if (isPast(e)) e,
-    ];
-    final upcoming = [
-      for (final e in entries)
-        if (!isPast(e)) e,
-    ];
-    String hh(ShuttleEntry e) => e.time.hour.toString().padLeft(2, '0');
-    final pastLabel = switch (past) {
-      [] => '',
-      [final only] => '${hh(only)}시',
-      [final first, ..., final last] when hh(first) == hh(last) =>
-        '${hh(first)}시',
-      [final first, ..., final last] => '${hh(first)}~${hh(last)}시',
-    };
-
-    final rows = <Widget>[
-      if (past.isNotEmpty)
-        _PastToggle(
-          expanded: _showPast,
-          label: pastLabel,
-          onTap: () => setState(() => _showPast = !_showPast),
-        ),
-      if (_showPast) ...[for (final e in past) row(e)],
-      ...[for (final e in upcoming) row(e)],
-    ];
-
-    return HandolCard(
-      padding: const EdgeInsets.only(top: 22, bottom: 28),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          if (entries.isEmpty)
-            const _CenteredNote('오늘은 셔틀을 운행하지 않아요')
-          else ...[
-            for (final (i, r) in rows.indexed) ...[
-              if (i > 0)
-                const Divider(
-                  height: 1,
-                  thickness: 1,
-                  color: HandolColors.border,
-                ),
-              r,
-            ],
-            if (upcoming.isEmpty) const _CenteredNote('오늘 남은 셔틀이 없어요'),
-          ],
-          const SizedBox(height: 18),
-          Padding(
-            padding: const EdgeInsets.symmetric(
-              horizontal: HandolMetrics.cardInset,
-            ),
-            child: widget.footer,
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-/// 시간표 줄의 안쪽 여백 (시안: 왼쪽 17, 오른쪽 23)
-const _rowPadding = EdgeInsets.fromLTRB(17, 6, 23, 5);
-
-class _CenteredNote extends StatelessWidget {
-  const _CenteredNote(this.text);
-
-  final String text;
-
-  @override
-  Widget build(BuildContext context) => Padding(
-    padding: const EdgeInsets.symmetric(vertical: HandolSpacing.md),
-    child: Text(
-      text,
-      textAlign: TextAlign.center,
-      style: HandolTypography.body.inactive,
-    ),
-  );
-}
-
-/// `🚌 14:35   [다음 출발]   약 8분 후`
-class _EntryRow extends StatelessWidget {
-  const _EntryRow({
-    required this.entry,
-    required this.nowMinutes,
-    required this.past,
-    required this.isNext,
-    required this.isLast,
-  });
-
-  final ShuttleEntry entry;
-  final int nowMinutes;
-  final bool past;
-  final bool isNext;
-  final bool isLast;
-
-  /// `약 8분 후` · `약 1시간 5분 후`
-  static String eta(int minutes) {
-    if (minutes <= 0) return '곧 출발';
-    final h = minutes ~/ 60;
-    final m = minutes % 60;
-    if (h == 0) return '약 $m분 후';
-    return m == 0 ? '약 $h시간 후' : '약 $h시간 $m분 후';
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final e = entry;
-    final end = e.endTime;
-    final time = switch ((e.isSegment, end)) {
-      (false, _) => e.time.label,
-      (true, null) => '${e.time.label} 이후',
-      (true, final ShuttleTime end) => '${e.time.label} ~ ${end.label}',
-    };
-    final start = e.time.minutesOfDay;
-    final running = e.isSegment && start <= nowMinutes;
-    final remaining =
-        past
-            ? null
-            : running
-            ? '운행 중'
-            : eta(start - nowMinutes);
-    final color =
-        past
-            ? HandolColors.inactive
-            : isNext
-            ? HandolColors.primary
-            : HandolColors.textSecondary;
-    final badge = switch (e.type) {
-      ShuttleEntryType.flexible => ('수시 운행', HandolColors.orange),
-      ShuttleEntryType.arrivalBoarding => ('도착버스 탑승', HandolColors.orange),
-      _ when isLast => ('막차', isNext ? HandolColors.primary : color),
-      _ when isNext => ('다음 출발', HandolColors.primary),
-      _ => null,
-    };
-    final caption = HandolTypography.caption;
-
-    return Padding(
-      padding: _rowPadding,
-      child: ConstrainedBox(
-        constraints: const BoxConstraints(minHeight: 24),
-        child: Row(
-          spacing: HandolSpacing.sm,
-          children: [
-            // 시안의 시각 : 남은 시간 칸 비율(154 : 86)에 맞춘 3 : 2.
-            Expanded(
-              flex: 3,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                spacing: 2,
-                children: [
-                  Row(
-                    spacing: HandolSpacing.xs,
-                    children: [
-                      SvgPicture.asset(
-                        HandolAssets.busRow,
-                        width: HandolMetrics.iconSize,
-                        height: HandolMetrics.iconSize,
-                        theme: SvgTheme(currentColor: color),
-                      ),
-                      // 큰 글꼴에서도 시각은 한 줄. 칸이 모자라면 줄인다.
-                      Flexible(
-                        child: FittedBox(
-                          fit: BoxFit.scaleDown,
-                          alignment: Alignment.centerLeft,
-                          child: Text(
-                            time,
-                            style: HandolTypography.body.strong.copyWith(
-                              color: color,
-                            ),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                  if (e.boardingNote case final String note)
-                    Padding(
-                      padding: const EdgeInsets.only(left: 28),
-                      child: Text(note, style: caption.inactive),
-                    ),
-                ],
-              ),
-            ),
-            // 배지는 줄마다 같은 칸에 오도록 시각 · 남은 시간 사이에 고정 칸을 둔다.
-            if (badge case (final String label, final Color bg))
-              _Badge(label: label, color: past ? HandolColors.inactive : bg)
-            else
-              const SizedBox(width: _Badge.minWidth),
-            Expanded(
-              flex: 2,
-              child: Align(
-                alignment: Alignment.centerRight,
-                child: FittedBox(
-                  fit: BoxFit.scaleDown,
-                  child: Text(
-                    remaining ?? '',
-                    style: isNext ? caption.accent : caption.muted,
-                  ),
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-/// 둥근 상태 배지 (시안 65×24, 모서리 30)
-class _Badge extends StatelessWidget {
-  const _Badge({required this.label, required this.color});
-
-  final String label;
-  final Color color;
-
-  static const minWidth = 65.0;
-
-  @override
-  Widget build(BuildContext context) => Container(
-    constraints: const BoxConstraints(minWidth: minWidth, minHeight: 24),
-    padding: const EdgeInsets.symmetric(horizontal: HandolSpacing.sm),
-    alignment: Alignment.center,
-    decoration: BoxDecoration(
-      color: color,
-      borderRadius: BorderRadius.circular(30),
-    ),
-    child: Text(label, style: HandolTypography.caption.onPrimary),
-  );
-}
-
-/// 접어 둔 지난 시간을 펼치고 접는 한 줄
-class _PastToggle extends StatelessWidget {
-  const _PastToggle({
-    required this.expanded,
-    required this.label,
-    required this.onTap,
-  });
-
-  final bool expanded;
-
-  /// `09~13시`
-  final String label;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) => InkWell(
-    onTap: onTap,
-    child: Padding(
-      padding: _rowPadding,
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        spacing: HandolSpacing.xs,
-        children: [
-          Flexible(
-            child: Text(
-              expanded ? '지난 시간 접기' : '지난 시간 보기 · $label',
-              style: HandolTypography.body.inactive,
-            ),
-          ),
-          Icon(
-            expanded
-                ? Icons.keyboard_arrow_up_rounded
-                : Icons.keyboard_arrow_down_rounded,
-            size: 20,
-            color: HandolTypography.body.inactive.color,
-          ),
-        ],
-      ),
-    ),
-  );
-}
-
-// ── 안내 (2683:2995) ─────────────────────────────────────────────────────────
-
-class _FooterNote extends StatelessWidget {
-  const _FooterNote({required this.lastUpdated, required this.needsReview});
-
-  final DateTime lastUpdated;
-
-  /// 서버가 최신 시간표 검증에 실패해 직전 정상본을 주는 중인지.
-  final bool needsReview;
-
-  @override
-  Widget build(BuildContext context) {
-    final hh = lastUpdated.hour.toString().padLeft(2, '0');
-    final mm = lastUpdated.minute.toString().padLeft(2, '0');
-    final review = needsReview ? '\n최신 시간표를 확인 중이라 실제와 다를 수 있어요.' : '';
-    return Text(
-      '시간표는 학교 사정에 따라 변경될 수 있어요.$review\n마지막 업데이트 • 오늘 $hh:$mm',
-      textAlign: TextAlign.center,
-      style: HandolTypography.caption.inactive,
     );
   }
 }

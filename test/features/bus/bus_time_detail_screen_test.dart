@@ -69,34 +69,34 @@ void main() {
     await pump(tester, weekday);
     expect(find.text('한국공학대 정문'), findsOneWidget);
     expect(find.text('정왕역'), findsOneWidget);
+    // 시간표 카드 제목: 선택한 방향과 그 반대 방향 두 장 (Figma 2905:2318 · 2905:2321).
     expect(find.text('한국공학대 정문 → 정왕역'), findsOneWidget);
+    expect(find.text('정왕역 → 한국공학대 정문'), findsOneWidget);
+    expect(find.text('평일'), findsOneWidget);
 
     expect(find.text('2분 뒤 출발'), findsOneWidget);
     expect(find.text('10:05 출발'), findsOneWidget);
 
-    // 다 지난 09:00~10:00 편은 접혀 있고, 다음 편(10:05)이 표의 첫 줄.
+    // 다 지난 09:00~10:00 편은 접혀 있고, 다음 편(10:05)이 첫 카드의 첫 줄.
     expect(find.text('09:00'), findsNothing);
     expect(find.text('10:00'), findsNothing);
     expect(find.text('10:05'), findsOneWidget);
-    expect(find.text('다음 출발'), findsOneWidget);
-    expect(find.text('약 2분 후'), findsOneWidget);
-    expect(find.text('약 7분 후'), findsOneWidget); // 10:10
+    expect(find.text('다음 출발'), findsNWidgets(2)); // 카드마다 하나
     // 수시운행은 표 끝이 아니라 17시 자리(16:50과 18:00 사이)에 있다.
-    final segment = find.text('17:00 ~ 18:00');
-    expect(segment, findsOneWidget);
-    expect(find.text('수시 운행'), findsOneWidget);
+    final segment = find.text('17:00 ~ 18:00').first;
+    expect(find.text('수시 운행'), findsWidgets);
     expect(
       tester.getTopLeft(segment).dy,
       allOf(
-        greaterThan(tester.getTopLeft(find.text('16:50')).dy),
-        lessThan(tester.getTopLeft(find.text('18:00')).dy),
+        greaterThan(tester.getTopLeft(find.text('16:50').first).dy),
+        lessThan(tester.getTopLeft(find.text('18:00').first).dy),
       ),
     );
-    expect(find.text('막차'), findsOneWidget);
+    expect(find.text('막차'), findsWidgets);
 
-    await tester.tap(find.text('지난 시간 보기 · 09~10시'));
+    await tester.tap(find.text('지난 시간 보기'));
     await tester.pumpAndSettle();
-    expect(find.text('09:00'), findsOneWidget);
+    expect(find.text('09:00'), findsWidgets);
     await tester.tap(find.text('지난 시간 접기'));
     await tester.pumpAndSettle();
     expect(find.text('09:00'), findsNothing);
@@ -108,8 +108,6 @@ void main() {
       scrollable: find.byType(Scrollable).first,
     );
     expect(find.textContaining('마지막 업데이트 • 오늘 10:03'), findsOneWidget);
-    // 끝까지 내려도 방면 표시는 위에 붙어 있다.
-    expect(tester.getTopLeft(find.text('한국공학대 정문 → 정왕역')).dy, greaterThan(0));
     expect(tester.takeException(), isNull);
   });
 
@@ -285,7 +283,7 @@ void main() {
   testWidgets('주말: 미운행 안내', (tester) async {
     await pump(tester, DateTime.utc(2026, 10, 4, 10, 0)); // 일요일
     expect(find.text('운행 안함'), findsOneWidget);
-    expect(find.text('오늘은 셔틀을 운행하지 않아요'), findsOneWidget);
+    expect(find.text('오늘은 셔틀을 운행하지 않아요'), findsNWidgets(2)); // 카드마다
   });
 
   testWidgets('20분보다 먼 출발은 출발 시각으로 보여준다', (tester) async {
