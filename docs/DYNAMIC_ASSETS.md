@@ -48,8 +48,8 @@
 | TUK 월드 업체·사진 | `lib/features/map/data/tuk_place.dart` | 있음 `GET /static-info/tuk-world/restaurants` | 수시 | 이미 서버. 상대 경로 규칙을 공용화 |
 | 셔틀 공지 이미지(iBook) | `lib/features/notice/presentation/widget/shuttle_card.dart:51` | 있음(서버 URL) | 학기마다 | 이미 서버 |
 | 홈 고정 부서 | `lib/features/organization/presentation/provider/organization_provider.dart:54` | 조직도는 있음, 고정 목록은 없음 | 드묾 | 유지(이름이 트리에 없으면 조용히 빠짐) |
-| 홈 주요일정 | `lib/common/repository/static_repository.dart:9` | 없음(학사일정 API 없음) | 학기마다 | 유지(자리표시 데이터). 학사일정 API가 생기면 교체 |
-| 스플래시 영상·포스터 | `lib/core/design_system/handol_assets.dart:12` | 없음 | 드묾(브랜드 교체) | 유지. 첫 화면은 네트워크 전에 떠야 하므로 내장이 맞다 |
+| 홈 배너(광고·기능 소개) | `lib/features/home/data/home_banners.dart` | 없음 | 행사마다 | **준비**: 모델·링크 규칙을 BFF 응답에 맞춤. 요청서 [BFF_APP_CONTENT.md](BFF_APP_CONTENT.md) |
+| 스플래시 영상·포스터 | `lib/core/design_system/handol_assets.dart:12` | 없음 | 드묾(브랜드 교체) | 유지(내장 = 대체). BFF가 생기면 다음 실행부터 적용하는 패시브 업데이트([BFF_APP_CONTENT.md](BFF_APP_CONTENT.md) 5장) |
 | 정책 URL(처리방침·계정 삭제) | `lib/core/constants/api_constants.dart:27` | 웹 페이지(주소 고정) | 거의 없음 | 유지. Play 콘솔 등록 주소와 같아야 한다 |
 | 로그인 버튼·아이콘·로고 등 디자인 에셋 | `lib/core/design_system/handol_assets.dart` | 해당 없음 | 디자인 개편 시 | 유지(앱 업데이트로 배포) |
 
@@ -127,5 +127,5 @@
 - 내장 셔틀 시간표·공휴일 목록: 서버·캐시가 모두 없을 때의 대체로 남는다. 학기·
   연도마다 갱신해야 한다(`shuttle_day_type_test`가 공휴일 목록 만료를 미리 알린다).
 - 식당 이름 → 사진·위치 대체 표: 서버 필드가 채워지면 지워도 된다.
-- 건물 좌표, 정류장 좌표, 교내시설 목록, 홈 주요일정, 고정 부서, 스플래시, 정책 URL:
+- 건물 좌표, 정류장 좌표, 교내시설 목록, 홈 배너, 고정 부서, 스플래시, 정책 URL:
   위 표의 「유지」 항목.
