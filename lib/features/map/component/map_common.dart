@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:handol/core/design_system/handol_tokens.dart';
 import 'package:handol/core/utils/external_link.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -21,23 +22,27 @@ abstract final class MapColors {
 }
 
 /// 교내 시설 분류. 시설 바로가기 · 필터 · 건물 시트가 같은 이름과 아이콘을 쓴다.
-/// 시안의 아이콘은 Lucide 계열이라 가장 가까운 Material 아이콘으로 대신한다.
+/// 시안 아이콘(Figma 2915:1268, SVG)이 있는 시설은 [asset]을 쓰고,
+/// 시안에서 아이콘을 내보내지 않은 분류는 Material 아이콘으로 대신한다.
 enum CampusFacility {
   all('전체', Icons.grid_view_rounded),
-  emptyClass('빈 강의실', Icons.meeting_room_outlined),
-  restaurant('식당', Icons.restaurant),
-  cafe('카페', Icons.local_cafe_outlined),
-  printer('프린트', Icons.print_outlined),
-  studyRoom('스터디룸', Icons.menu_book_outlined),
-  library('도서관', Icons.local_library_outlined),
-  store('편의점', Icons.storefront_outlined),
-  vending('자판기', Icons.local_drink_outlined),
+  emptyClass('빈 강의실', Icons.meeting_room_outlined, '$_dir/empty_class.svg'),
+  restaurant('식당', Icons.restaurant, '$_dir/restaurant.svg'),
+  cafe('카페', Icons.local_cafe_outlined, '$_dir/cafe.svg'),
+  printer('프린트', Icons.print_outlined, '$_dir/printer.svg'),
+  studyRoom('스터디룸', Icons.menu_book_outlined, '$_dir/study_room.svg'),
+  library('도서관', Icons.local_library_outlined, '$_dir/library.svg'),
+  store('편의점', Icons.storefront_outlined, '$_dir/store.svg'),
+  vending('자판기', Icons.local_drink_outlined, '$_dir/vending.svg'),
   lounge('휴게공간', Icons.weekend_outlined),
   etc('기타', Icons.more_horiz_rounded);
 
+  static const _dir = 'assets/design_system/map';
+
   final String label;
   final IconData icon;
-  const CampusFacility(this.label, this.icon);
+  final String? asset;
+  const CampusFacility(this.label, this.icon, [this.asset]);
 }
 
 /// 둥근 사각 아이콘 타일 + 아래 라벨 (2451:1122 '지금 많이 찾는 시설').
@@ -47,6 +52,7 @@ class FacilityTile extends StatelessWidget {
     required this.label,
     required this.icon,
     required this.onTap,
+    this.asset,
     this.size = 47,
     this.selected = false,
     this.enabled = true,
@@ -55,6 +61,9 @@ class FacilityTile extends StatelessWidget {
 
   final String label;
   final IconData icon;
+
+  /// 시안 SVG 아이콘 경로. 있으면 [icon] 대신 시안 크기 그대로 그린다.
+  final String? asset;
   final VoidCallback onTap;
   final double size;
 
@@ -96,15 +105,33 @@ class FacilityTile extends StatelessWidget {
                           : HandolColors.background,
                   borderRadius: BorderRadius.circular(size * 12 / 47),
                 ),
-                child: Icon(icon, size: size / 2, color: iconColor),
+                child:
+                    asset == null
+                        ? Icon(icon, size: size / 2, color: iconColor)
+                        : Center(
+                          // 시안 아이콘은 파랑(#3882D3)으로 내보내졌고, 선택·비활성일 때만 덮어 칠한다.
+                          child: SvgPicture.asset(
+                            asset!,
+                            colorFilter:
+                                selected || !enabled
+                                    ? ColorFilter.mode(
+                                      iconColor,
+                                      BlendMode.srcIn,
+                                    )
+                                    : null,
+                          ),
+                        ),
               ),
               const SizedBox(height: HandolSpacing.sm),
-              Text(
-                label,
-                maxLines: 1,
-                overflow: TextOverflow.visible,
-                softWrap: false,
-                style: labelStyle,
+              // 글꼴이 커져도 옆 타일 라벨과 겹치지 않게 타일 폭 안에서 줄인다.
+              FittedBox(
+                fit: BoxFit.scaleDown,
+                child: Text(
+                  label,
+                  maxLines: 1,
+                  softWrap: false,
+                  style: labelStyle,
+                ),
               ),
             ],
           ),
@@ -144,7 +171,7 @@ class MapButton extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.center,
             spacing: HandolSpacing.xs,
             children: [
-              if (icon != null) Icon(icon, size: 14, color: fg),
+              if (icon != null) Icon(icon, size: 10, color: fg),
               Text(label, style: HandolTypography.body.copyWith(color: fg)),
             ],
           ),

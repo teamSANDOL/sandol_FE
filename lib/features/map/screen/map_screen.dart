@@ -586,6 +586,11 @@ class _MapScreenState extends ConsumerState<MapScreen> {
                 )
                 : null,
         onDetail: () => _show(_Panel.buildingDetail),
+        // 어느 시트에서든 선택을 풀고 첫 시트로
+        onDeselect: () {
+          _selectBuilding(null);
+          _show(_Panel.home);
+        },
         onEmptyClass: () => _openEmptyClass(building: building.className),
       ),
       _Panel.emptyClass => EmptyClassPanel(

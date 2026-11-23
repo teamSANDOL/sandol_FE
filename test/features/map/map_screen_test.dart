@@ -102,6 +102,26 @@ void main() {
     expect(find.text('상세보기'), findsOneWidget);
   });
 
+  testWidgets('상세보기에서도 X는 선택을 풀고 첫 시트로 간다', (tester) async {
+    phone(tester);
+    await tester.pumpWidget(host(make()));
+    await tester.pumpAndSettle();
+
+    await tester.enterText(find.byType(TextField).first, 'E');
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('E동').last);
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('상세보기'));
+    await tester.pumpAndSettle();
+    expect(find.text('시설 정보'), findsOneWidget);
+
+    await tester.tap(find.text('선택한 곳 다시 누르기'));
+    await tester.pumpAndSettle();
+    expect(tester.takeException(), isNull);
+    expect(find.text('지금 많이 찾는 시설'), findsOneWidget);
+    expect(find.text('선택한 곳 다시 누르기'), findsNothing);
+  });
+
   testWidgets('TUK 월드 탭과 장소 검색', (tester) async {
     phone(tester);
     await tester.pumpWidget(host(make()));

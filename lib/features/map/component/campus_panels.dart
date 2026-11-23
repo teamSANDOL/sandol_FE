@@ -31,6 +31,7 @@ FacilityTile _tile(
 }) => FacilityTile(
   label: f.label,
   icon: f.icon,
+  asset: f.asset,
   enabled: enabled,
   onTap: onTap ?? () => showComingSoonSnackBar(context),
 );
@@ -155,10 +156,79 @@ class FacilityFilterPanel extends StatelessWidget {
   );
 }
 
+/// '선택한 곳 다시 누르기' + X (Figma 2905:2467, 14px 글자 50% · 24px 아이콘 A4ABBD).
+class _DeselectButton extends StatelessWidget {
+  const _DeselectButton({required this.onTap});
+
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) => Semantics(
+    button: true,
+    child: InkWell(
+      onTap: onTap,
+      borderRadius: HandolMetrics.radius,
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        spacing: 3,
+        children: [
+          Flexible(
+            child: Text(
+              '선택한 곳 다시 누르기',
+              textAlign: TextAlign.end,
+              style: HandolTypography.caption.muted,
+            ),
+          ),
+          const Icon(
+            Icons.close_rounded,
+            size: HandolMetrics.iconSize,
+            color: HandolColors.inactive,
+          ),
+        ],
+      ),
+    ),
+  );
+}
+
+/// 선택된 탭 하나짜리 탭줄: 글자 + 가는 구분선 위에 얹은 파란 막대 (Figma 2548:20515~20517).
+class _InfoTab extends StatelessWidget {
+  const _InfoTab(this.label);
+
+  final String label;
+
+  @override
+  Widget build(BuildContext context) => Column(
+    children: [
+      Text(label, style: HandolTypography.caption),
+      const SizedBox(height: 4),
+      const SizedBox(
+        height: 8,
+        child: Stack(
+          alignment: Alignment.center,
+          children: [
+            Divider(height: 1, thickness: 1, color: MapColors.line),
+            SizedBox(
+              width: 50,
+              height: 8,
+              child: DecoratedBox(
+                decoration: BoxDecoration(
+                  color: HandolColors.primary,
+                  borderRadius: BorderRadius.all(Radius.circular(4)),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    ],
+  );
+}
+
 /// 지도에서 고른 건물 시트 (2548:19361), [expanded]면 상세보기 (2548:20479).
 ///
-/// 건물 사진 · 학과 · 소개 · 층별 안내 · 캠퍼스 안내도는 데이터가 없어
-/// 건물 아이콘과 빈 강의실 수로 대신하고, 상세에는 준비중 문구를 둔다.
+/// 건물 사진 · 학과(부제) · 하트(즐겨찾기) · 소개 · 층별 안내 · 캠퍼스 안내도는
+/// 데이터·기능이 없어 건물 아이콘과 빈 강의실 수로 대신하고(2905:2471),
+/// 상세에는 준비중 문구를 둔다.
 class BuildingPanel extends StatelessWidget {
   const BuildingPanel({
     super.key,
@@ -168,6 +238,7 @@ class BuildingPanel extends StatelessWidget {
     required this.onDirections,
     required this.onDetail,
     required this.onEmptyClass,
+    required this.onDeselect,
   });
 
   final ScrollController controller;
@@ -176,6 +247,9 @@ class BuildingPanel extends StatelessWidget {
   final VoidCallback? onDirections;
   final VoidCallback onDetail;
   final VoidCallback onEmptyClass;
+
+  /// '선택한 곳 다시 누르기 X' (Figma 2905:2467): 건물 선택을 풀고 첫 시트로
+  final VoidCallback onDeselect;
 
   @override
   Widget build(BuildContext context) {
@@ -191,7 +265,8 @@ class BuildingPanel extends StatelessWidget {
           ),
           child: Image.asset(building.classIcons, fit: BoxFit.contain),
         ),
-        const SizedBox(width: HandolSpacing.md),
+        // 사진과 글 사이 5 (2905:2464 ~ 2905:2472)
+        const SizedBox(width: 5),
         Expanded(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -205,6 +280,7 @@ class BuildingPanel extends StatelessWidget {
             ],
           ),
         ),
+        Flexible(flex: 2, child: _DeselectButton(onTap: onDeselect)),
       ],
     );
     final directions = MapButton(
@@ -215,9 +291,10 @@ class BuildingPanel extends StatelessWidget {
 
     return ListView(
       controller: controller,
+      // 손잡이 아래 사진까지 4 (Figma 2905:2464 y27)
       padding: const EdgeInsets.fromLTRB(
         HandolMetrics.pageGutter,
-        HandolSpacing.sm,
+        HandolSpacing.xs,
         HandolMetrics.pageGutter,
         HandolSpacing.xl,
       ),
@@ -226,11 +303,10 @@ class BuildingPanel extends StatelessWidget {
         const SizedBox(height: HandolSpacing.sm),
         if (expanded) ...[
           directions,
-          const SizedBox(height: HandolSpacing.lg),
-          Center(child: Text('시설 정보', style: HandolTypography.caption)),
-          const SizedBox(height: HandolSpacing.sm),
-          const Divider(height: 1, color: MapColors.line),
-          const SizedBox(height: HandolSpacing.lg),
+          // 길찾기 끝 153 → 탭 글자 199 → 구분선 223 → 주요 시설 259 (2548:20514~20517)
+          const SizedBox(height: 46),
+          const _InfoTab('시설 정보'),
+          const SizedBox(height: 32),
           const MapSectionTitle('주요 시설'),
           _TileRow([
             _tile(context, CampusFacility.emptyClass, onTap: onEmptyClass),
@@ -245,7 +321,8 @@ class BuildingPanel extends StatelessWidget {
           const SizedBox(height: 20),
           const MapSectionTitle('편의 시설'),
           Row(
-            spacing: 29,
+            // 타일 폭 55 + 21 = 시안 간격 29 + 타일 47 (2548:20594)
+            spacing: 21,
             children: [
               _tile(context, CampusFacility.printer, enabled: false),
               _tile(context, CampusFacility.vending, enabled: false),
@@ -270,7 +347,7 @@ class BuildingPanel extends StatelessWidget {
           const SizedBox(height: HandolSpacing.lg),
           const MapSectionTitle('학습 공간'),
           Row(
-            spacing: 29,
+            spacing: 21,
             children: [
               _tile(context, CampusFacility.emptyClass, onTap: onEmptyClass),
               _tile(context, CampusFacility.studyRoom),

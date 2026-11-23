@@ -122,6 +122,7 @@ flutter:
     - assets/img/
     - assets/icon/emptyclass_setting.svg
     - assets/design_system/meal/
+    - assets/design_system/map/
     - assets/lottie/
     - .env
 
