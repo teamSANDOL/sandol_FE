@@ -2,15 +2,15 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
-import 'package:handori/common/layout/root_shell.dart';
-import 'package:handori/core/utils/keep_all.dart';
-import 'package:handori/core/utils/korea_time.dart';
-import 'package:handori/features/school_meal/domain/model/meal.dart';
-import 'package:handori/features/school_meal/domain/model/meal_type.dart';
-import 'package:handori/features/school_meal/domain/model/restaurant.dart';
-import 'package:handori/features/school_meal/presentation/page/restaurant_detail_page.dart';
-import 'package:handori/features/school_meal/presentation/provider/meal_list_notifier.dart';
-import 'package:handori/features/school_meal/presentation/provider/restaurant_list_notifier.dart';
+import 'package:handol/common/layout/root_shell.dart';
+import 'package:handol/core/utils/keep_all.dart';
+import 'package:handol/core/utils/korea_time.dart';
+import 'package:handol/features/school_meal/domain/model/meal.dart';
+import 'package:handol/features/school_meal/domain/model/meal_type.dart';
+import 'package:handol/features/school_meal/domain/model/restaurant.dart';
+import 'package:handol/features/school_meal/presentation/page/restaurant_detail_page.dart';
+import 'package:handol/features/school_meal/presentation/provider/meal_list_notifier.dart';
+import 'package:handol/features/school_meal/presentation/provider/restaurant_list_notifier.dart';
 
 class _Restaurants extends RestaurantListNotifier {
   _Restaurants(this.items);

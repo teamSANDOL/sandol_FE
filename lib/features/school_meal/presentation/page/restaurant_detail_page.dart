@@ -2,26 +2,25 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:go_router/go_router.dart';
-import 'package:handori/common/component/app_top_bar.dart';
-import 'package:handori/common/component/sandol_bottom_glow.dart';
-import 'package:handori/common/component/sandol_card.dart';
-import 'package:handori/common/component/sandol_chip.dart';
-import 'package:handori/common/component/sandol_icon_label.dart';
-import 'package:handori/common/layout/root_shell.dart';
-import 'package:handori/core/design_system/sandol_assets.dart';
-import 'package:handori/core/design_system/sandol_tokens.dart';
-import 'package:handori/core/utils/date_formatter.dart';
-import 'package:handori/core/utils/keep_all.dart';
-import 'package:handori/core/utils/korea_time.dart';
-import 'package:handori/features/school_meal/domain/model/meal.dart';
-import 'package:handori/features/school_meal/domain/model/meal_type.dart';
-import 'package:handori/features/school_meal/domain/model/restaurant.dart';
-import 'package:handori/features/school_meal/presentation/model/restaurant_menu.dart';
-import 'package:handori/features/school_meal/presentation/provider/meal_list_notifier.dart';
-import 'package:handori/features/school_meal/presentation/provider/restaurant_list_notifier.dart';
-import 'package:handori/shared/widget/error_retry_view.dart';
-import 'package:handori/shared/widget/sandol_loading_indicator.dart';
-import 'package:handori/shared/widget/remote_image.dart';
+import 'package:handol/common/component/app_top_bar.dart';
+import 'package:handol/common/component/handol_card.dart';
+import 'package:handol/common/component/handol_chip.dart';
+import 'package:handol/common/component/handol_icon_label.dart';
+import 'package:handol/common/layout/root_shell.dart';
+import 'package:handol/core/design_system/handol_assets.dart';
+import 'package:handol/core/design_system/handol_tokens.dart';
+import 'package:handol/core/utils/date_formatter.dart';
+import 'package:handol/core/utils/keep_all.dart';
+import 'package:handol/core/utils/korea_time.dart';
+import 'package:handol/features/school_meal/domain/model/meal.dart';
+import 'package:handol/features/school_meal/domain/model/meal_type.dart';
+import 'package:handol/features/school_meal/domain/model/restaurant.dart';
+import 'package:handol/features/school_meal/presentation/model/restaurant_menu.dart';
+import 'package:handol/features/school_meal/presentation/provider/meal_list_notifier.dart';
+import 'package:handol/features/school_meal/presentation/provider/restaurant_list_notifier.dart';
+import 'package:handol/shared/widget/error_retry_view.dart';
+import 'package:handol/shared/widget/handol_loading_indicator.dart';
+import 'package:handol/shared/widget/remote_image.dart';
 
 /// 학식 탭 (Figma 학식-2).
 ///
@@ -94,30 +93,29 @@ class _RestaurantDetailPageState extends ConsumerState<RestaurantDetailPage> {
         );
 
     return DecoratedBox(
-      decoration: const BoxDecoration(gradient: SandolGradients.screen),
+      decoration: const BoxDecoration(gradient: HandolGradients.screen),
       child: Scaffold(
         backgroundColor: Colors.transparent,
         appBar: AppTopBar(
           title: '학식',
-          titleWidget: const Text('학식', style: SandolTypography.title),
-          backIcon: SvgPicture.asset(SandolAssets.backArrow),
+          titleWidget: const Text('학식', style: HandolTypography.title),
+          backIcon: SvgPicture.asset(HandolAssets.backArrow),
           onBack:
               () => StatefulNavigationShell.of(
                 context,
               ).goBranch(RootShell.homeBranch),
           backgroundColor: Colors.transparent,
           // 뒤로가기 버튼(44) 안의 아이콘(24)이 본문 여백(33)에 맞게
-          horizontalPadding: SandolMetrics.pageGutter - 10,
+          horizontalPadding: HandolMetrics.pageGutter - 10,
         ),
         body: Stack(
           children: [
-            const SandolBottomGlow(),
             ListView(
               padding: const EdgeInsets.fromLTRB(
-                SandolMetrics.pageGutter,
-                SandolSpacing.md,
-                SandolMetrics.pageGutter,
-                SandolSpacing.xl,
+                HandolMetrics.pageGutter,
+                HandolSpacing.md,
+                HandolMetrics.pageGutter,
+                HandolSpacing.xl,
               ),
               children: [
                 _DateStrip(
@@ -146,7 +144,7 @@ class _RestaurantDetailPageState extends ConsumerState<RestaurantDetailPage> {
                   loading:
                       () => const Padding(
                         padding: EdgeInsets.only(top: 60),
-                        child: Center(child: SandolLoadingIndicator()),
+                        child: Center(child: HandolLoadingIndicator()),
                       ),
                   error:
                       (e, _) => ErrorRetryView(
@@ -188,16 +186,16 @@ class _Pill extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Material(
-    color: selected ? SandolColors.primary : SandolColors.background,
+    color: selected ? HandolColors.primary : HandolColors.background,
     shape: RoundedRectangleBorder(
-      borderRadius: SandolMetrics.radius,
+      borderRadius: HandolMetrics.radius,
       side:
           selected
               ? BorderSide.none
-              : const BorderSide(color: SandolColors.border),
+              : const BorderSide(color: HandolColors.border),
     ),
     child: InkWell(
-      borderRadius: SandolMetrics.radius,
+      borderRadius: HandolMetrics.radius,
       onTap: onTap,
       child: ConstrainedBox(
         constraints: BoxConstraints(minWidth: width, minHeight: height),
@@ -251,9 +249,9 @@ class _DateStrip extends StatelessWidget {
         textAlign: TextAlign.center,
         style:
             isSelected
-                ? SandolTypography.caption.strong.onPrimary
-                : SandolTypography.caption.copyWith(
-                  color: SandolColors.textSecondary,
+                ? HandolTypography.caption.strong.onPrimary
+                : HandolTypography.caption.copyWith(
+                  color: HandolColors.textSecondary,
                 ),
       ),
     );
@@ -283,8 +281,8 @@ class _MealTabs extends StatelessWidget {
       for (final type in _tabs)
         Flexible(
           child: _Pill(
-            width: SandolChip.minWidth,
-            height: SandolChip.height,
+            width: HandolChip.minWidth,
+            height: HandolChip.height,
             selected: type == selected,
             onTap: () => onSelect(type),
             child: Text(
@@ -292,8 +290,8 @@ class _MealTabs extends StatelessWidget {
               maxLines: 1,
               style:
                   type == selected
-                      ? SandolTypography.caption.onPrimary
-                      : SandolTypography.caption,
+                      ? HandolTypography.caption.onPrimary
+                      : HandolTypography.caption,
             ),
           ),
         ),
@@ -315,9 +313,9 @@ class _Cards extends ConsumerWidget {
   final String? date;
 
   static String _iconOf(MealType type) => switch (type) {
-    MealType.breakfast || MealType.brunch => SandolAssets.mealBreakfast,
-    MealType.lunch => SandolAssets.mealLunch,
-    MealType.dinner => SandolAssets.mealDinner,
+    MealType.breakfast || MealType.brunch => HandolAssets.mealBreakfast,
+    MealType.lunch => HandolAssets.mealLunch,
+    MealType.dinner => HandolAssets.mealDinner,
   };
 
   @override
@@ -343,22 +341,22 @@ class _Cards extends ConsumerWidget {
                 Expanded(
                   child: Wrap(
                     crossAxisAlignment: WrapCrossAlignment.center,
-                    spacing: SandolSpacing.md,
+                    spacing: HandolSpacing.md,
                     children: [
-                      SandolIconLabel(
+                      HandolIconLabel(
                         icon: SizedBox.square(
-                          dimension: SandolMetrics.iconSize,
+                          dimension: HandolMetrics.iconSize,
                           child: Center(
                             child: SvgPicture.asset(_iconOf(mealType)),
                           ),
                         ),
                         label: mealType.label,
-                        style: SandolTypography.title.accent,
+                        style: HandolTypography.title.accent,
                       ),
                       Text(
                         '식당 ${cards.length}곳',
-                        style: SandolTypography.caption.copyWith(
-                          color: SandolColors.textSecondary,
+                        style: HandolTypography.caption.copyWith(
+                          color: HandolColors.textSecondary,
                         ),
                       ),
                     ],
@@ -367,14 +365,14 @@ class _Cards extends ConsumerWidget {
                 // ponytail: 서버에 좋아요·인기 데이터가 없어 정렬은 동작하지 않는다(표시만).
                 Text(
                   '인기순',
-                  style: SandolTypography.caption.strong.copyWith(
-                    color: SandolColors.textSecondary,
+                  style: HandolTypography.caption.strong.copyWith(
+                    color: HandolColors.textSecondary,
                   ),
                 ),
                 const Icon(
                   Icons.unfold_more_rounded,
                   size: 16,
-                  color: SandolColors.textSecondary,
+                  color: HandolColors.textSecondary,
                 ),
               ],
             ),
@@ -395,7 +393,7 @@ class _Cards extends ConsumerWidget {
       loading:
           () => const Padding(
             padding: EdgeInsets.symmetric(vertical: 40),
-            child: Center(child: SandolLoadingIndicator()),
+            child: Center(child: HandolLoadingIndicator()),
           ),
       error:
           (e, _) => ErrorRetryView(
@@ -421,34 +419,34 @@ class _RestaurantCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final photo = menu.photoAsset;
     final price = slot.price;
-    return SandolCard(
+    return HandolCard(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Padding(
-            padding: const EdgeInsets.all(SandolMetrics.cardInset),
+            padding: const EdgeInsets.all(HandolMetrics.cardInset),
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 ClipRRect(
-                  borderRadius: SandolMetrics.radius,
+                  borderRadius: HandolMetrics.radius,
                   child: SizedBox(
                     width: 102,
                     height: 89,
                     child: RemoteImage(
                       url: menu.photoUrlFor(slot),
-                      asset: photo,
+                      asset: photo ?? HandolAssets.mealNoPhoto,
                     ),
                   ),
                 ),
-                const SizedBox(width: SandolSpacing.md),
+                const SizedBox(width: HandolSpacing.md),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(menu.name.keepAll, style: SandolTypography.headline),
+                      Text(menu.name.keepAll, style: HandolTypography.headline),
                       if (price != null)
-                        Text(_won(price), style: SandolTypography.body.accent),
+                        Text(_won(price), style: HandolTypography.body.accent),
                     ],
                   ),
                 ),
@@ -456,20 +454,20 @@ class _RestaurantCard extends StatelessWidget {
                 const Icon(
                   Icons.favorite_rounded,
                   size: 20,
-                  color: SandolColors.inactive,
+                  color: HandolColors.inactive,
                 ),
               ],
             ),
           ),
-          const Divider(height: 1, thickness: 1, color: SandolColors.border),
+          const Divider(height: 1, thickness: 1, color: HandolColors.border),
           Padding(
-            padding: const EdgeInsets.all(SandolMetrics.cardInset),
+            padding: const EdgeInsets.all(HandolMetrics.cardInset),
             child: Wrap(
-              spacing: SandolSpacing.lg,
-              runSpacing: SandolSpacing.md,
+              spacing: HandolSpacing.lg,
+              runSpacing: HandolSpacing.md,
               children: [
                 for (final item in slot.menu)
-                  Text(item.keepAll, style: SandolTypography.caption),
+                  Text(item.keepAll, style: HandolTypography.caption),
               ],
             ),
           ),
@@ -490,7 +488,7 @@ class _Notice extends StatelessWidget {
     child: Text(
       message.keepAll,
       textAlign: TextAlign.center,
-      style: SandolTypography.caption.muted,
+      style: HandolTypography.caption.muted,
     ),
   );
 }

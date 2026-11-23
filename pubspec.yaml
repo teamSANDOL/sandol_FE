@@ -1,4 +1,4 @@
-name: handori
+name: handol
 description: "A new Flutter project."
 # The following line prevents the package from being accidentally published to
 # pub.dev using `flutter pub publish`. This is preferred for private packages.
@@ -16,7 +16,7 @@ publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 # https://developer.apple.com/library/archive/documentation/General/Reference/InfoPlistKeyReference/Articles/CoreFoundationKeys.html
 # In Windows, build-name is used as the major, minor, and patch parts
 # of the product and file versions while build-number is used as the build suffix.
-version: 0.3.14+3014
+version: 0.3.18+3018
 
 environment:
   sdk: ^3.7.2
@@ -67,6 +67,8 @@ dependencies:
 
   # ── 기타 ─────────────────────────────────────────────────────────────────────
   webview_flutter: ^4.13.1         # WebView
+  html: ^0.15.7                    # 약관·개인정보처리방침 HTML → 앱 화면
+  package_info_plus: ^8.3.1        # 마이페이지 앱 버전 표시
   flutter_appauth: ^12.0.2
   lottie: ^3.3.3
   url_launcher: ^6.3.2           # 전화 걸기 / 외부 링크 열기 (조직도 연락처)
@@ -94,7 +96,7 @@ dev_dependencies:
   # ── 앱 아이콘 ─────────────────────────────────────────────────────────────────
   flutter_launcher_icons: ^0.14.4  # dart run flutter_launcher_icons
 
-# 런처 아이콘 설정 — 소스는 assets/icon/ (sandol_logo 기반, scripts 참고)
+# 런처 아이콘 설정 — 소스는 assets/icon/ (handol_logo 기반, scripts 참고)
 flutter_launcher_icons:
   android: true
   ios: true
@@ -120,6 +122,7 @@ flutter:
     - assets/img/
     - assets/icon/emptyclass_setting.svg
     - assets/design_system/meal/
+    - assets/design_system/map/
     - assets/lottie/
     - .env
 

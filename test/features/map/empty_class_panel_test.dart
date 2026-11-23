@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:handori/core/utils/keep_all.dart';
-import 'package:handori/features/empty_class/domain/model/class_period.dart';
-import 'package:handori/features/empty_class/model/class_model.dart';
-import 'package:handori/features/empty_class/presentation/provider/classroom_query_provider.dart';
-import 'package:handori/features/empty_class/presentation/provider/empty_class_provider.dart';
-import 'package:handori/features/map/component/empty_class_panel.dart';
+import 'package:handol/core/utils/keep_all.dart';
+import 'package:handol/features/empty_class/domain/model/class_period.dart';
+import 'package:handol/features/empty_class/model/class_model.dart';
+import 'package:handol/features/empty_class/presentation/provider/classroom_query_provider.dart';
+import 'package:handol/features/empty_class/presentation/provider/empty_class_provider.dart';
+import 'package:handol/features/map/component/empty_class_panel.dart';
 
 EmptyClass _b(String name, List<String> empty, List<String> all) => EmptyClass(
   className: name,

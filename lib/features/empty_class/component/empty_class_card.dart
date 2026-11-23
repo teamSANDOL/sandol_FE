@@ -1,23 +1,23 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:handori/common/component/sandol_card.dart';
-import 'package:handori/common/component/sandol_icon_label.dart';
-import 'package:handori/core/constants/app_colors.dart';
-import 'package:handori/core/constants/app_text_styles.dart';
-import 'package:handori/core/design_system/sandol_tokens.dart';
-import 'package:handori/features/empty_class/component/classroom_time_range_picker.dart';
-import 'package:handori/features/empty_class/domain/model/building_sort.dart';
-import 'package:handori/features/empty_class/domain/model/classroom_query.dart';
-import 'package:handori/features/empty_class/domain/model/nearby_empty_class.dart';
-import 'package:handori/features/empty_class/presentation/provider/building_sort_provider.dart';
-import 'package:handori/features/empty_class/presentation/provider/classroom_query_provider.dart';
-import 'package:handori/features/empty_class/presentation/provider/empty_class_provider.dart';
-import 'package:handori/shared/widget/sandol_loading_indicator.dart';
-import 'package:handori/core/constants/app_radius.dart';
+import 'package:handol/common/component/handol_card.dart';
+import 'package:handol/common/component/handol_icon_label.dart';
+import 'package:handol/core/constants/app_colors.dart';
+import 'package:handol/core/constants/app_text_styles.dart';
+import 'package:handol/core/design_system/handol_tokens.dart';
+import 'package:handol/features/empty_class/component/classroom_time_range_picker.dart';
+import 'package:handol/features/empty_class/domain/model/building_sort.dart';
+import 'package:handol/features/empty_class/domain/model/classroom_query.dart';
+import 'package:handol/features/empty_class/domain/model/nearby_empty_class.dart';
+import 'package:handol/features/empty_class/presentation/provider/building_sort_provider.dart';
+import 'package:handol/features/empty_class/presentation/provider/classroom_query_provider.dart';
+import 'package:handol/features/empty_class/presentation/provider/empty_class_provider.dart';
+import 'package:handol/shared/widget/handol_loading_indicator.dart';
+import 'package:handol/core/constants/app_radius.dart';
 
 /// 홈의 빈 강의실 카드 (Figma 2153:303).
 ///
-/// 지금부터 그날 마지막 정각(22:00)까지를 축으로 두 손잡이로 공강 구간을
+/// 지금부터 마지막 교시 끝(22:30)까지를 교시 시각 축으로 두 손잡이로 공강 구간을
 /// 잡으면, 그 구간 내내 비어 있는 강의실을 가까운 건물 순으로 보여준다.
 /// 축의 기준 시각은 조회 상태에 고정돼 있어 다시 그려도 흔들리지 않는다.
 class EmptyClassTimelineCard extends ConsumerStatefulWidget {
@@ -73,9 +73,9 @@ class _EmptyClassTimelineCardState
           onBuildingTap: widget.onBuildingTap,
         );
 
-    return SandolCard(
+    return HandolCard(
       padding: const EdgeInsets.symmetric(
-        horizontal: SandolMetrics.cardInset,
+        horizontal: HandolMetrics.cardInset,
         vertical: 12,
       ),
       child: Column(
@@ -84,15 +84,15 @@ class _EmptyClassTimelineCardState
           ClassroomTimeRangePicker(
             onPreview: (q) => setState(() => _preview = q),
           ),
-          const SizedBox(height: SandolSpacing.md),
+          const SizedBox(height: HandolSpacing.md),
           _Summary(
             query: _preview ?? query,
             items: items,
             refreshing: refreshing,
           ),
           if (query.isWeekend || query.isAfterClassDay) ...[
-            const SizedBox(height: SandolSpacing.sm),
-            SandolIconLabel.note('수업이 없는 시간이라 모든 강의실이 비어 있어요.'),
+            const SizedBox(height: HandolSpacing.sm),
+            HandolIconLabel.note('수업이 없는 시간이라 모든 강의실이 비어 있어요.'),
           ],
           const SizedBox(height: 14),
           nearbyAsync.when(
@@ -101,7 +101,7 @@ class _EmptyClassTimelineCardState
                     items == null
                         ? const Padding(
                           padding: EdgeInsets.symmetric(vertical: 18),
-                          child: Center(child: SandolLoadingIndicator()),
+                          child: Center(child: HandolLoadingIndicator()),
                         )
                         : list(items, dimmed: true),
             error:
@@ -378,14 +378,14 @@ class _Summary extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final total = items?.fold<int>(0, (s, e) => s + e.building.emptyCount);
-    final count = SandolTypography.body.strong;
+    final count = HandolTypography.body.strong;
 
     return Row(
       children: [
         Expanded(
           child: Text(
             '${query.dayShort} ${query.timeLabel}',
-            style: SandolTypography.body,
+            style: HandolTypography.body,
           ),
         ),
         Text(
@@ -424,7 +424,7 @@ class _BuildingList extends StatelessWidget {
     if (withRooms.isEmpty) {
       return Text(
         '이 시간에 비어 있는 강의실이 없어요. 구간을 줄여 보세요.',
-        style: SandolTypography.caption.muted,
+        style: HandolTypography.caption.muted,
       );
     }
 
@@ -470,7 +470,7 @@ class _BuildingRow extends StatelessWidget {
     final rooms = [...preview, if (rest > 0) '+$rest'].join(' ');
 
     return InkWell(
-      borderRadius: SandolMetrics.radius,
+      borderRadius: HandolMetrics.radius,
       onTap: onBuildingTap == null ? null : () => onBuildingTap!(b.className),
       child: Row(
         children: [
@@ -481,9 +481,9 @@ class _BuildingRow extends StatelessWidget {
                 Row(
                   spacing: 12,
                   children: [
-                    Text(b.className, style: SandolTypography.body.strong),
+                    Text(b.className, style: HandolTypography.body.strong),
                     if (walk != null)
-                      Text('도보 $walk분', style: SandolTypography.caption),
+                      Text('도보 $walk분', style: HandolTypography.caption),
                   ],
                 ),
                 if (rooms.isNotEmpty)
@@ -491,13 +491,13 @@ class _BuildingRow extends StatelessWidget {
                     rooms,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                    style: SandolTypography.caption.muted,
+                    style: HandolTypography.caption.muted,
                   ),
               ],
             ),
           ),
-          const SizedBox(width: SandolSpacing.sm),
-          Text('${b.emptyCount}곳', style: SandolTypography.caption),
+          const SizedBox(width: HandolSpacing.sm),
+          Text('${b.emptyCount}곳', style: HandolTypography.caption),
         ],
       ),
     );
@@ -517,12 +517,12 @@ class _ErrorRow extends StatelessWidget {
         Expanded(
           child: Text(
             '빈 강의실 정보를 불러올 수 없습니다.',
-            style: SandolTypography.caption.muted,
+            style: HandolTypography.caption.muted,
           ),
         ),
         TextButton(
           onPressed: onRetry,
-          child: Text('다시 시도', style: SandolTypography.caption.accent),
+          child: Text('다시 시도', style: HandolTypography.caption.accent),
         ),
       ],
     );

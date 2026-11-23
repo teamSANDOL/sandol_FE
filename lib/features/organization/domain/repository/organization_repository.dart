@@ -1,4 +1,4 @@
-import 'package:handori/features/organization/domain/model/organization_node.dart';
+import 'package:handol/features/organization/domain/model/organization_node.dart';
 
 abstract class OrganizationRepository {
   Future<OrganizationGroupNode> getTree();

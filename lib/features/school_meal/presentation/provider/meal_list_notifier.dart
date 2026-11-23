@@ -1,12 +1,12 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
-import 'package:handori/core/utils/date_formatter.dart';
-import 'package:handori/core/utils/korea_time.dart';
-import 'package:handori/core/network/meal_dio_provider.dart';
-import 'package:handori/features/school_meal/data/data_source/meal_api.dart';
-import 'package:handori/features/school_meal/data/repository/meal_repository_impl.dart';
-import 'package:handori/features/school_meal/domain/model/meal.dart';
-import 'package:handori/features/school_meal/domain/repository/meal_repository.dart';
+import 'package:handol/core/utils/date_formatter.dart';
+import 'package:handol/core/utils/korea_time.dart';
+import 'package:handol/core/network/meal_dio_provider.dart';
+import 'package:handol/features/school_meal/data/data_source/meal_api.dart';
+import 'package:handol/features/school_meal/data/repository/meal_repository_impl.dart';
+import 'package:handol/features/school_meal/domain/model/meal.dart';
+import 'package:handol/features/school_meal/domain/repository/meal_repository.dart';
 
 part 'meal_list_notifier.g.dart';
 

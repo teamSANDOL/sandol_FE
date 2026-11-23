@@ -2,13 +2,13 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:handori/common/component/sandol_card.dart';
-import 'package:handori/common/component/sandol_chip.dart';
-import 'package:handori/core/design_system/sandol_tokens.dart';
-import 'package:handori/core/utils/keep_all.dart';
-import 'package:handori/features/school_meal/presentation/model/restaurant_menu.dart';
-import 'package:handori/features/school_meal/presentation/provider/selected_restaurant_id_notifier.dart';
-import 'package:handori/shared/widget/remote_image.dart';
+import 'package:handol/common/component/handol_card.dart';
+import 'package:handol/common/component/handol_chip.dart';
+import 'package:handol/core/design_system/handol_tokens.dart';
+import 'package:handol/core/utils/keep_all.dart';
+import 'package:handol/features/school_meal/presentation/model/restaurant_menu.dart';
+import 'package:handol/features/school_meal/presentation/provider/selected_restaurant_id_notifier.dart';
+import 'package:handol/shared/widget/remote_image.dart';
 
 class HomeMealSection extends ConsumerStatefulWidget {
   final List<RestaurantMenu> menus;
@@ -21,7 +21,7 @@ class HomeMealSection extends ConsumerStatefulWidget {
 }
 
 class _HomeMealSectionState extends ConsumerState<HomeMealSection> {
-  late final PageController _controller;
+  late PageController _controller;
 
   /// provider 변경에 따른 `animateToPage` 진행 중 여부. 이동 중 지나치는 중간
   /// 페이지의 `onPageChanged`가 선택을 되돌려 쓰는 피드백 루프를 막는다.
@@ -30,12 +30,14 @@ class _HomeMealSectionState extends ConsumerState<HomeMealSection> {
   /// 식당 ID → 카드 실측 높이. 드래그 중 높이 보간에 쓴다.
   final Map<int, double> _heights = {};
 
-  /// 식당 ID → 칩 위젯 키. 선택된 칩이 스크롤 영역 밖에 있을 때
-  /// `Scrollable.ensureVisible`로 찾아가기 위해 보관한다.
+  /// 식당 ID → 칩 위젯 키. 칩 줄을 카드 위치에 맞출 때 칩 위치를 잰다.
   final Map<int, GlobalKey> _chipKeys = {};
 
   GlobalKey _chipKey(int restaurantId) =>
       _chipKeys.putIfAbsent(restaurantId, () => GlobalKey());
+
+  final _chipScroll = ScrollController();
+  final _chipRowKey = GlobalKey();
 
   /// 선택된 식당의 menus 내 위치. 선택이 없거나 목록에 없으면 0.
   int _selectedIndex() {
@@ -44,29 +46,74 @@ class _HomeMealSectionState extends ConsumerState<HomeMealSection> {
     return i < 0 ? 0 : i;
   }
 
-  /// 선택된 칩이 칩 목록 스크롤 영역 밖에 있으면 보이는 위치로 스크롤한다.
-  void _revealChip(int restaurantId) {
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      final chipContext = _chipKeys[restaurantId]?.currentContext;
-      if (chipContext == null || !mounted) return;
-      Scrollable.ensureVisible(
-        chipContext,
-        alignment: 0.5,
-        duration: const Duration(milliseconds: 250),
-        curve: Curves.easeInOut,
-      );
-    });
+  /// 칩 줄을 카드 스크롤 위치(`page`)에 맞춰 매 프레임 민다. 이웃한 두 칩의
+  /// 가운데를 page 소수부로 보간해, 카드를 끄는 만큼 칩 줄도 같이 움직인다.
+  void _followPage() {
+    if (!_controller.hasClients ||
+        !_controller.position.haveDimensions ||
+        !_chipScroll.hasClients) {
+      return;
+    }
+    final menus = widget.menus;
+    final page = _controller.page!;
+    final lo = page.floor().clamp(0, menus.length - 1);
+    final hi = (lo + 1).clamp(0, menus.length - 1);
+    final a = _chipCenter(menus[lo].restaurant.id);
+    final b = _chipCenter(menus[hi].restaurant.id);
+    if (a == null || b == null) return;
+    final center = a + (b - a) * (page - lo).clamp(0.0, 1.0);
+    final pos = _chipScroll.position;
+    pos.jumpTo(
+      (center - pos.viewportDimension / 2).clamp(
+        pos.minScrollExtent,
+        pos.maxScrollExtent,
+      ),
+    );
   }
 
+  /// 칩 줄(스크롤 내용) 기준 칩 가운데 x. 아직 그려지지 않았으면 null.
+  double? _chipCenter(int restaurantId) {
+    final chip = _chipKeys[restaurantId]?.currentContext?.findRenderObject();
+    final row = _chipRowKey.currentContext?.findRenderObject();
+    if (chip is! RenderBox || row is! RenderBox) return null;
+    return chip.localToGlobal(Offset(chip.size.width / 2, 0), ancestor: row).dx;
+  }
+
+  /// 이웃 카드 사이 간격
+  static const double _cardGap = 12;
+
+  /// 카드 영역은 화면 여백 안쪽이지만 PageView는 화면 폭 전체를 쓴다.
+  /// PageView가 자기 폭 밖의 페이지는 그리지 않으므로, 한 페이지를
+  /// `카드 + 간격`으로 좁혀 이웃 카드가 양옆 여백에 비치게 한다.
+  double? _viewportFraction;
+
   @override
-  void initState() {
-    super.initState();
-    // 상세 페이지에서 고른 식당 카드에서 바로 시작한다.
-    _controller = PageController(initialPage: _selectedIndex());
-    // 상세 페이지에서 먼 식당을 고르고 돌아온 경우 첫 프레임에 칩을 노출한다.
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final screen = MediaQuery.sizeOf(context).width;
+    if (screen <= 0) return;
+    final fraction = ((screen - 2 * HandolMetrics.pageGutter + _cardGap) /
+            screen)
+        .clamp(0.1, 1.0);
+    if (fraction == _viewportFraction) return;
+    final first = _viewportFraction == null;
+    final old = first ? null : _controller;
+    _viewportFraction = fraction;
+    // 상세 페이지에서 고른 식당 카드에서 바로 시작한다. 화면 폭이 바뀌면
+    // 보던 카드에서 다시 시작한다.
+    _controller = PageController(
+      initialPage:
+          old != null && old.hasClients
+              ? (old.page ?? 0).round()
+              : _selectedIndex(),
+      viewportFraction: fraction,
+    )..addListener(_followPage);
+    if (old != null) {
+      WidgetsBinding.instance.addPostFrameCallback((_) => old.dispose());
+    }
+    // 상세 페이지에서 먼 식당을 고르고 돌아온 경우 첫 프레임에 칩을 맞춘다.
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      final id = ref.read(selectedRestaurantIdProvider);
-      if (id != null) _revealChip(id);
+      if (mounted) _followPage();
     });
   }
 
@@ -89,6 +136,7 @@ class _HomeMealSectionState extends ConsumerState<HomeMealSection> {
   @override
   void dispose() {
     _controller.dispose();
+    _chipScroll.dispose();
     super.dispose();
   }
 
@@ -151,31 +199,30 @@ class _HomeMealSectionState extends ConsumerState<HomeMealSection> {
     var selected = menus.indexWhere((m) => m.restaurant.id == selectedId);
     if (selected < 0) selected = 0;
 
-    // 스와이프·상세 페이지 등 어디서 선택이 바뀌어도 해당 칩이 보이게 스크롤하고
-    // 카드 페이지도 맞춘다.
+    // 칩 탭·상세 페이지 등에서 선택이 바뀌면 카드 페이지를 옮긴다.
+    // 칩 줄은 카드가 움직이는 동안 _followPage 가 따라 민다.
     ref.listen(selectedRestaurantIdProvider, (previous, next) {
-      if (next != null && next != previous) {
-        _revealChip(next);
-        _syncPage(next);
-      }
+      if (next != null && next != previous) _syncPage(next);
     });
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // 식당 선택 칩. ListView는 화면 밖 칩을 빌드하지 않아 ensureVisible이
-        // 불가능하므로, 칩 개수가 적은 홈에서는 전부 빌드하는 Row 스크롤을 쓴다.
+        // 식당 선택 칩. 칩 위치를 재야 하므로(ListView는 화면 밖 칩을 빌드하지
+        // 않는다) 칩 개수가 적은 홈에서는 전부 빌드하는 Row 스크롤을 쓴다.
         SizedBox(
-          height: SandolChip.height,
+          height: HandolChip.height,
           child: SingleChildScrollView(
+            controller: _chipScroll,
             scrollDirection: Axis.horizontal,
             // 섹션은 화면 여백 안에 있지만 칩 줄은 화면 끝까지 흘러간다.
             clipBehavior: Clip.none,
             child: Row(
+              key: _chipRowKey,
               spacing: 12,
               children: [
                 for (var i = 0; i < menus.length; i++)
-                  SandolChip(
+                  HandolChip(
                     key: _chipKey(menus[i].restaurant.id),
                     label: menus[i].name,
                     selected: i == selected,
@@ -186,7 +233,7 @@ class _HomeMealSectionState extends ConsumerState<HomeMealSection> {
           ),
         ),
 
-        const SizedBox(height: SandolSpacing.sm),
+        const SizedBox(height: HandolSpacing.sm),
 
         // 식당 메뉴 카드 — PageView가 손가락을 따라 움직이고, 높이는 이웃한
         // 두 카드 높이를 page 값으로 보간한다.
@@ -200,50 +247,65 @@ class _HomeMealSectionState extends ConsumerState<HomeMealSection> {
               child: SizedBox(height: height ?? 0, child: child),
             );
           },
-          child: ClipRect(
-            // 가로는 PageView 폭에서 잘라 옆 카드가 여백 밖에 비치지 않게 하고,
-            // 세로는 카드 그림자가 잘리지 않게 여유를 둔다.
-            clipper: const _ShadowClipper(),
-            child: PageView.builder(
-              controller: _controller,
-              // 카드 그림자가 잘리지 않게 하고, 이웃 카드 높이를 미리 재도록
-              // 양옆 한 화면만큼 미리 빌드한다.
-              clipBehavior: Clip.none,
-              allowImplicitScrolling: true,
-              scrollCacheExtent: const ScrollCacheExtent.viewport(1),
-              itemCount: menus.length,
-              onPageChanged: (index) {
-                if (!_animating) _select(index);
-              },
-              itemBuilder: (context, index) {
-                final menu = menus[index];
-                return OverflowBox(
-                  alignment: Alignment.topCenter,
-                  minHeight: 0,
-                  maxHeight: double.infinity,
-                  child: _HeightReporter(
-                    onHeight: (h) => _setHeight(menu.restaurant.id, h),
-                    child: GestureDetector(
-                      onTap: () {
-                        // 상세 페이지가 동일한 식당으로 진입하도록 선택 ID를 확정한다.
-                        _select(index);
-                        widget.onTap?.call();
-                      },
-                      child: _MealMenuCard(menu: menu),
-                    ),
+          // 섹션 여백 밖으로 화면 끝까지 넓혀, 이웃 카드가 양옆 여백에 비치게 한다.
+          child: LayoutBuilder(
+            builder:
+                (context, c) => OverflowBox(
+                  minWidth: c.maxWidth + 2 * HandolMetrics.pageGutter,
+                  maxWidth: c.maxWidth + 2 * HandolMetrics.pageGutter,
+                  child: ClipRect(
+                    // 가로는 화면 끝까지, 세로는 카드 그림자가 잘리지 않게 여유를 둔다.
+                    clipper: const _ShadowClipper(),
+                    child: _pages(),
                   ),
-                );
-              },
-            ),
+                ),
           ),
         ),
       ],
     );
   }
+
+  Widget _pages() {
+    final menus = widget.menus;
+    return PageView.builder(
+      controller: _controller,
+      // 카드 그림자가 잘리지 않게 하고, 이웃 카드 높이를 미리 재도록
+      // 양옆 한 화면만큼 미리 빌드한다.
+      clipBehavior: Clip.none,
+      allowImplicitScrolling: true,
+      scrollCacheExtent: const ScrollCacheExtent.viewport(1),
+      itemCount: menus.length,
+      onPageChanged: (index) {
+        if (!_animating) _select(index);
+      },
+      itemBuilder: (context, index) {
+        final menu = menus[index];
+        return OverflowBox(
+          alignment: Alignment.topCenter,
+          minHeight: 0,
+          maxHeight: double.infinity,
+          child: _HeightReporter(
+            onHeight: (h) => _setHeight(menu.restaurant.id, h),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: _cardGap / 2),
+              child: GestureDetector(
+                onTap: () {
+                  // 상세 페이지가 동일한 식당으로 진입하도록 선택 ID를 확정한다.
+                  _select(index);
+                  widget.onTap?.call();
+                },
+                child: _MealMenuCard(menu: menu),
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
 }
 
-/// 가로는 자기 폭 그대로, 세로는 카드 그림자(offset 4 + blur 4)만큼 위아래로
-/// 넓힌 클립 영역.
+/// 가로는 자기 폭(화면 폭) 그대로, 세로는 카드 그림자(offset 4 + blur 4)만큼
+/// 위아래로 넓힌 클립 영역.
 class _ShadowClipper extends CustomClipper<Rect> {
   const _ShadowClipper();
 
@@ -310,12 +372,12 @@ class _MealMenuCard extends StatelessWidget {
     final photoUrl = menu.photoUrlFor(slot);
     final items = slot?.menu ?? const <String>[];
 
-    return SandolCard(
+    return HandolCard(
       // field(20%)를 배경 위에 합성한 불투명 값. 반투명이면 그림자가 비친다.
-      color: SandolColors.primarySoft,
+      color: HandolColors.primarySoft,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
-        spacing: SandolSpacing.xs,
+        spacing: HandolSpacing.xs,
         children: [
           if (photo != null || photoUrl != null)
             SizedBox(
@@ -323,40 +385,46 @@ class _MealMenuCard extends StatelessWidget {
               child: RemoteImage(url: photoUrl, asset: photo),
             ),
           ColoredBox(
-            color: SandolColors.background,
+            color: HandolColors.background,
             child: Padding(
               padding: const EdgeInsets.symmetric(
-                horizontal: SandolMetrics.cardInset,
-                vertical: SandolSpacing.md,
+                horizontal: HandolMetrics.cardInset,
+                vertical: HandolSpacing.md,
               ),
               child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                spacing: SandolSpacing.sm,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                spacing: HandolSpacing.sm,
                 children: [
                   Row(
                     children: [
                       Expanded(
                         child: Text(
                           menu.name.keepAll,
-                          style: SandolTypography.caption,
+                          style: HandolTypography.caption.strong,
                         ),
                       ),
                       if (price != null)
                         Text(
                           '${price ~/ 1000},${(price % 1000).toString().padLeft(3, '0')}원',
-                          style: SandolTypography.caption.accent,
+                          style: HandolTypography.caption.strong.accent,
                         ),
                     ],
                   ),
+                  // 메뉴는 가운데 정렬 (Figma 2153:244).
                   if (items.isEmpty)
                     // 홈 카드는 늘 오늘 식단이라 날짜 분기는 두지 않는다.
                     Text(
                       '오늘 메뉴가 아직 등록되지 않았어요'.keepAll,
-                      style: SandolTypography.caption.muted,
+                      textAlign: TextAlign.center,
+                      style: HandolTypography.caption.muted,
                     )
                   else
                     for (final item in items)
-                      Text(item.keepAll, style: SandolTypography.caption),
+                      Text(
+                        item.keepAll,
+                        textAlign: TextAlign.center,
+                        style: HandolTypography.caption,
+                      ),
                 ],
               ),
             ),

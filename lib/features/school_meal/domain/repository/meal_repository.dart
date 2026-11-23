@@ -1,5 +1,5 @@
-import 'package:handori/features/school_meal/domain/model/meal.dart';
-import 'package:handori/features/school_meal/domain/model/meal_type.dart';
+import 'package:handol/features/school_meal/domain/model/meal.dart';
+import 'package:handol/features/school_meal/domain/model/meal_type.dart';
 
 abstract class MealRepository {
   /// 전체 식사 목록 (기간/식당명/유형 필터)

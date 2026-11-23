@@ -3,19 +3,19 @@ import 'package:flutter/services.dart';
 import 'package:flutter_naver_map/flutter_naver_map.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:geolocator/geolocator.dart';
-import 'package:handori/common/component/sandol_card.dart';
-import 'package:handori/common/component/sandol_icon_label.dart';
-import 'package:handori/core/design_system/sandol_tokens.dart';
-import 'package:handori/features/empty_class/model/class_model.dart';
-import 'package:handori/features/empty_class/presentation/provider/empty_class_focus_provider.dart';
-import 'package:handori/features/empty_class/presentation/provider/empty_class_provider.dart';
-import 'package:handori/features/map/component/campus_panels.dart';
-import 'package:handori/features/map/component/empty_class_panel.dart';
-import 'package:handori/features/map/component/map_common.dart';
-import 'package:handori/features/map/component/map_markers.dart';
-import 'package:handori/features/map/component/tuk_world_panel.dart';
-import 'package:handori/features/map/data/tuk_place.dart';
-import 'package:handori/features/map/presentation/provider/tuk_world_provider.dart';
+import 'package:handol/common/component/handol_card.dart';
+import 'package:handol/common/component/handol_icon_label.dart';
+import 'package:handol/core/design_system/handol_tokens.dart';
+import 'package:handol/features/empty_class/model/class_model.dart';
+import 'package:handol/features/empty_class/presentation/provider/empty_class_focus_provider.dart';
+import 'package:handol/features/empty_class/presentation/provider/empty_class_provider.dart';
+import 'package:handol/features/map/component/campus_panels.dart';
+import 'package:handol/features/map/component/empty_class_panel.dart';
+import 'package:handol/features/map/component/map_common.dart';
+import 'package:handol/features/map/component/map_markers.dart';
+import 'package:handol/features/map/component/tuk_world_panel.dart';
+import 'package:handol/features/map/data/tuk_place.dart';
+import 'package:handol/features/map/presentation/provider/tuk_world_provider.dart';
 
 /// 시트에 무엇을 보여줄지. TUK 월드 시트면 상단 탭도 'TUK 월드'다.
 enum _Panel {
@@ -99,6 +99,12 @@ class _MapScreenState extends ConsumerState<MapScreen> {
 
   // ── 시트 ──────────────────────────────────────────────────────────────
 
+  /// 패널이 올라갈 수 있는 최대 높이. 첫 시트는 타일 한 줄뿐이라 끝까지 올리면
+  /// 화면 대부분이 비고 뒤의 제목이 겹쳐 보여서 중간 높이에서 멈춘다.
+  static double _maxOf(_Panel p) => p == _Panel.home ? _snapFrac : _maxFrac;
+
+  double get _panelMax => _maxOf(_panel);
+
   static double _fracOf(_Panel p, TukCategory? category) => switch (p) {
     _Panel.home => 0.3,
     _Panel.filter => _snapFrac,
@@ -119,6 +125,12 @@ class _MapScreenState extends ConsumerState<MapScreen> {
   /// 시트 내용을 바꾸고 그 내용에 맞는 높이로 올린다.
   Future<void> _show(_Panel p) async {
     final tabChanged = p.isTuk != _panel.isTuk;
+    // 새 패널의 최대 높이보다 높이 올라가 있으면 먼저 내린다. 시트 최대값을
+    // 바로 줄이면 높이가 애니메이션 없이 뚝 떨어진다.
+    if (_sheetCtrl.isAttached && _sheetCtrl.size > _maxOf(p)) {
+      await _animateSheet(_fracOf(p, _tukCategory));
+      if (!mounted) return;
+    }
     setState(() {
       _panel = p;
       _focusBuilding = null;
@@ -164,7 +176,7 @@ class _MapScreenState extends ConsumerState<MapScreen> {
   void _onGripDragUpdate(DragUpdateDetails d, double minFrac, double bodyH) {
     if (!_sheetCtrl.isAttached) return;
     _sheetCtrl.jumpTo(
-      (_sheetCtrl.size - d.delta.dy / bodyH).clamp(minFrac, _maxFrac),
+      (_sheetCtrl.size - d.delta.dy / bodyH).clamp(minFrac, _panelMax),
     );
   }
 
@@ -172,13 +184,14 @@ class _MapScreenState extends ConsumerState<MapScreen> {
     if (!_sheetCtrl.isAttached) return;
     final v = -d.velocity.pixelsPerSecond.dy / bodyH; // 위로 드래그가 양수
     final cur = _sheetCtrl.size;
-    final stops = [minFrac, _snapFrac, _maxFrac];
+    final max = _panelMax;
+    final stops = {minFrac, _snapFrac, max}.where((s) => s <= max).toList();
     final double target;
     if (v.abs() > 0.9) {
       // 플링: 진행 방향의 다음 정지점으로
       target =
           v > 0
-              ? stops.firstWhere((s) => s > cur + 0.01, orElse: () => _maxFrac)
+              ? stops.firstWhere((s) => s > cur + 0.01, orElse: () => max)
               : stops.lastWhere((s) => s < cur - 0.01, orElse: () => minFrac);
     } else {
       // 가장 가까운 정지점으로
@@ -399,7 +412,7 @@ class _MapScreenState extends ConsumerState<MapScreen> {
           statusBarColor: Colors.transparent,
         ),
         child: Scaffold(
-          backgroundColor: SandolColors.background,
+          backgroundColor: HandolColors.background,
           resizeToAvoidBottomInset: false,
           body: LayoutBuilder(
             builder: (context, c) => _buildStack(c.maxHeight, refreshing),
@@ -437,8 +450,8 @@ class _MapScreenState extends ConsumerState<MapScreen> {
         ),
         Positioned(
           top: topInset + 12,
-          left: SandolMetrics.pageGutter,
-          right: SandolMetrics.pageGutter,
+          left: HandolMetrics.pageGutter,
+          right: HandolMetrics.pageGutter,
           child: _TopBar(
             search: _search,
             focus: _searchFocus,
@@ -457,7 +470,7 @@ class _MapScreenState extends ConsumerState<MapScreen> {
             final hidden = frac > _coverFrac - 0.1;
             return Positioned(
               bottom: frac * bodyH + 12,
-              left: SandolMetrics.pageGutter,
+              left: HandolMetrics.pageGutter,
               child: IgnorePointer(
                 ignoring: hidden,
                 child: AnimatedOpacity(
@@ -469,12 +482,12 @@ class _MapScreenState extends ConsumerState<MapScreen> {
             );
           },
           child: Column(
-            spacing: SandolSpacing.sm,
+            spacing: HandolSpacing.sm,
             children: [
               _RoundButton(
                 tooltip: '표시할 시설 선택',
                 icon: Icons.tune_rounded,
-                color: SandolColors.muted,
+                color: HandolColors.muted,
                 onTap:
                     () =>
                         _panel.isTuk
@@ -504,9 +517,10 @@ class _MapScreenState extends ConsumerState<MapScreen> {
             controller: _sheetCtrl,
             minChildSize: minFrac,
             initialChildSize: _fracOf(_Panel.home, null),
-            maxChildSize: _maxFrac,
+            maxChildSize: _panelMax,
             snap: true,
-            snapSizes: const [_snapFrac],
+            // 중간 정지점은 최소·최대 사이에 있을 때만 둔다(첫 시트는 최대가 곧 중간).
+            snapSizes: _panelMax > _snapFrac ? const [_snapFrac] : null,
             builder: (context, sc) => _buildSheet(sc, minFrac, bodyH),
           ),
         ),
@@ -519,21 +533,21 @@ class _MapScreenState extends ConsumerState<MapScreen> {
             right: 0,
             child: IgnorePointer(
               child: Center(
-                child: SandolCard(
+                child: HandolCard(
                   padding: const EdgeInsets.symmetric(
                     horizontal: 12,
                     vertical: 7,
                   ),
-                  child: SandolIconLabel(
+                  child: HandolIconLabel(
                     icon: const SizedBox.square(
                       dimension: 12,
                       child: CircularProgressIndicator(
                         strokeWidth: 1.6,
-                        color: SandolColors.primary,
+                        color: HandolColors.primary,
                       ),
                     ),
                     label: '빈 강의실 갱신 중',
-                    style: SandolTypography.caption,
+                    style: HandolTypography.caption,
                   ),
                 ),
               ),
@@ -572,6 +586,11 @@ class _MapScreenState extends ConsumerState<MapScreen> {
                 )
                 : null,
         onDetail: () => _show(_Panel.buildingDetail),
+        // 어느 시트에서든 선택을 풀고 첫 시트로
+        onDeselect: () {
+          _selectBuilding(null);
+          _show(_Panel.home);
+        },
         onEmptyClass: () => _openEmptyClass(building: building.className),
       ),
       _Panel.emptyClass => EmptyClassPanel(
@@ -611,9 +630,9 @@ class _MapScreenState extends ConsumerState<MapScreen> {
     };
 
     return Material(
-      color: SandolColors.background,
+      color: HandolColors.background,
       shape: const RoundedRectangleBorder(
-        borderRadius: SandolMetrics.radiusTop,
+        borderRadius: HandolMetrics.radiusTop,
         side: BorderSide(color: MapColors.line),
       ),
       clipBehavior: Clip.antiAlias,
@@ -625,7 +644,7 @@ class _MapScreenState extends ConsumerState<MapScreen> {
             onVerticalDragUpdate: (d) => _onGripDragUpdate(d, minFrac, bodyH),
             onVerticalDragEnd: (d) => _onGripDragEnd(d, minFrac, bodyH),
             child: const Padding(
-              padding: EdgeInsets.only(top: 7, bottom: SandolSpacing.sm),
+              padding: EdgeInsets.only(top: 7, bottom: HandolSpacing.sm),
               child: Center(child: _Grip()),
             ),
           ),
@@ -683,9 +702,9 @@ class _TopBar extends ConsumerWidget {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         Material(
-          color: SandolColors.background,
+          color: HandolColors.background,
           shape: const RoundedRectangleBorder(
-            borderRadius: SandolMetrics.radius,
+            borderRadius: HandolMetrics.radius,
             side: BorderSide(color: MapColors.line),
           ),
           child: SizedBox(
@@ -695,14 +714,14 @@ class _TopBar extends ConsumerWidget {
               focusNode: focus,
               onChanged: (_) => onChanged(),
               textInputAction: TextInputAction.search,
-              style: SandolTypography.caption,
+              style: HandolTypography.caption,
               decoration: InputDecoration(
                 border: InputBorder.none,
                 hintText: '장소를 검색하세요',
-                hintStyle: SandolTypography.caption.muted,
+                hintStyle: HandolTypography.caption.muted,
                 prefixIcon: const Icon(
                   Icons.search_rounded,
-                  color: SandolColors.primary,
+                  color: HandolColors.primary,
                 ),
                 contentPadding: const EdgeInsets.symmetric(vertical: 17),
               ),
@@ -711,17 +730,17 @@ class _TopBar extends ConsumerWidget {
         ),
         if (q.isNotEmpty && focus.hasFocus)
           Padding(
-            padding: const EdgeInsets.only(top: SandolSpacing.xs),
-            child: SandolCard(
+            padding: const EdgeInsets.only(top: HandolSpacing.xs),
+            child: HandolCard(
               child: ConstrainedBox(
                 constraints: const BoxConstraints(maxHeight: 240),
                 child:
                     results.isEmpty
                         ? Padding(
-                          padding: const EdgeInsets.all(SandolSpacing.md),
+                          padding: const EdgeInsets.all(HandolSpacing.md),
                           child: Text(
                             '검색 결과가 없어요',
-                            style: SandolTypography.caption.muted,
+                            style: HandolTypography.caption.muted,
                           ),
                         )
                         : ListView(
@@ -733,11 +752,11 @@ class _TopBar extends ConsumerWidget {
                                 dense: true,
                                 title: Text(
                                   title,
-                                  style: SandolTypography.body,
+                                  style: HandolTypography.body,
                                 ),
                                 subtitle: Text(
                                   sub,
-                                  style: SandolTypography.caption.muted,
+                                  style: HandolTypography.caption.muted,
                                 ),
                                 onTap: () => onPick(item),
                               ),
@@ -747,7 +766,7 @@ class _TopBar extends ConsumerWidget {
             ),
           )
         else ...[
-          const SizedBox(height: SandolSpacing.sm),
+          const SizedBox(height: HandolSpacing.sm),
           Row(
             spacing: 29,
             children: [
@@ -797,7 +816,7 @@ class _RoundButton extends StatelessWidget {
     required this.tooltip,
     required this.icon,
     required this.onTap,
-    this.color = SandolColors.text,
+    this.color = HandolColors.text,
   });
 
   final String tooltip;
@@ -807,7 +826,7 @@ class _RoundButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Material(
-    color: SandolColors.background,
+    color: HandolColors.background,
     shape: const CircleBorder(side: BorderSide(color: MapColors.line)),
     elevation: 2,
     child: IconButton(
@@ -845,7 +864,7 @@ class _MapCover extends StatelessWidget {
                   padding: const EdgeInsets.only(top: 12),
                   child: Column(
                     children: [
-                      Text('지도', style: SandolTypography.title.onPrimary),
+                      Text('지도', style: HandolTypography.title.onPrimary),
                       const SizedBox(height: 7),
                       const _Grip(),
                     ],

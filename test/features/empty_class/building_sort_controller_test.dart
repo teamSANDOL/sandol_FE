@@ -1,8 +1,8 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:handori/features/empty_class/domain/model/building_sort.dart';
-import 'package:handori/features/empty_class/presentation/provider/building_sort_provider.dart';
+import 'package:handol/features/empty_class/domain/model/building_sort.dart';
+import 'package:handol/features/empty_class/presentation/provider/building_sort_provider.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();

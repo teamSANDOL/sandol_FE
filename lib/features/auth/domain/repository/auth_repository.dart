@@ -1,4 +1,4 @@
-import 'package:handori/features/auth/domain/model/auth_session.dart';
+import 'package:handol/features/auth/domain/model/auth_session.dart';
 
 abstract class AuthRepository {
   /// 브라우저(Keycloak 로그인 페이지)를 띄워 로그인한다.

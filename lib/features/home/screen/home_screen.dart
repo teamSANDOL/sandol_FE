@@ -2,36 +2,32 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:go_router/go_router.dart';
-import 'package:handori/common/component/app_top_bar.dart';
-import 'package:handori/common/component/sandol_bottom_glow.dart';
-import 'package:handori/common/component/coming_soon_snackbar.dart';
-import 'package:handori/common/component/sandol_section.dart';
-import 'package:handori/common/layout/root_shell.dart';
-import 'package:handori/core/design_system/sandol_assets.dart';
-import 'package:handori/core/design_system/sandol_tokens.dart';
-import 'package:handori/core/router/route_paths.dart';
-import 'package:handori/core/utils/external_link.dart';
-import 'package:handori/core/utils/keep_all.dart';
-import 'package:handori/core/utils/korea_time.dart';
-import 'package:handori/features/bus/component/bus_time_card.dart';
-import 'package:handori/features/bus/presentation/provider/next_shuttle_provider.dart';
-import 'package:handori/features/empty_class/component/empty_class_card.dart';
-import 'package:handori/features/empty_class/presentation/provider/classroom_query_provider.dart';
-import 'package:handori/features/empty_class/presentation/provider/empty_class_focus_provider.dart';
-import 'package:handori/features/empty_class/presentation/provider/empty_class_provider.dart';
-import 'package:handori/features/empty_class/presentation/provider/user_location_provider.dart';
-import 'package:handori/features/home/component/organization_quick_card.dart';
-import 'package:handori/features/home/component/schedule_section.dart';
-import 'package:handori/features/home/model/schedule_event.dart';
-import 'package:handori/features/home/presentation/provider/home_static_provider.dart';
-import 'package:handori/features/organization/presentation/provider/organization_provider.dart';
-import 'package:handori/features/school_meal/presentation/model/restaurant_menu.dart';
-import 'package:handori/features/school_meal/presentation/provider/meal_list_notifier.dart';
-import 'package:handori/features/school_meal/presentation/provider/restaurant_list_notifier.dart';
-import 'package:handori/features/school_meal/presentation/widget/meal_card.dart';
-import 'package:handori/shared/widget/sandol_loading_indicator.dart';
+import 'package:handol/common/component/app_top_bar.dart';
+import 'package:handol/common/component/handol_scroll_gradient.dart';
+import 'package:handol/common/component/handol_section.dart';
+import 'package:handol/common/layout/root_shell.dart';
+import 'package:handol/core/design_system/handol_assets.dart';
+import 'package:handol/core/design_system/handol_tokens.dart';
+import 'package:handol/core/router/route_paths.dart';
+import 'package:handol/core/utils/keep_all.dart';
+import 'package:handol/features/bus/component/bus_time_card.dart';
+import 'package:handol/features/bus/presentation/provider/next_shuttle_provider.dart';
+import 'package:handol/features/empty_class/component/empty_class_card.dart';
+import 'package:handol/features/empty_class/presentation/provider/classroom_query_provider.dart';
+import 'package:handol/features/empty_class/presentation/provider/empty_class_focus_provider.dart';
+import 'package:handol/features/empty_class/presentation/provider/empty_class_provider.dart';
+import 'package:handol/features/empty_class/presentation/provider/user_location_provider.dart';
+import 'package:handol/features/home/component/organization_quick_card.dart';
+import 'package:handol/features/home/component/home_banner_carousel.dart';
+import 'package:handol/features/home/data/home_banners.dart';
+import 'package:handol/features/organization/presentation/provider/organization_provider.dart';
+import 'package:handol/features/school_meal/presentation/model/restaurant_menu.dart';
+import 'package:handol/features/school_meal/presentation/provider/meal_list_notifier.dart';
+import 'package:handol/features/school_meal/presentation/provider/restaurant_list_notifier.dart';
+import 'package:handol/features/school_meal/presentation/widget/meal_card.dart';
+import 'package:handol/shared/widget/handol_loading_indicator.dart';
 
-/// 홈 (Figma 2153:219)
+/// 홈 (Figma 홈_re 2890:2393)
 class HomeScreen extends ConsumerStatefulWidget {
   const HomeScreen({super.key});
 
@@ -40,112 +36,95 @@ class HomeScreen extends ConsumerStatefulWidget {
 }
 
 class _HomeScreenState extends ConsumerState<HomeScreen> {
-  /// 빈 주요일정 카드를 X로 닫았는가. 앱을 다시 켜면 다시 보인다.
-  bool _emptyScheduleClosed = false;
+  /// 배경 그라데이션을 스크롤 내용과 함께 움직이기 위해 쓴다.
+  final _scroll = ScrollController();
+
+  @override
+  void dispose() {
+    _scroll.dispose();
+    super.dispose();
+  }
 
   void _goBranch(int branch) =>
       StatefulNavigationShell.of(context).goBranch(branch);
 
   @override
   Widget build(BuildContext context) {
-    final scheduleAsync = ref.watch(homeScheduleProvider);
-    final schedule = scheduleAsync.valueOrNull;
-
     return Scaffold(
-      backgroundColor: SandolColors.background,
+      backgroundColor: HandolColors.background,
       appBar: AppTopBar(
-        title: '산돌이',
-        titleWidget: SvgPicture.asset(SandolAssets.logo, semanticsLabel: '산돌이'),
-        backgroundColor: SandolColors.background,
+        title: '한돌이',
+        titleWidget: SvgPicture.asset(HandolAssets.logo, semanticsLabel: '한돌이'),
+        backgroundColor: HandolColors.background,
         // 로고를 본문 여백(33)에 맞춘다. 뒤로가기 없는 바는 앞에 12를 더 둔다.
-        horizontalPadding: SandolMetrics.pageGutter - 12,
+        horizontalPadding: HandolMetrics.pageGutter - 12,
       ),
-      body: Stack(
-        children: [
-          const SandolBottomGlow(),
-          RefreshIndicator(
-            color: SandolColors.primary,
-            backgroundColor: SandolColors.background,
-            onRefresh: _refreshAll,
-            child: SingleChildScrollView(
-              // 내용이 화면보다 짧아도 당겨서 새로고침이 되도록
-              physics: const AlwaysScrollableScrollPhysics(),
-              padding: const EdgeInsets.fromLTRB(
-                SandolMetrics.pageGutter,
-                SandolSpacing.lg,
-                SandolMetrics.pageGutter,
-                SandolSpacing.xl,
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                spacing: SandolSpacing.xl,
-                children: [
-                  // 고정 해제 목록을 읽기 전에는 섹션을 비워 둔다.
-                  if (scheduleAsync.hasValue &&
-                      (schedule != null || !_emptyScheduleClosed))
-                    ScheduleSection(
-                      event: schedule,
-                      today: KoreaTime.now(),
-                      onClose: switch (schedule) {
-                        final ScheduleEvent event =>
-                          () => ref
-                              .read(dismissedSchedulesProvider.notifier)
-                              .dismiss(event.id),
-                        null =>
-                          () => setState(() => _emptyScheduleClosed = true),
-                      },
-                      // 일정 목록 화면이 생기기 전까지 링크 없는 일정은 준비중 안내
-                      onDetail: switch (schedule?.url) {
-                        final String url =>
-                          () => openExternalLink(context, url),
-                        null => () => showComingSoonSnackBar(context),
-                      },
-                    ),
-                  SandolSection(title: '학식', child: _buildMealSection()),
-                  SandolSection(
-                    title: '셔틀버스',
-                    child: Bustimescreen(
-                      onTap: () => _goBranch(RootShell.busBranch),
-                    ),
+      // 시안 2890:2393 은 프레임이 스크롤 전체(1900)라 배경도 내용 전체에 번진다.
+      body: HandolScrollGradient(
+        controller: _scroll,
+        child: RefreshIndicator(
+          color: HandolColors.primary,
+          backgroundColor: HandolColors.background,
+          onRefresh: _refreshAll,
+          child: SingleChildScrollView(
+            controller: _scroll,
+            // 내용이 화면보다 짧아도 당겨서 새로고침이 되도록
+            physics: const AlwaysScrollableScrollPhysics(),
+            padding: const EdgeInsets.fromLTRB(
+              HandolMetrics.pageGutter,
+              HandolSpacing.lg,
+              HandolMetrics.pageGutter,
+              HandolSpacing.xl,
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              spacing: HandolSpacing.xl,
+              children: [
+                const HomeBannerCarousel(banners: homeBanners),
+                HandolSection(title: '학식', child: _buildMealSection()),
+                HandolSection(
+                  title: '셔틀버스',
+                  child: Bustimescreen(
+                    onTap: () => _goBranch(RootShell.busBranch),
                   ),
-                  SandolSection(
-                    title: '빈 강의실',
-                    trailing: IconButton(
-                      tooltip: '정렬 설정',
-                      visualDensity: VisualDensity.compact,
-                      icon: SvgPicture.asset(
-                        'assets/icon/emptyclass_setting.svg',
-                        width: 18,
-                        height: 18,
-                        colorFilter: const ColorFilter.mode(
-                          SandolColors.muted,
-                          BlendMode.srcIn,
-                        ),
+                ),
+                HandolSection(
+                  title: '빈 강의실',
+                  trailing: IconButton(
+                    tooltip: '정렬 설정',
+                    visualDensity: VisualDensity.compact,
+                    icon: SvgPicture.asset(
+                      'assets/icon/emptyclass_setting.svg',
+                      width: 18,
+                      height: 18,
+                      colorFilter: const ColorFilter.mode(
+                        HandolColors.muted,
+                        BlendMode.srcIn,
                       ),
-                      onPressed: () => showBuildingSortSheet(context),
                     ),
-                    child: EmptyClassTimelineCard(
-                      maxItems: 3,
-                      onBuildingTap: (name) {
-                        // 맵 탭이 열리면 이 건물의 빈 강의실 현황을 띄운다.
-                        ref
-                            .read(emptyClassFocusControllerProvider.notifier)
-                            .request(name);
-                        _goBranch(RootShell.mapBranch);
-                      },
-                    ),
+                    onPressed: () => showBuildingSortSheet(context),
                   ),
-                  SandolSection(
-                    title: '학과/부서 조회',
-                    child: OrganizationQuickCard(
-                      onOpenAll: () => context.push(RoutePaths.organization),
-                    ),
+                  child: EmptyClassTimelineCard(
+                    maxItems: 3,
+                    onBuildingTap: (name) {
+                      // 맵 탭이 열리면 이 건물의 빈 강의실 현황을 띄운다.
+                      ref
+                          .read(emptyClassFocusControllerProvider.notifier)
+                          .request(name);
+                      _goBranch(RootShell.mapBranch);
+                    },
                   ),
-                ],
-              ),
+                ),
+                HandolSection(
+                  title: '학과/부서 조회',
+                  child: OrganizationQuickCard(
+                    onOpenAll: () => context.push(RoutePaths.organization),
+                  ),
+                ),
+              ],
             ),
           ),
-        ],
+        ),
       ),
     );
   }
@@ -154,7 +133,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   /// 어느 하나가 실패해도 인디케이터는 정상적으로 내려간다.
   Future<void> _refreshAll() async {
     ref.read(classroomQueryControllerProvider.notifier).syncToNow();
-    ref.invalidate(homeScheduleProvider);
     ref.invalidate(restaurantListNotifierProvider);
     ref.invalidate(mealListNotifierProvider);
     ref.read(shuttleClockProvider.notifier).refresh();
@@ -193,7 +171,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     if (restaurantsAsync.isLoading || mealsAsync.isLoading) {
       return const SizedBox(
         height: 120,
-        child: Center(child: SandolLoadingIndicator()),
+        child: Center(child: HandolLoadingIndicator()),
       );
     }
     if (restaurantsAsync.hasError || mealsAsync.hasError) {
@@ -209,10 +187,10 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     final meals = mealsAsync.value ?? const [];
     if (restaurants.isEmpty) {
       return Padding(
-        padding: const EdgeInsets.symmetric(vertical: SandolSpacing.lg),
+        padding: const EdgeInsets.symmetric(vertical: HandolSpacing.lg),
         child: Text(
           '등록된 식당이 없습니다'.keepAll,
-          style: SandolTypography.caption.muted,
+          style: HandolTypography.caption.muted,
         ),
       );
     }
@@ -236,12 +214,12 @@ class _MealErrorView extends StatelessWidget {
         Expanded(
           child: Text(
             '학식 정보를 불러올 수 없습니다.'.keepAll,
-            style: SandolTypography.caption.muted,
+            style: HandolTypography.caption.muted,
           ),
         ),
         TextButton(
           onPressed: onRetry,
-          child: Text('다시 시도', style: SandolTypography.caption.accent),
+          child: Text('다시 시도', style: HandolTypography.caption.accent),
         ),
       ],
     );

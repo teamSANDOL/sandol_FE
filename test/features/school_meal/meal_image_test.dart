@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:handori/core/design_system/sandol_assets.dart';
-import 'package:handori/features/school_meal/data/dto/meal_response.dart';
-import 'package:handori/features/school_meal/data/dto/restaurant_response.dart';
-import 'package:handori/features/school_meal/domain/model/meal.dart';
-import 'package:handori/features/school_meal/domain/model/meal_type.dart';
-import 'package:handori/features/school_meal/domain/model/restaurant.dart';
-import 'package:handori/features/school_meal/presentation/model/restaurant_menu.dart';
-import 'package:handori/shared/widget/remote_image.dart';
+import 'package:handol/core/design_system/handol_assets.dart';
+import 'package:handol/features/school_meal/data/dto/meal_response.dart';
+import 'package:handol/features/school_meal/data/dto/restaurant_response.dart';
+import 'package:handol/features/school_meal/domain/model/meal.dart';
+import 'package:handol/features/school_meal/domain/model/meal_type.dart';
+import 'package:handol/features/school_meal/domain/model/restaurant.dart';
+import 'package:handol/features/school_meal/presentation/model/restaurant_menu.dart';
+import 'package:handol/shared/widget/remote_image.dart';
 
 Map<String, Object?> _restaurantJson({Object? imageUrl}) => {
   'id': 1,
@@ -82,7 +82,7 @@ void main() {
     test('서버 사진이 없으면 null, 에셋은 그대로', () {
       final m = buildRestaurantMenus([plain], [_meal()]).single;
       expect(m.photoUrlFor(_lunch(m)), isNull);
-      expect(m.photoAsset, SandolAssets.mealGaga);
+      expect(m.photoAsset, HandolAssets.mealGaga);
     });
 
     test('식당 사진만 있으면 식당 사진', () {
@@ -106,7 +106,7 @@ void main() {
     );
 
     testWidgets('주소가 없으면 에셋', (tester) async {
-      await pump(tester, const RemoteImage(asset: SandolAssets.mealGaga));
+      await pump(tester, const RemoteImage(asset: HandolAssets.mealGaga));
       final image = tester.widget<Image>(find.byType(Image));
       expect(image.image, isA<AssetImage>());
     });
@@ -122,7 +122,7 @@ void main() {
         tester,
         const RemoteImage(
           url: 'https://example.com/m.jpg',
-          asset: SandolAssets.mealGaga,
+          asset: HandolAssets.mealGaga,
         ),
       );
       final network = tester.widget<Image>(find.byType(Image).first);

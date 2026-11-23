@@ -1,7 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:handori/features/bus/data/data_source/korean_public_holidays.dart';
-import 'package:handori/features/bus/data/data_source/shuttle_schedule_data.dart';
-import 'package:handori/features/bus/domain/model/shuttle_schedule.dart';
+import 'package:handol/features/bus/data/data_source/korean_public_holidays.dart';
+import 'package:handol/features/bus/data/data_source/shuttle_schedule_data.dart';
+import 'package:handol/features/bus/domain/model/shuttle_schedule.dart';
 
 void main() {
   group('dayTypeOf', () {

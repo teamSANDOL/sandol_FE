@@ -4,16 +4,16 @@ import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
-import 'package:handori/core/network/fallback_interceptor.dart';
-import 'package:handori/core/network/static_info_dio_provider.dart';
-import 'package:handori/core/utils/date_formatter.dart';
-import 'package:handori/core/utils/korea_time.dart';
+import 'package:handol/core/network/fallback_interceptor.dart';
+import 'package:handol/core/network/static_info_dio_provider.dart';
+import 'package:handol/core/utils/date_formatter.dart';
+import 'package:handol/core/utils/korea_time.dart';
 
-import 'package:handori/features/bus/data/data_source/remote_shuttle_schedule.dart';
-import 'package:handori/features/bus/data/data_source/shuttle_schedule_data.dart';
-import 'package:handori/features/bus/domain/model/shuttle_schedule.dart';
-import 'package:handori/features/bus/domain/usecase/next_shuttle_calculator.dart';
-import 'package:handori/features/bus/domain/usecase/shuttle_transfer.dart';
+import 'package:handol/features/bus/data/data_source/remote_shuttle_schedule.dart';
+import 'package:handol/features/bus/data/data_source/shuttle_schedule_data.dart';
+import 'package:handol/features/bus/domain/model/shuttle_schedule.dart';
+import 'package:handol/features/bus/domain/usecase/next_shuttle_calculator.dart';
+import 'package:handol/features/bus/domain/usecase/shuttle_transfer.dart';
 
 part 'next_shuttle_provider.g.dart';
 

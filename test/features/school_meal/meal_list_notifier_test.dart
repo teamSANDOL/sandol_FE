@@ -1,10 +1,10 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:handori/core/utils/korea_time.dart';
-import 'package:handori/features/school_meal/data/data_source/meal_api.dart';
-import 'package:handori/features/school_meal/data/dto/custom_page_response.dart';
-import 'package:handori/features/school_meal/data/dto/meal_response.dart';
-import 'package:handori/features/school_meal/presentation/provider/meal_list_notifier.dart';
+import 'package:handol/core/utils/korea_time.dart';
+import 'package:handol/features/school_meal/data/data_source/meal_api.dart';
+import 'package:handol/features/school_meal/data/dto/custom_page_response.dart';
+import 'package:handol/features/school_meal/data/dto/meal_response.dart';
+import 'package:handol/features/school_meal/presentation/provider/meal_list_notifier.dart';
 
 /// 서버처럼 start_date~end_date(양 끝 포함)로 제공일을 거르는 가짜 API.
 class _FakeApi implements MealApi {

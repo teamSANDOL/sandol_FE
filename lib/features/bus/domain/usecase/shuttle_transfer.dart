@@ -1,4 +1,4 @@
-import 'package:handori/features/bus/domain/model/shuttle_schedule.dart';
+import 'package:handol/features/bus/domain/model/shuttle_schedule.dart';
 
 /// 본교 환승 연결 하나. [first]는 1구간 항목(정시편이면 [departure]가 그 시각,
 /// 수시운행·도착버스 구간이면 그 구간 안에서 타는 시각), [transfer]는 본교에서

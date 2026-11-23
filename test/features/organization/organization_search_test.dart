@@ -1,7 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:handori/features/organization/domain/model/organization_node.dart';
-import 'package:handori/features/organization/domain/model/organization_search_result.dart';
-import 'package:handori/features/organization/presentation/util/contact_actions.dart';
+import 'package:handol/features/organization/domain/model/organization_node.dart';
+import 'package:handol/features/organization/domain/model/organization_search_result.dart';
+import 'package:handol/features/organization/presentation/util/contact_actions.dart';
 
 void main() {
   final root = OrganizationGroupNode(

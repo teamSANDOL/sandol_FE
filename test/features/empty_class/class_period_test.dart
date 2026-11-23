@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:handori/features/empty_class/domain/model/class_period.dart';
+import 'package:handol/features/empty_class/domain/model/class_period.dart';
 
 void main() {
   test('교시 표는 백엔드 변환표와 같다 (1·9·14교시)', () {

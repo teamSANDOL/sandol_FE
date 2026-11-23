@@ -5,9 +5,9 @@ import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_appauth/flutter_appauth.dart';
-import 'package:handori/features/auth/data/token_storage.dart';
-import 'package:handori/features/auth/domain/model/auth_session.dart';
-import 'package:handori/features/auth/domain/repository/auth_repository.dart';
+import 'package:handol/features/auth/data/token_storage.dart';
+import 'package:handol/features/auth/domain/model/auth_session.dart';
+import 'package:handol/features/auth/domain/repository/auth_repository.dart';
 
 /// 리프레시가 일시적으로 실패했다(네트워크·타임아웃·서버 5xx 등).
 /// 세션은 그대로 유지되며 나중에 다시 시도하면 된다.
@@ -82,17 +82,20 @@ class AuthRepositoryImpl implements AuthRepository {
     required String redirectUri,
     FlutterAppAuth appAuth = const FlutterAppAuth(),
     Dio? keycloakDio,
-  })  : _storage = storage,
-        _issuer = issuer,
-        _clientId = clientId,
-        _redirectUri = redirectUri,
-        _appAuth = appAuth,
-        _keycloakDio = keycloakDio ??
-            Dio(BaseOptions(
-              connectTimeout: const Duration(seconds: 10),
-              receiveTimeout: const Duration(seconds: 10),
-              contentType: Headers.formUrlEncodedContentType,
-            ));
+  }) : _storage = storage,
+       _issuer = issuer,
+       _clientId = clientId,
+       _redirectUri = redirectUri,
+       _appAuth = appAuth,
+       _keycloakDio =
+           keycloakDio ??
+           Dio(
+             BaseOptions(
+               connectTimeout: const Duration(seconds: 10),
+               receiveTimeout: const Duration(seconds: 10),
+               contentType: Headers.formUrlEncodedContentType,
+             ),
+           );
 
   AuthorizationServiceConfiguration get _serviceConfiguration =>
       AuthorizationServiceConfiguration(
@@ -124,15 +127,15 @@ class AuthRepositoryImpl implements AuthRepository {
         scopes: rememberMe ? _scopes : _sessionScopes,
         // prompt=create: Keycloak 회원가입 화면으로 바로 연다(Keycloak 18+).
         // Keycloak 은 prompt 값이 정확히 'create' 일 때만 인식한다.
-        promptValues: signUp
-            ? const ['create']
-            : forceLogin
+        promptValues:
+            signUp
+                ? const ['create']
+                : forceLogin
                 ? const ['login']
                 : null,
         // Keycloak 전용: 카카오 IdP 로 직행해 Keycloak 로그인 화면을 건너뛴다.
         // alias 는 대소문자 구분 — 프로덕션 realm 에 'Kakao' 로 등록되어 있다.
-        additionalParameters:
-            useKakao ? const {'kc_idp_hint': 'Kakao'} : null,
+        additionalParameters: useKakao ? const {'kc_idp_hint': 'Kakao'} : null,
       ),
     );
     final session = _toSession(response);
@@ -204,8 +207,10 @@ class AuthRepositoryImpl implements AuthRepository {
   }
 
   /// 리프레시 토큰 폐기(베스트 에포트).
-  Future<void> _revokeRefreshToken(String refreshToken,
-      {required String reason}) async {
+  Future<void> _revokeRefreshToken(
+    String refreshToken, {
+    required String reason,
+  }) async {
     try {
       await _keycloakDio.post(
         '$_issuer/protocol/openid-connect/revoke',
@@ -235,8 +240,10 @@ class AuthRepositoryImpl implements AuthRepository {
       return;
     }
     if (!session.isAccessTokenValid()) {
-      throw StateError('로그인 세션을 갱신하지 못해 탈퇴를 진행할 수 없습니다. '
-          '네트워크를 확인한 뒤 다시 시도해 주세요.');
+      throw StateError(
+        '로그인 세션을 갱신하지 못해 탈퇴를 진행할 수 없습니다. '
+        '네트워크를 확인한 뒤 다시 시도해 주세요.',
+      );
     }
     // Keycloak Account REST API. realm 에 'Delete Account' required action 이
     // 활성화되어 있고 사용자에게 account 클라이언트의 delete-account 롤이
@@ -318,9 +325,10 @@ class AuthRepositoryImpl implements AuthRepository {
         refreshToken: newRefreshToken,
         idToken: response.idToken ?? saved.idToken,
         accessTokenExpiresAt: response.accessTokenExpirationDateTime,
-        refreshTokenExpiresAt: response.refreshToken == null
-            ? saved.refreshTokenExpiresAt
-            : _expiryFromJwt(newRefreshToken),
+        refreshTokenExpiresAt:
+            response.refreshToken == null
+                ? saved.refreshTokenExpiresAt
+                : _expiryFromJwt(newRefreshToken),
         username: saved.username ?? _usernameFromJwt(response.idToken),
         email: saved.email ?? _emailFromJwt(response.idToken),
       );
@@ -387,16 +395,17 @@ class AuthRepositoryImpl implements AuthRepository {
   // ── 토큰 파싱 ──────────────────────────────────────────────────────────
 
   AuthSession _toSession(AuthorizationTokenResponse response) => AuthSession(
-        accessToken: response.accessToken!,
-        refreshToken: response.refreshToken,
-        idToken: response.idToken,
-        accessTokenExpiresAt: response.accessTokenExpirationDateTime,
-        refreshTokenExpiresAt: _expiryFromJwt(response.refreshToken),
-        username: _usernameFromJwt(response.idToken) ??
-            _usernameFromJwt(response.accessToken),
-        email: _emailFromJwt(response.idToken) ??
-            _emailFromJwt(response.accessToken),
-      );
+    accessToken: response.accessToken!,
+    refreshToken: response.refreshToken,
+    idToken: response.idToken,
+    accessTokenExpiresAt: response.accessTokenExpirationDateTime,
+    refreshTokenExpiresAt: _expiryFromJwt(response.refreshToken),
+    username:
+        _usernameFromJwt(response.idToken) ??
+        _usernameFromJwt(response.accessToken),
+    email:
+        _emailFromJwt(response.idToken) ?? _emailFromJwt(response.accessToken),
+  );
 
   /// JWT payload 에서 표시용 사용자명을 추출한다. (서명 검증은 하지 않는다 —
   /// 검증 책임은 토큰을 소비하는 리소스 서버에 있다.)
@@ -404,8 +413,9 @@ class AuthRepositoryImpl implements AuthRepository {
     final payload = _payloadFromJwt(jwt);
     if (payload == null) return null;
     return (payload['preferred_username'] ??
-        payload['name'] ??
-        payload['email']) as String?;
+            payload['name'] ??
+            payload['email'])
+        as String?;
   }
 
   static String? _emailFromJwt(String? jwt) =>
@@ -428,8 +438,9 @@ class AuthRepositoryImpl implements AuthRepository {
     if (parts.length != 3) return null;
     try {
       return json.decode(
-        utf8.decode(base64Url.decode(base64Url.normalize(parts[1]))),
-      ) as Map<String, dynamic>;
+            utf8.decode(base64Url.decode(base64Url.normalize(parts[1]))),
+          )
+          as Map<String, dynamic>;
     } catch (_) {
       return null;
     }

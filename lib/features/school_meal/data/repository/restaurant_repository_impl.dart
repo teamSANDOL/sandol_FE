@@ -1,6 +1,6 @@
-import 'package:handori/features/school_meal/data/data_source/restaurant_api.dart';
-import 'package:handori/features/school_meal/domain/model/restaurant.dart';
-import 'package:handori/features/school_meal/domain/repository/restaurant_repository.dart';
+import 'package:handol/features/school_meal/data/data_source/restaurant_api.dart';
+import 'package:handol/features/school_meal/domain/model/restaurant.dart';
+import 'package:handol/features/school_meal/domain/repository/restaurant_repository.dart';
 
 class RestaurantRepositoryImpl implements RestaurantRepository {
   final RestaurantApi _api;

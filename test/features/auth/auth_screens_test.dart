@@ -6,23 +6,22 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
-import 'package:handori/common/component/sandol_checkbox.dart';
-import 'package:handori/core/design_system/sandol_assets.dart';
-import 'package:handori/core/design_system/sandol_tokens.dart';
-import 'package:handori/core/router/route_paths.dart';
-import 'package:handori/features/auth/data/guest_access_storage.dart';
-import 'package:handori/features/auth/domain/model/auth_session.dart';
-import 'package:handori/features/auth/presentation/provider/auth_provider.dart';
-import 'package:handori/features/auth/screen/login_screen.dart';
-import 'package:handori/features/empty_class/presentation/provider/empty_class_provider.dart';
-import 'package:handori/features/home/model/schedule_event.dart';
-import 'package:handori/features/home/presentation/provider/home_static_provider.dart';
-import 'package:handori/features/home/screen/splash_screen.dart';
-import 'package:handori/features/organization/presentation/provider/organization_provider.dart';
-import 'package:handori/features/school_meal/domain/model/meal.dart';
-import 'package:handori/features/school_meal/domain/model/restaurant.dart';
-import 'package:handori/features/school_meal/presentation/provider/meal_list_notifier.dart';
-import 'package:handori/features/school_meal/presentation/provider/restaurant_list_notifier.dart';
+import 'package:handol/common/component/handol_checkbox.dart';
+import 'package:handol/core/design_system/handol_assets.dart';
+import 'package:handol/core/design_system/handol_tokens.dart';
+import 'package:handol/core/router/route_paths.dart';
+import 'package:handol/features/auth/data/guest_access_storage.dart';
+import 'package:handol/features/auth/domain/model/auth_session.dart';
+import 'package:handol/features/auth/presentation/provider/auth_provider.dart';
+import 'package:handol/features/auth/screen/login_screen.dart';
+import 'package:handol/features/empty_class/presentation/provider/empty_class_provider.dart';
+import 'package:handol/features/empty_class/model/class_model.dart';
+import 'package:handol/features/home/screen/splash_screen.dart';
+import 'package:handol/features/organization/presentation/provider/organization_provider.dart';
+import 'package:handol/features/school_meal/domain/model/meal.dart';
+import 'package:handol/features/school_meal/domain/model/restaurant.dart';
+import 'package:handol/features/school_meal/presentation/provider/meal_list_notifier.dart';
+import 'package:handol/features/school_meal/presentation/provider/restaurant_list_notifier.dart';
 import 'package:video_player/video_player.dart';
 
 /// 브라우저 로그인 대신 호출 인자만 기록한다.
@@ -59,7 +58,7 @@ Future<GoRouter> host(
   Size size = const Size(412, 917),
   double textScale = 1,
   Future<AuthSession?>? session,
-  Future<ScheduleEvent?>? schedule,
+  Future<List<EmptyClass>>? emptyClasses,
 }) async {
   tester.view.physicalSize = size;
   tester.view.devicePixelRatio = 1;
@@ -81,16 +80,15 @@ Future<GoRouter> host(
       overrides: [
         authNotifierProvider.overrideWith(() => _TestAuth(session)),
         // 스플래시가 선로딩하는 홈 데이터. 테스트에선 네트워크 대신 빈 값.
-        homeScheduleProvider.overrideWith(
-          (_) => schedule ?? Future.value(null),
-        ),
         restaurantListNotifierProvider.overrideWith(_EmptyRestaurants.new),
         mealListNotifierProvider().overrideWith(_EmptyMeals.new),
-        emptyClassesProvider.overrideWith((_) async => []),
+        emptyClassesProvider.overrideWith(
+          (_) => emptyClasses ?? Future.value(const []),
+        ),
         pinnedOrganizationUnitsProvider.overrideWith((_) async => []),
       ],
       child: MaterialApp.router(
-        theme: SandolTheme.light,
+        theme: HandolTheme.light,
         debugShowCheckedModeBanner: false,
         routerConfig: router,
         localizationsDelegates: GlobalMaterialLocalizations.delegates,
@@ -112,11 +110,11 @@ Future<GoRouter> host(
   await tester.runAsync(() async {
     final context = tester.element(find.byType(Scaffold).first);
     for (final asset in [
-      SandolAssets.welcomeLogo,
-      SandolAssets.kakao,
-      SandolAssets.google,
-      SandolAssets.apple,
-      SandolAssets.splashPoster,
+      HandolAssets.welcomeLogo,
+      HandolAssets.kakao,
+      HandolAssets.google,
+      HandolAssets.apple,
+      HandolAssets.splashPoster,
     ]) {
       await precacheImage(AssetImage(asset), context);
     }
@@ -207,11 +205,11 @@ void main() {
   testWidgets('로그인 상태 유지는 기본 켬, 끄면 의미를 안내하고 그대로 전달한다', (tester) async {
     await host(tester);
     expect(
-      tester.widget<SandolCheckbox>(find.byType(SandolCheckbox)).value,
+      tester.widget<HandolCheckbox>(find.byType(HandolCheckbox)).value,
       isTrue,
     );
     expect(find.text('앱을 다시 열어도 로그인이 유지돼요.'), findsOneWidget);
-    await tapVisible(tester, find.byType(SandolCheckbox));
+    await tapVisible(tester, find.byType(HandolCheckbox));
     expect(find.text('앱을 완전히 종료하면 로그아웃돼요.'), findsOneWidget);
     await tapVisible(tester, action('아이디로 시작하기'));
     await tapVisible(tester, find.byTooltip('카카오로 로그인'));
@@ -221,7 +219,7 @@ void main() {
   testWidgets('360×640, 2배 글씨에서도 버튼을 조작할 수 있다', (tester) async {
     await host(tester, size: const Size(360, 640), textScale: 2);
     await capture(tester, '05-login-large-text');
-    await tapVisible(tester, find.byType(SandolCheckbox));
+    await tapVisible(tester, find.byType(HandolCheckbox));
     await tapVisible(
       tester,
       find.textContaining('계정이 없으시다면', findRichText: true),
@@ -242,7 +240,7 @@ void main() {
       (w) =>
           w is Image &&
           w.image is AssetImage &&
-          (w.image as AssetImage).assetName == SandolAssets.splashPoster,
+          (w.image as AssetImage).assetName == HandolAssets.splashPoster,
     );
     expect(tester.getSize(image).aspectRatio, closeTo(1080 / 1920, .001));
     await tester.pump(const Duration(seconds: 3));
@@ -254,16 +252,16 @@ void main() {
   });
 
   testWidgets('스플래시는 홈 데이터 선로딩이 끝나야 홈으로 간다', (tester) async {
-    final schedule = Completer<ScheduleEvent?>();
+    final emptyClasses = Completer<List<EmptyClass>>();
     final router = await host(
       tester,
       initial: RoutePaths.splash,
       session: Future.value(const AuthSession(accessToken: 'test-only')),
-      schedule: schedule.future,
+      emptyClasses: emptyClasses.future,
     );
     await tester.pump(const Duration(seconds: 1));
     expect(router.routeInformationProvider.value.uri.path, RoutePaths.splash);
-    schedule.complete(null);
+    emptyClasses.complete(const []);
     await tester.pumpAndSettle();
     expect(find.text('HOME'), findsOneWidget);
   });
@@ -278,7 +276,7 @@ void main() {
       session: restored.future,
     );
     expect(find.byType(VideoPlayer), findsNothing);
-    expect(find.bySemanticsLabel('산돌이 시작 화면'), findsOneWidget);
+    expect(find.bySemanticsLabel('한돌이 시작 화면'), findsOneWidget);
     restored.complete(const AuthSession(accessToken: 'test-only'));
     await tester.pump();
     expect(router.routeInformationProvider.value.uri.path, RoutePaths.home);

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:handori/core/design_system/sandol_tokens.dart';
-import 'package:handori/features/organization/domain/model/organization_search_result.dart';
-import 'package:handori/features/organization/presentation/widget/organization_node_card.dart';
+import 'package:handol/core/design_system/handol_tokens.dart';
+import 'package:handol/features/organization/domain/model/organization_search_result.dart';
+import 'package:handol/features/organization/presentation/widget/organization_node_card.dart';
 
 /// 검색 결과 한 건: 상위 경로(브레드크럼) + 노드.
 class OrganizationSearchResultCard extends StatelessWidget {
@@ -16,7 +16,7 @@ class OrganizationSearchResultCard extends StatelessWidget {
       if (result.path.isNotEmpty)
         Text(
           result.path.join(' › '),
-          style: SandolTypography.caption.muted,
+          style: HandolTypography.caption.muted,
           maxLines: 1,
           overflow: TextOverflow.ellipsis,
         ),

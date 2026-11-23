@@ -1,6 +1,6 @@
 import 'package:json_annotation/json_annotation.dart';
-import 'package:handori/features/organization/data/dto/organization_unit_response.dart';
-import 'package:handori/features/organization/domain/model/organization_node.dart';
+import 'package:handol/features/organization/data/dto/organization_unit_response.dart';
+import 'package:handol/features/organization/domain/model/organization_node.dart';
 
 part 'organization_group_response.g.dart';
 

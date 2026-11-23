@@ -9,7 +9,7 @@
 
 ## 1. Firebase 프로젝트와 설정 파일
 
-1. 팀 계정으로 Firebase 프로젝트를 만들고 Android 앱(`kr.sandori.app`), iOS 앱(번들 ID는 Xcode 의 값)을 등록한다.
+1. 팀 계정으로 Firebase 프로젝트를 만들고 Android 앱과 iOS 앱(둘 다 `app.handol.student`)을 등록한다.
 2. 받은 파일을 아래에 둔다. 둘 다 `.gitignore` 대상이다(비밀은 아니지만 환경별로 달라서).
    - Android: `android/app/google-services.json` — 파일이 있을 때만 google-services Gradle 플러그인이 적용된다.
    - iOS: `ios/Runner/GoogleService-Info.plist` — Xcode 에서 Runner 타깃에 추가(Copy items).
@@ -17,7 +17,7 @@
 
 ## 2. 플랫폼 준비
 
-- **Android**: 추가 작업 없음. 알림 채널 `sandol_default`(산돌이 알림)를 앱이 만들고, 백그라운드 알림도 이 채널을 쓴다(`AndroidManifest.xml` meta-data).
+- **Android**: 추가 작업 없음. 알림 채널 `sandol_default`(한돌이 알림)를 앱이 만들고, 백그라운드 알림도 이 채널을 쓴다(`AndroidManifest.xml` meta-data).
 - **iOS** (Windows 에서 빌드 검증 안 됨)
   - Apple Developer → Keys 에서 APNs 키(.p8)를 만들어 Firebase 콘솔 → 프로젝트 설정 → 클라우드 메시징에 업로드.
   - Xcode → Runner → Signing & Capabilities 에 **Push Notifications**, **Background Modes → Remote notifications** 추가.

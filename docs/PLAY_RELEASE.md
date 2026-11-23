@@ -5,13 +5,16 @@
 
 ## 1. 패키지명 — 완료 (코드)
 
-- `applicationId` / `namespace` = `kr.sandori.app` (2026-10-21 `kr.sandori.handori`에서 변경)
-- `MainActivity.kt` → `android/app/src/main/kotlin/kr/sandori/app/`
-- 딥링크 스킴 `kr.sandori.handori://oauthredirect` 는 패키지명과 무관하므로 Keycloak 설정 변경 불필요.
+- Android `applicationId` / `namespace`, iOS·macOS 번들 ID = `app.handol.student`
+  (2026-11-10 도메인 handol.app 구입에 맞춰 `kr.sandori.app`에서 변경. 그 전에는 2026-10-21 `kr.sandori.handori`에서 `kr.sandori.app`으로 바꿨다)
+- `MainActivity.kt` → `android/app/src/main/kotlin/app/handol/student/`
+- Dart 패키지 이름도 `handori` → `handol` (`package:handol/...`)
+- 로그인 딥링크 스킴 `kr.sandori.handori://oauthredirect` 는 패키지명과 무관해 그대로 둔다. 바꾸려면 Keycloak `handori-app` 클라이언트의 redirect URI 를 먼저 추가해야 한다.
 
 **직접 해야 할 일**
-- [ ] NCP 콘솔 → Maps → Application → Android 앱 패키지명을 `kr.sandori.app` 으로 교체 (2026-10-21 패키지 변경, 구 `kr.sandori.handori`는 2026-09-08 등록)(구 `com.example.handori` 삭제). 안 하면 릴리즈 빌드에서 지도가 빈 화면.
-- [ ] 이미 설치된 테스트 기기의 구 패키지 앱은 별개 앱으로 남으므로 삭제.
+- [ ] NCP 콘솔 → Maps → Application → Android 패키지명·iOS 번들 ID를 `app.handol.student` 로 등록(구 `kr.sandori.app` 은 정리). 안 하면 지도가 빈 화면.
+- [ ] Firebase 를 붙일 때 Android·iOS 앱을 `app.handol.student` 로 등록하고 `google-services.json` 을 받는다(docs/PUSH.md).
+- [ ] 이미 설치된 테스트 기기의 구 패키지 앱(`kr.sandori.app`, `kr.sandori.handori`)은 별개 앱으로 남으므로 삭제.
 
 ## 2. 릴리즈 서명 — 완료 (코드) + 백업 필요
 

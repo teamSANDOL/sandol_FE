@@ -1,6 +1,6 @@
 import 'package:json_annotation/json_annotation.dart';
-import 'package:handori/core/constants/api_constants.dart';
-import 'package:handori/core/utils/remote_url.dart';
+import 'package:handol/core/constants/api_constants.dart';
+import 'package:handol/core/utils/remote_url.dart';
 
 part 'tuk_place.g.dart';
 

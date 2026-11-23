@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:handori/core/constants/app_colors.dart';
+import 'package:handol/core/constants/app_colors.dart';
 import 'package:go_router/go_router.dart';
 import 'package:webview_flutter/webview_flutter.dart';
-import 'package:handori/features/notice/domain/model/notice.dart';
-import 'package:handori/shared/widget/sandol_loading_indicator.dart';
-import 'package:handori/core/constants/app_radius.dart';
+import 'package:handol/features/notice/domain/model/notice.dart';
+import 'package:handol/shared/widget/handol_loading_indicator.dart';
+import 'package:handol/core/constants/app_radius.dart';
 
 class NoticeDetailPage extends StatefulWidget {
   final Notice notice;
@@ -118,7 +118,7 @@ class _NoticeDetailPageState extends State<NoticeDetailPage> {
       body: Stack(
         children: [
           WebViewWidget(controller: _controller),
-          if (_isLoading) const Center(child: SandolLoadingIndicator()),
+          if (_isLoading) const Center(child: HandolLoadingIndicator()),
         ],
       ),
     );

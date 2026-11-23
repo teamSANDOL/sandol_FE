@@ -1,8 +1,8 @@
-import 'package:handori/features/empty_class/data/building_locations.dart';
-import 'package:handori/features/empty_class/data/data_source/classroom_api.dart';
-import 'package:handori/features/empty_class/domain/model/classroom_query.dart';
-import 'package:handori/features/empty_class/domain/repository/empty_class_repository.dart';
-import 'package:handori/features/empty_class/model/class_model.dart';
+import 'package:handol/features/empty_class/data/building_locations.dart';
+import 'package:handol/features/empty_class/data/data_source/classroom_api.dart';
+import 'package:handol/features/empty_class/domain/model/classroom_query.dart';
+import 'package:handol/features/empty_class/domain/repository/empty_class_repository.dart';
+import 'package:handol/features/empty_class/model/class_model.dart';
 
 class EmptyClassRepositoryImpl implements EmptyClassRepository {
   final ClassroomApi _api;

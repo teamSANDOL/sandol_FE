@@ -1,20 +1,22 @@
 import 'package:go_router/go_router.dart';
-import 'package:handori/common/layout/root_shell.dart';
-import 'package:handori/core/router/route_paths.dart';
-import 'package:handori/features/auth/screen/login_screen.dart';
-import 'package:handori/features/bus/screen/bus_time_detail_screen.dart';
-import 'package:handori/features/home/screen/home_screen.dart';
-import 'package:handori/features/home/screen/splash_screen.dart';
-import 'package:handori/features/map/screen/map_screen.dart';
-import 'package:handori/features/notice/domain/model/notice.dart';
-import 'package:handori/features/notice/presentation/page/notice_detail_page.dart';
-import 'package:handori/features/notice/presentation/page/notice_page.dart';
-import 'package:handori/features/organization/presentation/page/organization_search_page.dart';
-import 'package:handori/features/organization/presentation/page/organization_tree_page.dart';
-import 'package:handori/features/school_meal/presentation/page/restaurant_detail_page.dart';
-import 'package:handori/features/user/presentation/page/user_page.dart';
-import 'package:handori/features/user/presentation/page/withdraw_confirm_page.dart';
-import 'package:handori/features/user/presentation/page/withdraw_reason_page.dart';
+import 'package:handol/common/layout/root_shell.dart';
+import 'package:handol/core/router/route_paths.dart';
+import 'package:handol/features/auth/screen/login_screen.dart';
+import 'package:handol/features/bus/screen/bus_time_detail_screen.dart';
+import 'package:handol/features/home/screen/home_screen.dart';
+import 'package:handol/features/home/screen/splash_screen.dart';
+import 'package:handol/features/map/screen/map_screen.dart';
+import 'package:handol/features/notice/domain/model/notice.dart';
+import 'package:handol/features/notice/presentation/page/notice_detail_page.dart';
+import 'package:handol/features/notice/presentation/page/notice_page.dart';
+import 'package:handol/features/organization/presentation/page/organization_search_page.dart';
+import 'package:handol/features/organization/presentation/page/organization_tree_page.dart';
+import 'package:handol/features/school_meal/presentation/page/restaurant_detail_page.dart';
+import 'package:handol/features/user/data/policy_document.dart';
+import 'package:handol/features/user/presentation/page/policy_page.dart';
+import 'package:handol/features/user/presentation/page/user_page.dart';
+import 'package:handol/features/user/presentation/page/withdraw_confirm_page.dart';
+import 'package:handol/features/user/presentation/page/withdraw_reason_page.dart';
 
 final appRouter = GoRouter(
   initialLocation: RoutePaths.splash,
@@ -27,6 +29,14 @@ final appRouter = GoRouter(
       path: RoutePaths.user,
       builder: (_, _) => const UserPage(),
       routes: [
+        // 약관 · 개인정보처리방침 (앱 안에서 보기)
+        GoRoute(
+          path: 'policy/:doc',
+          builder:
+              (_, state) => PolicyPage(
+                doc: PolicyDocument.values.byName(state.pathParameters['doc']!),
+              ),
+        ),
         // 회원탈퇴: 이유 선택 → 최종 확인
         GoRoute(
           path: 'withdraw',

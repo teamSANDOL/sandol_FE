@@ -2,17 +2,16 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:handori/core/design_system/sandol_assets.dart';
-import 'package:handori/core/design_system/sandol_tokens.dart';
-import 'package:handori/core/push/push_service.dart';
-import 'package:handori/core/router/route_paths.dart';
-import 'package:handori/features/auth/domain/model/auth_session.dart';
-import 'package:handori/features/auth/presentation/provider/auth_provider.dart';
-import 'package:handori/features/empty_class/presentation/provider/empty_class_provider.dart';
-import 'package:handori/features/home/presentation/provider/home_static_provider.dart';
-import 'package:handori/features/organization/presentation/provider/organization_provider.dart';
-import 'package:handori/features/school_meal/presentation/provider/meal_list_notifier.dart';
-import 'package:handori/features/school_meal/presentation/provider/restaurant_list_notifier.dart';
+import 'package:handol/core/design_system/handol_assets.dart';
+import 'package:handol/core/design_system/handol_tokens.dart';
+import 'package:handol/core/push/push_service.dart';
+import 'package:handol/core/router/route_paths.dart';
+import 'package:handol/features/auth/domain/model/auth_session.dart';
+import 'package:handol/features/auth/presentation/provider/auth_provider.dart';
+import 'package:handol/features/empty_class/presentation/provider/empty_class_provider.dart';
+import 'package:handol/features/organization/presentation/provider/organization_provider.dart';
+import 'package:handol/features/school_meal/presentation/provider/meal_list_notifier.dart';
+import 'package:handol/features/school_meal/presentation/provider/restaurant_list_notifier.dart';
 import 'package:video_player/video_player.dart';
 
 class Splashscreen extends ConsumerStatefulWidget {
@@ -29,7 +28,6 @@ class _SplashscreenState extends ConsumerState<Splashscreen> {
   /// 홈 첫 화면이 쓰는 네트워크 데이터. 위치(빈 강의실 거리순)는 권한 창이
   /// 스플래시 위에 뜨지 않도록 홈에서 받는다. 셔틀은 내장 시간표라 제외.
   List<ProviderListenable<Future<Object?>>> get _homeData => [
-    homeScheduleProvider.future,
     restaurantListNotifierProvider.future,
     mealListNotifierProvider().future,
     emptyClassesProvider.future,
@@ -42,7 +40,7 @@ class _SplashscreenState extends ConsumerState<Splashscreen> {
 
   /// 화면 전환은 영상을 기다리지 않는다. 다른 앱의 음악을 끊지 않게 섞어 튼다.
   final _video = VideoPlayerController.asset(
-    SandolAssets.splashVideo,
+    HandolAssets.splashVideo,
     videoPlayerOptions: VideoPlayerOptions(mixWithOthers: true),
   );
   bool _videoReady = false;
@@ -119,17 +117,17 @@ class _SplashscreenState extends ConsumerState<Splashscreen> {
       statusBarColor: Colors.transparent,
     ),
     child: Scaffold(
-      backgroundColor: SandolColors.background,
+      backgroundColor: HandolColors.background,
       body: Center(
         // Figma 원본 1080×1920 자산. 시안의 412×733 배치처럼 세로 중앙 정렬하고 종횡비를 유지한다.
         // 영상도 같은 1080×1920 이라 정지 이미지 위에 그대로 덮는다.
         child: Stack(
           children: [
             Image.asset(
-              SandolAssets.splashPoster,
+              HandolAssets.splashPoster,
               width: MediaQuery.sizeOf(context).width,
               fit: BoxFit.contain,
-              semanticLabel: '산돌이 시작 화면',
+              semanticLabel: '한돌이 시작 화면',
             ),
             if (_videoReady) Positioned.fill(child: VideoPlayer(_video)),
           ],

@@ -1,9 +1,9 @@
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
-import 'package:handori/features/bus/domain/model/shuttle_schedule.dart';
-import 'package:handori/features/bus/domain/usecase/nearest_shuttle_origin.dart';
-import 'package:handori/features/bus/presentation/provider/next_shuttle_provider.dart';
-import 'package:handori/features/empty_class/presentation/provider/user_location_provider.dart';
+import 'package:handol/features/bus/domain/model/shuttle_schedule.dart';
+import 'package:handol/features/bus/domain/usecase/nearest_shuttle_origin.dart';
+import 'package:handol/features/bus/presentation/provider/next_shuttle_provider.dart';
+import 'package:handol/features/empty_class/presentation/provider/user_location_provider.dart';
 
 part 'shuttle_direction_provider.g.dart';
 

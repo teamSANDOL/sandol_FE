@@ -39,7 +39,7 @@ if (keystorePropertiesFile.exists() && missingKeystoreKeys.isNotEmpty()) {
 }
 
 android {
-    namespace = "kr.sandori.app"
+    namespace = "app.handol.student"
     compileSdk = flutter.compileSdkVersion
     ndkVersion = flutter.ndkVersion
 
@@ -58,7 +58,7 @@ android {
 
     defaultConfig {
         // TODO: Specify your own unique Application ID (https://developer.android.com/studio/build/application-id.html).
-        applicationId = "kr.sandori.app"
+        applicationId = "app.handol.student"
         // You can update the following values to match your application needs.
         // For more information, see: https://flutter.dev/to/review-gradle-config.
         // flutter_naver_map 이 minSdk 23 을 요구한다.

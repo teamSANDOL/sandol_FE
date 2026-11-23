@@ -1,5 +1,5 @@
 import 'package:geolocator/geolocator.dart';
-import 'package:handori/features/bus/domain/model/shuttle_schedule.dart';
+import 'package:handol/features/bus/domain/model/shuttle_schedule.dart';
 
 /// 현재 위치에서 가장 가까운 정류장을 출발지(방향)로 고르는 순수 로직.
 class NearestShuttleOrigin {

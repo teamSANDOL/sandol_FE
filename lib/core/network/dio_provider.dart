@@ -3,10 +3,10 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
-import 'package:handori/core/constants/api_constants.dart';
-import 'package:handori/core/network/auth_interceptor.dart';
-import 'package:handori/core/network/fallback_interceptor.dart';
-import 'package:handori/features/auth/presentation/provider/auth_provider.dart';
+import 'package:handol/core/constants/api_constants.dart';
+import 'package:handol/core/network/auth_interceptor.dart';
+import 'package:handol/core/network/fallback_interceptor.dart';
+import 'package:handol/features/auth/presentation/provider/auth_provider.dart';
 
 part 'dio_provider.g.dart';
 

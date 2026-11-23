@@ -2,17 +2,17 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:go_router/go_router.dart';
-import 'package:handori/common/component/app_top_bar.dart';
-import 'package:handori/common/component/sandol_card.dart';
-import 'package:handori/common/component/sandol_checkbox.dart';
-import 'package:handori/common/component/sandol_icon_label.dart';
-import 'package:handori/core/design_system/sandol_assets.dart';
-import 'package:handori/core/design_system/sandol_tokens.dart';
-import 'package:handori/core/router/route_paths.dart';
-import 'package:handori/core/utils/keep_all.dart';
-import 'package:handori/features/auth/presentation/provider/auth_provider.dart';
-import 'package:handori/features/user/presentation/widget/confirm_dialog.dart';
-import 'package:handori/features/user/presentation/widget/withdraw_actions.dart';
+import 'package:handol/common/component/app_top_bar.dart';
+import 'package:handol/common/component/handol_card.dart';
+import 'package:handol/common/component/handol_checkbox.dart';
+import 'package:handol/common/component/handol_icon_label.dart';
+import 'package:handol/core/design_system/handol_assets.dart';
+import 'package:handol/core/design_system/handol_tokens.dart';
+import 'package:handol/core/router/route_paths.dart';
+import 'package:handol/core/utils/keep_all.dart';
+import 'package:handol/features/auth/presentation/provider/auth_provider.dart';
+import 'package:handol/features/user/presentation/widget/confirm_dialog.dart';
+import 'package:handol/features/user/presentation/widget/withdraw_actions.dart';
 
 /// 회원탈퇴 2단계: 최종 확인 (Figma 2196:951).
 ///
@@ -65,72 +65,80 @@ class _WithdrawConfirmPageState extends ConsumerState<WithdrawConfirmPage> {
 
   @override
   Widget build(BuildContext context) => Scaffold(
-    backgroundColor: SandolColors.background,
+    backgroundColor: HandolColors.background,
     appBar: AppTopBar(
       title: '회원탈퇴',
-      titleWidget: const Text('회원탈퇴', style: SandolTypography.title),
-      backIcon: SvgPicture.asset(SandolAssets.backArrow),
+      titleWidget: const Text('회원탈퇴', style: HandolTypography.title),
+      backIcon: SvgPicture.asset(HandolAssets.backArrow),
       onBack: () => context.pop(),
       showUser: false,
-      backgroundColor: SandolColors.background,
-      horizontalPadding: SandolMetrics.pageGutter - 10,
+      backgroundColor: HandolColors.background,
+      horizontalPadding: HandolMetrics.pageGutter - 10,
     ),
-    body: ListView(
-      padding: const EdgeInsets.only(top: 12, bottom: SandolSpacing.xl),
-      children: [
-        const Padding(
-          padding: EdgeInsets.symmetric(horizontal: SandolMetrics.pageGutter),
-          child: _FarewellCard(),
+    body: DecoratedBox(
+      // 화면 배경 그라데이션 (공지·학식과 같은 R BAK 스타일)
+      decoration: const BoxDecoration(gradient: HandolGradients.screen),
+      child: ListView(
+        // 기기마다 다른 시스템 내비게이션 바 높이만큼 더 띄운다.
+        padding: EdgeInsets.only(
+          top: 12,
+          bottom: HandolSpacing.xl + MediaQuery.paddingOf(context).bottom,
         ),
-        const SizedBox(height: 14),
-        Text(
-          '조금 더 함께하고 싶지만,\n아쉬운 마음으로 보내드릴게요. 언제든 다시 찾아주세요!'.keepAll,
-          textAlign: TextAlign.center,
-          style: SandolTypography.body,
-        ),
-        const SizedBox(height: 78),
-        const _NoticeBlock(),
-        const SizedBox(height: 9),
-        Padding(
-          padding: const EdgeInsets.symmetric(
-            horizontal: SandolMetrics.pageGutter,
+        children: [
+          const Padding(
+            padding: EdgeInsets.symmetric(horizontal: HandolMetrics.pageGutter),
+            child: _FarewellCard(),
           ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              SandolCheckbox(
-                dense: true,
-                label: '위 내용을 숙지하였으며 탈퇴에 동의합니다.',
-                value: _agreed,
-                onChanged: (v) => setState(() => _agreed = v),
-              ),
-              const SizedBox(height: 5),
-              WithdrawActions(
-                confirmLabel: '회원 탈퇴하기',
-                onContinue: _keepUsing,
-                onConfirm: _agreed ? _deleteAccount : null,
-              ),
-            ],
+          const SizedBox(height: 14),
+          Text(
+            '조금 더 함께하고 싶지만,\n아쉬운 마음으로 보내드릴게요. 언제든 다시 찾아주세요!'.keepAll,
+            textAlign: TextAlign.center,
+            style: HandolTypography.body,
           ),
-        ),
-      ],
+          const SizedBox(height: 78),
+          const _NoticeBlock(),
+          const SizedBox(height: 9),
+          Padding(
+            padding: const EdgeInsets.symmetric(
+              horizontal: HandolMetrics.pageGutter,
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                HandolCheckbox(
+                  dense: true,
+                  label: '위 내용을 숙지하였으며 탈퇴에 동의합니다.',
+                  value: _agreed,
+                  onChanged: (v) => setState(() => _agreed = v),
+                ),
+                const SizedBox(height: 5),
+                WithdrawActions(
+                  confirmLabel: '회원 탈퇴하기',
+                  onContinue: _keepUsing,
+                  onConfirm: _agreed ? _deleteAccount : null,
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
     ),
   );
 }
 
-/// 진회색 카드 + 우는 산돌이 (2196:676)
+/// 진회색 카드 + 우는 한돌이 (2196:676)
 class _FarewellCard extends StatelessWidget {
   const _FarewellCard();
 
   @override
-  Widget build(BuildContext context) => SandolCard(
-    color: SandolColors.textSecondary,
+  Widget build(BuildContext context) => HandolCard(
+    color: HandolColors.textSecondary,
     padding: const EdgeInsets.fromLTRB(20, 20, 20, 23),
     child: Column(
       spacing: 9,
       children: [
-        Text('정말로 떠나실 건가요?', style: SandolTypography.title.accent),
-        SvgPicture.asset(SandolAssets.myWithdrawMascot),
+        Text('정말로 떠나실 건가요?', style: HandolTypography.title.onPrimary),
+        SvgPicture.asset(HandolAssets.myWithdrawMascot),
       ],
     ),
   );
@@ -142,7 +150,7 @@ class _NoticeBlock extends StatelessWidget {
 
   static const _items = <(String, bool)>[
     (
-      '회원탈퇴 시 산돌이의 모든 서비스 이용 내역 및 개인 계정 정보가 즉시 파기되며, 어떠한 경우에도 영구적으로 복구할 수 없습니다.',
+      '회원탈퇴 시 한돌이의 모든 서비스 이용 내역 및 개인 계정 정보가 즉시 파기되며, 어떠한 경우에도 영구적으로 복구할 수 없습니다.',
       false,
     ),
     ('무분별한 탈퇴 및 재가입 방지를 위해 탈퇴 후 30일 동안 동일한 계정 정보로 다시 가입할 수 없습니다.', true),
@@ -154,31 +162,31 @@ class _NoticeBlock extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => ColoredBox(
-    color: const Color(0x1A040404),
+    color: const Color(0xFFEEF1F6), // 2196:1183
     child: Padding(
       padding: const EdgeInsets.fromLTRB(
-        SandolMetrics.pageGutter,
+        HandolMetrics.pageGutter,
         32,
-        SandolMetrics.pageGutter,
+        HandolMetrics.pageGutter,
         32,
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         spacing: 35,
         children: [
-          SandolIconLabel(
-            icon: SvgPicture.asset(SandolAssets.myNoticeInfo),
+          HandolIconLabel(
+            icon: SvgPicture.asset(HandolAssets.myNoticeInfo),
             label: '꼭 확인해주세요!',
-            style: SandolTypography.body.strong,
+            style: HandolTypography.body.strong,
           ),
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
-            spacing: SandolSpacing.md,
+            spacing: HandolSpacing.md,
             children: [
               for (final (text, red) in _items)
                 Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
-                  spacing: SandolSpacing.sm,
+                  spacing: HandolSpacing.sm,
                   children: [
                     Text('•', style: _style(red)),
                     Expanded(child: Text(text.keepAll, style: _style(red))),
@@ -191,9 +199,9 @@ class _NoticeBlock extends StatelessWidget {
     ),
   );
 
-  static TextStyle _style(bool red) => SandolTypography.caption.copyWith(
+  static TextStyle _style(bool red) => HandolTypography.caption.copyWith(
     height: 18 / 14,
     letterSpacing: -1,
-    color: red ? SandolColors.red : SandolColors.text,
+    color: red ? HandolColors.red : HandolColors.text,
   );
 }

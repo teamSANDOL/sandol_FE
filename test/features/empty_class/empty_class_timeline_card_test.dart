@@ -1,23 +1,23 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:handori/features/empty_class/component/empty_class_card.dart';
-import 'package:handori/features/empty_class/domain/model/nearby_empty_class.dart';
-import 'package:handori/features/empty_class/model/class_model.dart';
-import 'package:handori/features/empty_class/presentation/provider/empty_class_provider.dart';
-import 'package:handori/features/empty_class/presentation/provider/user_location_provider.dart';
+import 'package:handol/features/empty_class/component/empty_class_card.dart';
+import 'package:handol/features/empty_class/domain/model/nearby_empty_class.dart';
+import 'package:handol/features/empty_class/model/class_model.dart';
+import 'package:handol/features/empty_class/presentation/provider/empty_class_provider.dart';
+import 'package:handol/features/empty_class/presentation/provider/user_location_provider.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 EmptyClass _b(String name, int n, {double? lat, double? lng}) => EmptyClass(
-      className: name,
-      classCount: '$n',
-      trafficIcon: 'assets/img/green.png',
-      classIcons: 'assets/img/tino6.png',
-      classList: List.generate(n, (i) => '${100 + i}호'),
-      latitude: lat,
-      longitude: lng,
-      totalCount: 30,
-    );
+  className: name,
+  classCount: '$n',
+  trafficIcon: 'assets/img/green.png',
+  classIcons: 'assets/img/tino6.png',
+  classList: List.generate(n, (i) => '${100 + i}호'),
+  latitude: lat,
+  longitude: lng,
+  totalCount: 30,
+);
 
 void main() {
   setUp(() => FlutterSecureStorage.setMockInitialValues({}));
@@ -36,10 +36,11 @@ void main() {
                 children: [
                   // 홈에서는 섹션 제목의 설정 아이콘이 시트를 연다
                   Builder(
-                    builder: (context) => TextButton(
-                      onPressed: () => showBuildingSortSheet(context),
-                      child: const Text('정렬 열기'),
-                    ),
+                    builder:
+                        (context) => TextButton(
+                          onPressed: () => showBuildingSortSheet(context),
+                          child: const Text('정렬 열기'),
+                        ),
                   ),
                   EmptyClassTimelineCard(maxItems: 3, onBuildingTap: onTap),
                 ],
@@ -54,12 +55,20 @@ void main() {
     tester.view.devicePixelRatio = 1;
     addTearDown(tester.view.reset);
 
-    await tester.pumpWidget(host([
-      NearbyEmptyClass(building: _b('E동', 13, lat: 37.3397, lng: 126.7350), distanceMeters: 120),
-      NearbyEmptyClass(building: _b('산융', 24, lat: 37.3387, lng: 126.7345), distanceMeters: 410),
-      NearbyEmptyClass(building: _b('TIP', 15)),
-      NearbyEmptyClass(building: _b('중앙', 0)),
-    ]));
+    await tester.pumpWidget(
+      host([
+        NearbyEmptyClass(
+          building: _b('E동', 13, lat: 37.3397, lng: 126.7350),
+          distanceMeters: 120,
+        ),
+        NearbyEmptyClass(
+          building: _b('산융', 24, lat: 37.3387, lng: 126.7345),
+          distanceMeters: 410,
+        ),
+        NearbyEmptyClass(building: _b('TIP', 15)),
+        NearbyEmptyClass(building: _b('중앙', 0)),
+      ]),
+    );
     await tester.pumpAndSettle();
 
     expect(tester.takeException(), isNull);
@@ -83,10 +92,12 @@ void main() {
     tester.view.devicePixelRatio = 1;
     addTearDown(tester.view.reset);
 
-    await tester.pumpWidget(host([
-      NearbyEmptyClass(building: _b('E동', 3)),
-      NearbyEmptyClass(building: _b('산융', 2)),
-    ]));
+    await tester.pumpWidget(
+      host([
+        NearbyEmptyClass(building: _b('E동', 3)),
+        NearbyEmptyClass(building: _b('산융', 2)),
+      ]),
+    );
     await tester.pumpAndSettle();
 
     await tester.tap(find.text('정렬 열기'));
@@ -106,9 +117,9 @@ void main() {
     tester.view.devicePixelRatio = 1;
     addTearDown(tester.view.reset);
 
-    await tester.pumpWidget(host([
-      NearbyEmptyClass(building: _b('E동', 13), distanceMeters: 1500),
-    ]));
+    await tester.pumpWidget(
+      host([NearbyEmptyClass(building: _b('E동', 13), distanceMeters: 1500)]),
+    );
     await tester.pumpAndSettle();
     expect(tester.takeException(), isNull);
   });
@@ -118,9 +129,9 @@ void main() {
     tester.view.devicePixelRatio = 1;
     addTearDown(tester.view.reset);
 
-    await tester.pumpWidget(host([
-      NearbyEmptyClass(building: _b('E동', 3), distanceMeters: 120),
-    ]));
+    await tester.pumpWidget(
+      host([NearbyEmptyClass(building: _b('E동', 3), distanceMeters: 120)]),
+    );
     await tester.pumpAndSettle();
     expect(find.text('도보 2분'), findsOneWidget);
 
@@ -136,10 +147,9 @@ void main() {
 
   testWidgets('건물 행을 누르면 건물명을 넘긴다', (tester) async {
     String? tapped;
-    await tester.pumpWidget(host(
-      [NearbyEmptyClass(building: _b('산융', 4))],
-      onTap: (n) => tapped = n,
-    ));
+    await tester.pumpWidget(
+      host([NearbyEmptyClass(building: _b('산융', 4))], onTap: (n) => tapped = n),
+    );
     await tester.pumpAndSettle();
     await tester.tap(find.text('산융'));
     expect(tapped, '산융');

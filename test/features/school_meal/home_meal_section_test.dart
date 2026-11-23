@@ -1,14 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:handori/common/component/sandol_chip.dart';
-import 'package:handori/core/utils/keep_all.dart';
-import 'package:handori/core/utils/korea_time.dart';
-import 'package:handori/features/school_meal/domain/model/meal_type.dart';
-import 'package:handori/features/school_meal/domain/model/restaurant.dart';
-import 'package:handori/features/school_meal/presentation/model/restaurant_menu.dart';
-import 'package:handori/features/school_meal/presentation/provider/selected_restaurant_id_notifier.dart';
-import 'package:handori/features/school_meal/presentation/widget/meal_card.dart';
+import 'package:handol/common/component/handol_card.dart';
+import 'package:handol/core/design_system/handol_tokens.dart';
+import 'package:handol/common/component/handol_chip.dart';
+import 'package:handol/core/utils/keep_all.dart';
+import 'package:handol/core/utils/korea_time.dart';
+import 'package:handol/features/school_meal/domain/model/meal_type.dart';
+import 'package:handol/features/school_meal/domain/model/restaurant.dart';
+import 'package:handol/features/school_meal/presentation/model/restaurant_menu.dart';
+import 'package:handol/features/school_meal/presentation/provider/selected_restaurant_id_notifier.dart';
+import 'package:handol/features/school_meal/presentation/widget/meal_card.dart';
 
 RestaurantMenu _menu(int id, String name, int itemCount) => RestaurantMenu(
   restaurant: Restaurant(id: id, name: name, establishmentType: ''),
@@ -65,7 +67,7 @@ void main() {
       tester.getTopLeft(find.text(text.keepAll)).dx;
   bool chipSelected(WidgetTester tester, String label) =>
       tester
-          .widget<SandolChip>(find.widgetWithText(SandolChip, label))
+          .widget<HandolChip>(find.widgetWithText(HandolChip, label))
           .selected;
 
   testWidgets('드래그 중 카드가 손가락 이동량만큼 따라온다', (tester) async {
@@ -156,22 +158,79 @@ void main() {
     expect(find.textContaining('운영하지 않아요'), findsNothing);
   });
 
-  testWidgets('옆 카드는 PageView 폭 밖에 그려지지 않는다', (tester) async {
+  testWidgets('옆 카드가 화면 여백 안에서만 살짝 비친다', (tester) async {
     await pump(tester);
     final clip = tester.widget<ClipRect>(
       find.ancestor(of: find.byType(PageView), matching: find.byType(ClipRect)),
     );
     final size = tester.getSize(find.byType(PageView));
     final rect = clip.clipper!.getClip(size);
-    // 가로는 PageView 폭 그대로, 세로는 그림자만큼만 넓다.
+    // 가로는 PageView(화면 폭) 그대로, 세로는 그림자만큼 넓다.
     expect((rect.left, rect.right), (0, size.width));
     expect(rect.top, lessThan(0));
     expect(rect.bottom, greaterThan(size.height));
-    // 정지 상태에서 옆(B) 카드는 PageView 오른쪽 경계 밖에 놓인다.
+    // 정지 상태에서 옆(B) 카드의 왼쪽 끝이 화면 오른쪽 여백(33)에 들어와 비친다.
     final viewRight = tester.getTopRight(find.byType(PageView)).dx;
-    expect(
-      tester.getTopLeft(find.text('B식당 메뉴0'.keepAll, skipOffstage: false)).dx,
-      greaterThanOrEqualTo(viewRight),
+    final bLeft =
+        tester
+            .getTopLeft(
+              find.ancestor(
+                of: find.text('B식당'.keepAll, skipOffstage: false).last,
+                matching: find.byType(HandolCard, skipOffstage: false),
+              ),
+            )
+            .dx;
+    expect(bLeft, lessThan(viewRight));
+    expect(bLeft, greaterThan(viewRight - HandolMetrics.pageGutter));
+  });
+
+  testWidgets('카드를 끄는 동안 칩 줄이 손을 떼기 전부터 같이 밀린다', (tester) async {
+    // 칩 줄이 화면보다 길어야 스크롤된다.
+    await pump(
+      tester,
+      shown: [for (var i = 1; i <= 6; i++) _menu(i, '식당$i', 1)],
     );
+    final chips =
+        tester
+            .state<ScrollableState>(
+              find.descendant(
+                of: find.byType(SingleChildScrollView),
+                matching: find.byType(Scrollable),
+              ),
+            )
+            .position;
+    final cards =
+        tester
+            .state<ScrollableState>(
+              find.descendant(
+                of: find.byType(PageView),
+                matching: find.byType(Scrollable),
+              ),
+            )
+            .position;
+    double chipCenterInView(String label) =>
+        tester.getCenter(find.widgetWithText(HandolChip, label)).dx;
+    final viewMid = tester.getCenter(find.byType(SingleChildScrollView)).dx;
+
+    // 4번째 카드로 옮겨 칩 줄이 가운데로 스크롤된 상태에서 시작한다.
+    container.read(selectedRestaurantIdProvider.notifier).select(4);
+    await tester.pumpAndSettle();
+    expect(chipCenterInView('식당4'), closeTo(viewMid, 1));
+
+    final before = chips.pixels;
+    final cardsBefore = cards.pixels;
+    final gesture = await tester.startGesture(
+      tester.getCenter(find.byType(PageView)),
+    );
+    await gesture.moveBy(const Offset(-20, 0));
+    await tester.pump();
+    await gesture.moveBy(const Offset(-80, 0));
+    await tester.pump();
+    // 아직 절반도 안 넘겼지만 칩 줄은 끈 비율만큼 이미 움직였다.
+    expect(cards.pixels, greaterThan(cardsBefore));
+    expect(chips.pixels, greaterThan(before));
+    await gesture.up();
+    await tester.pumpAndSettle();
+    expect(chipCenterInView('식당4'), closeTo(viewMid, 1)); // 제자리로 돌아옴
   });
 }

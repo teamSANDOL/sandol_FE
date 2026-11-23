@@ -1,4 +1,4 @@
-import 'package:handori/core/utils/date_formatter.dart';
+import 'package:handol/core/utils/date_formatter.dart';
 
 /// 대한민국 공휴일(대체공휴일 포함) 목록. 셔틀 미운행 판정에 쓴다.
 ///

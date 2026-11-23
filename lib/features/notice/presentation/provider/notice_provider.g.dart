@@ -40,24 +40,6 @@ final noticeRepositoryProvider = AutoDisposeProvider<NoticeRepository>.internal(
 @Deprecated('Will be removed in 3.0. Use Ref instead')
 // ignore: unused_element
 typedef NoticeRepositoryRef = AutoDisposeProviderRef<NoticeRepository>;
-String _$recentShuttleHash() => r'4b4f5c4c588fba6c11a92abda920e95d5a062794';
-
-/// See also [recentShuttle].
-@ProviderFor(recentShuttle)
-final recentShuttleProvider = AutoDisposeFutureProvider<ShuttleRecent>.internal(
-  recentShuttle,
-  name: r'recentShuttleProvider',
-  debugGetCreateSourceHash:
-      const bool.fromEnvironment('dart.vm.product')
-          ? null
-          : _$recentShuttleHash,
-  dependencies: null,
-  allTransitiveDependencies: null,
-);
-
-@Deprecated('Will be removed in 3.0. Use Ref instead')
-// ignore: unused_element
-typedef RecentShuttleRef = AutoDisposeFutureProviderRef<ShuttleRecent>;
 String _$noticeListNotifierHash() =>
     r'a0797a89ed29db4815199ba5c9f53dafa0f86458';
 
@@ -229,26 +211,5 @@ class _NoticeListNotifierProviderElement
   bool get isDormitory => (origin as NoticeListNotifierProvider).isDormitory;
 }
 
-String _$shuttleListNotifierHash() =>
-    r'3a8b9a8aaa381a91b3f3e8f089c496985b985807';
-
-/// See also [ShuttleListNotifier].
-@ProviderFor(ShuttleListNotifier)
-final shuttleListNotifierProvider = AutoDisposeAsyncNotifierProvider<
-  ShuttleListNotifier,
-  PaginationState<Shuttle>
->.internal(
-  ShuttleListNotifier.new,
-  name: r'shuttleListNotifierProvider',
-  debugGetCreateSourceHash:
-      const bool.fromEnvironment('dart.vm.product')
-          ? null
-          : _$shuttleListNotifierHash,
-  dependencies: null,
-  allTransitiveDependencies: null,
-);
-
-typedef _$ShuttleListNotifier =
-    AutoDisposeAsyncNotifier<PaginationState<Shuttle>>;
 // ignore_for_file: type=lint
 // ignore_for_file: subtype_of_sealed_class, invalid_use_of_internal_member, invalid_use_of_visible_for_testing_member, deprecated_member_use_from_same_package

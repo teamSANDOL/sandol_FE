@@ -1,15 +1,18 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:handori/common/component/sandol_card.dart';
-import 'package:handori/common/component/sandol_icon_button.dart';
-import 'package:handori/common/component/sandol_icon_label.dart';
-import 'package:handori/core/design_system/sandol_assets.dart';
-import 'package:handori/core/design_system/sandol_tokens.dart';
-import 'package:handori/features/bus/domain/model/shuttle_schedule.dart';
-import 'package:handori/features/bus/domain/usecase/next_shuttle_calculator.dart';
-import 'package:handori/features/bus/presentation/provider/next_shuttle_provider.dart';
-import 'package:handori/features/bus/presentation/provider/shuttle_direction_provider.dart';
+import 'package:handol/common/component/handol_card.dart';
+import 'package:handol/common/component/handol_icon_button.dart';
+import 'package:handol/common/component/handol_icon_label.dart';
+import 'package:handol/core/design_system/handol_assets.dart';
+import 'package:handol/core/design_system/handol_tokens.dart';
+import 'package:handol/core/utils/korea_time.dart';
+import 'package:handol/features/bus/domain/model/shuttle_schedule.dart';
+import 'package:handol/features/bus/domain/usecase/next_shuttle_calculator.dart';
+import 'package:handol/features/bus/presentation/provider/next_shuttle_provider.dart';
+import 'package:handol/features/bus/presentation/provider/shuttle_direction_provider.dart';
 
 /// 홈 셔틀버스 카드 (Figma 2153:253).
 ///
@@ -59,7 +62,7 @@ class _BustimescreenState extends ConsumerState<Bustimescreen> {
             )
             .toList();
 
-    return SandolCard(
+    return HandolCard(
       onTap: widget.onTap,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -75,37 +78,36 @@ class _BustimescreenState extends ConsumerState<Bustimescreen> {
           ),
           Padding(
             padding: const EdgeInsets.symmetric(
-              horizontal: SandolMetrics.cardInset,
+              horizontal: HandolMetrics.cardInset,
               vertical: 10,
             ),
-            child: SandolIconLabel(
-              icon: SvgPicture.asset(SandolAssets.clock),
-              label: next.headline,
-              style: SandolTypography.title.accent,
+            child: _Countdown(
+              next: next,
+              nowMinutes: now.hour * 60 + now.minute,
             ),
           ),
-          const Divider(height: 1, thickness: 1, color: SandolColors.muted),
+          const Divider(height: 1, thickness: 1, color: HandolColors.muted),
           Padding(
             padding: const EdgeInsets.fromLTRB(
-              SandolMetrics.cardInset,
+              HandolMetrics.cardInset,
               13,
-              SandolMetrics.cardInset,
-              SandolSpacing.md,
+              HandolMetrics.cardInset,
+              HandolSpacing.md,
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                SandolIconLabel(
-                  icon: SvgPicture.asset(SandolAssets.busStop),
+                HandolIconLabel(
+                  icon: SvgPicture.asset(HandolAssets.busStop),
                   label: stopName,
-                  style: SandolTypography.headline.strong,
+                  style: HandolTypography.headline.strong,
                   gap: 9,
                 ),
                 const SizedBox(height: 29),
                 if (departures.isEmpty)
                   Text(
                     next.subText ?? '운행 정보가 없어요',
-                    style: SandolTypography.body.muted,
+                    style: HandolTypography.body.muted,
                   )
                 else
                   Column(
@@ -120,7 +122,7 @@ class _BustimescreenState extends ConsumerState<Bustimescreen> {
                   ),
                 const SizedBox(height: 20),
                 Center(
-                  child: SandolIconLabel.note('출발 시간은 교통 상황에 따라 달라질 수 있어요.'),
+                  child: HandolIconLabel.note('출발 시간은 교통 상황에 따라 달라질 수 있어요.'),
                 ),
               ],
             ),
@@ -147,48 +149,131 @@ class _DirectionBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final label = SandolTypography.caption.onPrimary;
-    return ColoredBox(
-      color: SandolColors.primary,
-      child: Padding(
-        padding: const EdgeInsets.symmetric(
-          horizontal: SandolMetrics.cardInset,
-          vertical: SandolSpacing.xs,
-        ),
-        child: Row(
-          children: [
-            Row(
-              spacing: 6,
-              children: [
-                Text(from, style: label),
-                RotatedBox(
-                  quarterTurns: 2,
-                  child: SvgPicture.asset(SandolAssets.arrowLeft),
-                ),
-                Text(to, style: label),
-              ],
-            ),
-            const Spacer(),
-            Row(
-              spacing: SandolSpacing.sm,
-              children: [
-                SandolIconButton(
-                  tooltip: '반대 방향',
-                  icon: SvgPicture.asset(SandolAssets.swap),
-                  onTap: onSwap,
-                ),
-                SandolIconButton(
-                  tooltip: '새로고침',
-                  icon: SvgPicture.asset(SandolAssets.refresh),
-                  onTap: onRefresh,
-                ),
-              ],
-            ),
-          ],
+    final label = HandolTypography.caption.onPrimary;
+    // 버튼을 살짝 빗나간 탭이 카드 탭(셔틀 화면 이동)으로 새지 않게 띠 전체에서
+    // 탭을 받아 버린다.
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTap: () {},
+      child: ColoredBox(
+        color: HandolColors.primary,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(
+            horizontal: HandolMetrics.cardInset,
+            vertical: HandolSpacing.xs,
+          ),
+          child: Row(
+            children: [
+              Row(
+                spacing: 6,
+                children: [
+                  Text(from, style: label),
+                  RotatedBox(
+                    quarterTurns: 2,
+                    child: SvgPicture.asset(HandolAssets.arrowLeft),
+                  ),
+                  Text(to, style: label),
+                ],
+              ),
+              const Spacer(),
+              Row(
+                spacing: HandolSpacing.sm,
+                children: [
+                  HandolIconButton(
+                    tooltip: '반대 방향',
+                    icon: SvgPicture.asset(HandolAssets.swap),
+                    onTap: onSwap,
+                  ),
+                  HandolIconButton(
+                    tooltip: '새로고침',
+                    icon: SvgPicture.asset(HandolAssets.refresh),
+                    onTap: onRefresh,
+                  ),
+                ],
+              ),
+            ],
+          ),
         ),
       ),
     );
   }
+}
+
+/// 머리글 `3분 12초 뒤 출발`. 카운트다운 구간(20분 이내)에서만 매초 흐르고,
+/// 그 밖은 [NextShuttle.headline]을 그대로 쓴다.
+///
+/// 분은 공유 시계([shuttleClockProvider])를 따르고 초만 실제 시계에서 읽어,
+/// 다음 버스 카드 · 시간표와 같은 분을 가리킨다.
+class _Countdown extends StatefulWidget {
+  const _Countdown({required this.next, required this.nowMinutes});
+
+  final NextShuttle next;
+  final int nowMinutes;
+
+  @override
+  State<_Countdown> createState() => _CountdownState();
+}
+
+class _CountdownState extends State<_Countdown> {
+  Timer? _ticker;
+
+  bool get _counting {
+    final remain = widget.next.remainMinutes;
+    return widget.next.status == ShuttleStatus.upcoming &&
+        widget.next.departureTime != null &&
+        remain != null &&
+        remain > 0 &&
+        remain <= NextShuttle.countdownLimitMinutes;
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _syncTicker();
+  }
+
+  @override
+  void didUpdateWidget(_Countdown old) {
+    super.didUpdateWidget(old);
+    _syncTicker();
+  }
+
+  void _syncTicker() {
+    if (_counting) {
+      _ticker ??= Timer.periodic(
+        const Duration(seconds: 1),
+        (_) => setState(() {}),
+      );
+    } else {
+      _ticker?.cancel();
+      _ticker = null;
+    }
+  }
+
+  @override
+  void dispose() {
+    _ticker?.cancel();
+    super.dispose();
+  }
+
+  String get _label {
+    if (!_counting) return widget.next.headline;
+    final departure = widget.next.departureTime!.minutesOfDay;
+    final seconds =
+        (departure - widget.nowMinutes) * 60 - KoreaTime.now().second;
+    if (seconds <= 0) return '곧 출발';
+    final m = seconds ~/ 60;
+    final s = seconds % 60;
+    if (m == 0) return '$s초 뒤 출발';
+    return s == 0 ? '$m분 뒤 출발' : '$m분 $s초 뒤 출발';
+  }
+
+  @override
+  Widget build(BuildContext context) => HandolIconLabel(
+    icon: SvgPicture.asset(HandolAssets.clock),
+    label: _label,
+    style: HandolTypography.title.accent,
+  );
 }
 
 /// 이후 출발 한 줄. 정시편은 `9:00 · N분`, 구간은 `17:00~18:00 · 수시운행`.
@@ -226,15 +311,15 @@ class _DepartureRow extends StatelessWidget {
         Expanded(
           child: Align(
             alignment: Alignment.centerLeft,
-            child: SandolIconLabel(
-              icon: SvgPicture.asset(SandolAssets.busDeparture),
+            child: HandolIconLabel(
+              icon: SvgPicture.asset(HandolAssets.busDeparture),
               label: time,
-              style: SandolTypography.body,
-              gap: SandolSpacing.xs,
+              style: HandolTypography.body,
+              gap: HandolSpacing.xs,
             ),
           ),
         ),
-        Text(trailing, style: SandolTypography.body),
+        Text(trailing, style: HandolTypography.body),
       ],
     );
   }

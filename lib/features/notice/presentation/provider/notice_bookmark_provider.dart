@@ -2,7 +2,7 @@ import 'dart:convert';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-import 'package:handori/features/notice/domain/model/notice.dart';
+import 'package:handol/features/notice/domain/model/notice.dart';
 
 /// 저장한 공지. 기기 로컬(flutter_secure_storage)에 공지 전체를 JSON 으로 둔다.
 ///
@@ -70,5 +70,6 @@ class NoticeBookmarks extends Notifier<List<Notice>> {
   }
 }
 
-final noticeBookmarksProvider =
-    NotifierProvider<NoticeBookmarks, List<Notice>>(NoticeBookmarks.new);
+final noticeBookmarksProvider = NotifierProvider<NoticeBookmarks, List<Notice>>(
+  NoticeBookmarks.new,
+);

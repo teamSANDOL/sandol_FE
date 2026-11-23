@@ -2,7 +2,7 @@ import 'dart:convert';
 
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
-import 'package:handori/features/empty_class/domain/model/building_sort.dart';
+import 'package:handol/features/empty_class/domain/model/building_sort.dart';
 
 part 'building_sort_provider.g.dart';
 

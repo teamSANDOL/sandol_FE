@@ -1,7 +1,7 @@
 import 'package:json_annotation/json_annotation.dart';
-import 'package:handori/core/constants/api_constants.dart';
-import 'package:handori/core/utils/remote_url.dart';
-import 'package:handori/features/school_meal/domain/model/restaurant.dart';
+import 'package:handol/core/constants/api_constants.dart';
+import 'package:handol/core/utils/remote_url.dart';
+import 'package:handol/features/school_meal/domain/model/restaurant.dart';
 
 part 'restaurant_response.g.dart';
 

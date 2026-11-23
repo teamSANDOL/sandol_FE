@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
-import 'package:handori/core/constants/app_colors.dart';
-import 'package:handori/core/constants/app_text_styles.dart';
+import 'package:handol/core/constants/app_colors.dart';
+import 'package:handol/core/constants/app_text_styles.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:handori/features/organization/presentation/provider/organization_provider.dart';
-import 'package:handori/features/organization/presentation/widget/organization_search_result_card.dart';
-import 'package:handori/shared/widget/error_retry_view.dart';
-import 'package:handori/shared/widget/sandol_loading_indicator.dart';
+import 'package:handol/features/organization/presentation/provider/organization_provider.dart';
+import 'package:handol/features/organization/presentation/widget/organization_search_result_card.dart';
+import 'package:handol/shared/widget/error_retry_view.dart';
+import 'package:handol/shared/widget/handol_loading_indicator.dart';
 
 class OrganizationSearchPage extends ConsumerWidget {
   final String query;
@@ -30,7 +30,7 @@ class OrganizationSearchPage extends ConsumerWidget {
         ),
       ),
       body: searchAsync.when(
-        loading: () => const Center(child: SandolLoadingIndicator()),
+        loading: () => const Center(child: HandolLoadingIndicator()),
         error:
             (_, _) => ErrorRetryView(
               title: '검색 결과를 불러오지 못했어요',

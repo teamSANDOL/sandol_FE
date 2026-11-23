@@ -1,10 +1,10 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:handori/features/auth/data/guest_access_storage.dart';
-import 'package:handori/features/auth/domain/model/auth_session.dart';
-import 'package:handori/features/auth/domain/repository/auth_repository.dart';
-import 'package:handori/features/auth/presentation/provider/auth_provider.dart';
+import 'package:handol/features/auth/data/guest_access_storage.dart';
+import 'package:handol/features/auth/domain/model/auth_session.dart';
+import 'package:handol/features/auth/domain/repository/auth_repository.dart';
+import 'package:handol/features/auth/presentation/provider/auth_provider.dart';
 
 class _FakeRepository extends Fake implements AuthRepository {
   @override

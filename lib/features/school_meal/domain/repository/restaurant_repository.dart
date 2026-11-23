@@ -1,4 +1,4 @@
-import 'package:handori/features/school_meal/domain/model/restaurant.dart';
+import 'package:handol/features/school_meal/domain/model/restaurant.dart';
 
 abstract class RestaurantRepository {
   /// 식당 목록 (이름/유형/캠퍼스 필터)

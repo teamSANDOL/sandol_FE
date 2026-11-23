@@ -1,8 +1,8 @@
 import 'package:dio/dio.dart';
 import 'package:retrofit/retrofit.dart';
-import 'package:handori/features/school_meal/data/dto/base_response.dart';
-import 'package:handori/features/school_meal/data/dto/custom_page_response.dart';
-import 'package:handori/features/school_meal/data/dto/restaurant_response.dart';
+import 'package:handol/features/school_meal/data/dto/base_response.dart';
+import 'package:handol/features/school_meal/data/dto/custom_page_response.dart';
+import 'package:handol/features/school_meal/data/dto/restaurant_response.dart';
 
 part 'restaurant_api.g.dart';
 
