@@ -1,0 +1,88 @@
+import { Modal, StyleSheet, View } from 'react-native';
+import { HPressable, HText, LoadingIndicator, MaterialIcon, legacyColors, radius } from '@/design-system';
+import { userTheme } from '../theme';
+
+/** Flutter Icons.logout_rounded · Icons.error_outline_rounded */
+const ICONS = { logout: 'logout', error: 'errorOutline' } as const;
+
+type Props = {
+  visible: boolean;
+  icon: keyof typeof ICONS;
+  title: string;
+  message: string;
+  confirmLabel: string;
+  showCancel?: boolean;
+  onConfirm: () => void;
+  onCancel: () => void;
+};
+
+/** 확인 다이얼로그 (Flutter confirm_dialog.dart). 옅은 붉은 원 아이콘 + 제목 · 설명 + [취소 · 확인]. */
+export function ConfirmDialog({ visible, icon, title, message, confirmLabel, showCancel = true, onConfirm, onCancel }: Props) {
+  return (
+    <Modal transparent visible={visible} animationType="fade" onRequestClose={onCancel} statusBarTranslucent>
+      <View style={styles.scrim}>
+        <View style={styles.dialog}>
+          <View style={styles.iconCircle}>
+            <MaterialIcon name={ICONS[icon]} size={28} color={legacyColors.danger} />
+          </View>
+          <View style={{ height: 16 }} />
+          <HText legacy="title03" style={{ fontSize: 18 }} keepAll>
+            {title}
+          </HText>
+          <View style={{ height: 8 }} />
+          <HText legacy="body" keepAll style={styles.message}>
+            {message}
+          </HText>
+          <View style={{ height: 24 }} />
+          <View style={styles.buttons}>
+            {showCancel && (
+              <DialogButton label="취소" background={userTheme.cancelBg} foreground={legacyColors.textSecondary} onPress={onCancel} />
+            )}
+            <DialogButton label={confirmLabel} background={legacyColors.danger} foreground={legacyColors.surface} onPress={onConfirm} />
+          </View>
+        </View>
+      </View>
+    </Modal>
+  );
+}
+
+function DialogButton({ label, background, foreground, onPress }: { label: string; background: string; foreground: string; onPress: () => void }) {
+  return (
+    <View style={[styles.btnClip, { backgroundColor: background }]}>
+      <HPressable accessibilityRole="button" onPress={onPress} style={styles.btn} rippleColor="rgba(255,255,255,0.2)">
+        <HText legacy="caption01" style={{ color: foreground, fontSize: 15 }}>
+          {label}
+        </HText>
+      </HPressable>
+    </View>
+  );
+}
+
+/** 서버를 기다리는 동안 화면을 잠그는 로딩 (Flutter runBlocking) */
+export function BlockingOverlay({ visible }: { visible: boolean }) {
+  return (
+    <Modal transparent visible={visible} animationType="none" statusBarTranslucent onRequestClose={() => undefined}>
+      <View style={[styles.scrim, { padding: 0 }]}>
+        <LoadingIndicator />
+      </View>
+    </Modal>
+  );
+}
+
+const styles = StyleSheet.create({
+  scrim: { flex: 1, backgroundColor: userTheme.scrim, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 40 },
+  dialog: {
+    alignSelf: 'stretch',
+    alignItems: 'center',
+    backgroundColor: legacyColors.surface,
+    borderRadius: radius.md,
+    paddingHorizontal: 24,
+    paddingTop: 28,
+    paddingBottom: 20,
+  },
+  iconCircle: { width: 56, height: 56, borderRadius: 28, backgroundColor: userTheme.dangerSoft, alignItems: 'center', justifyContent: 'center' },
+  message: { textAlign: 'center', lineHeight: 21, color: legacyColors.textSecondary },
+  buttons: { flexDirection: 'row', gap: 10, alignSelf: 'stretch' },
+  btnClip: { flex: 1, borderRadius: radius.md, overflow: 'hidden' },
+  btn: { minHeight: 48, alignItems: 'center', justifyContent: 'center' },
+});

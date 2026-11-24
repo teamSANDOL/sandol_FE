@@ -1,0 +1,73 @@
+{
+  "name": "handol-rn",
+  "version": "1.0.0",
+  "main": "expo-router/entry",
+  "dependencies": {
+    "@mj-studio/react-native-naver-map": "^2.11.0",
+    "@react-native-async-storage/async-storage": "2.2.0",
+    "@react-navigation/bottom-tabs": "^7.22.0",
+    "@tanstack/react-query": "^5.108.4",
+    "expo": "~58.0.26",
+    "expo-application": "~58.1.2",
+    "expo-auth-session": "~58.0.19",
+    "expo-build-properties": "~58.0.12",
+    "expo-clipboard": "~58.0.4",
+    "expo-constants": "~58.0.16",
+    "expo-crypto": "~58.0.8",
+    "expo-dev-client": "~58.0.21",
+    "expo-font": "~58.0.12",
+    "expo-image": "~58.0.18",
+    "expo-linear-gradient": "~58.0.4",
+    "expo-linking": "~58.0.17",
+    "expo-location": "~58.0.22",
+    "expo-router": "~58.0.32",
+    "expo-secure-store": "~58.0.3",
+    "expo-status-bar": "~58.0.5",
+    "expo-system-ui": "~58.0.7",
+    "expo-video": "~58.0.14",
+    "expo-web-browser": "~58.1.0",
+    "lottie-react-native": "~7.5.0",
+    "react": "19.3.0",
+    "react-native": "0.88.1",
+    "react-native-gesture-handler": "~3.3.0",
+    "react-native-reanimated": "4.7.1",
+    "react-native-safe-area-context": "~5.11.1",
+    "react-native-screens": "~4.30.1",
+    "react-native-svg": "15.16.0",
+    "react-native-webview": "14.0.1",
+    "react-native-worklets": "0.13.0"
+  },
+  "devDependencies": {
+    "@react-native/jest-preset": "^0.88.1",
+    "@testing-library/react-native": "^14.1.0",
+    "@types/jest": "^30.0.0",
+    "@types/node": "^26.6.6",
+    "@types/react": "~19.3.0",
+    "jest": "^30.5.2",
+    "jest-expo": "^58.0.15",
+    "react-native-svg-transformer": "^1.5.3",
+    "typescript": "~6.0.3"
+  },
+  "scripts": {
+    "start": "expo start",
+    "android": "expo run:android",
+    "ios": "expo run:ios",
+    "web": "expo start --web",
+    "test": "jest",
+    "typecheck": "tsc --noEmit"
+  },
+  "private": true,
+  "jest": {
+    "preset": "jest-expo",
+    "setupFiles": [
+      "<rootDir>/jest.setup.js"
+    ],
+    "moduleNameMapper": {
+      "\\.svg$": "<rootDir>/jest.svgMock.js",
+      "^@/(.*)$": "<rootDir>/src/$1"
+    },
+    "transformIgnorePatterns": [
+      "node_modules/(?!((jest-)?react-native|@react-native(-community)?)|expo(nent)?|@expo(nent)?/.*|@expo-google-fonts/.*|react-navigation|@react-navigation/.*|@unimodules/.*|unimodules|sentry-expo|native-base|react-native-svg|@mj-studio/.*|@tanstack/.*)"
+    ]
+  }
+}
