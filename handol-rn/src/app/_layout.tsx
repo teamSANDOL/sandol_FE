@@ -10,6 +10,7 @@ import { trackScreen } from '@/core/analytics';
 import { queryClient } from '@/core/query';
 import { PushRegistration } from '@/features/push/PushRegistration';
 import { startPush } from '@/features/push/pushService';
+import { UpdatePrompt } from '@/features/update/UpdatePrompt';
 import { ToastHost, colors } from '@/design-system';
 
 WebBrowser.maybeCompleteAuthSession();
@@ -34,6 +35,8 @@ export default function RootLayout() {
               <Stack.Screen name="oauthredirect" options={{ animation: 'none' }} />
             </Stack>
             <ToastHost />
+            {/* 스플래시('/') 위에는 띄우지 않는다 */}
+            <UpdatePrompt enabled={pathname !== '/'} />
           </AuthProvider>
         </QueryClientProvider>
       </SafeAreaProvider>

@@ -21,4 +21,7 @@ export const env = {
   privacyPolicyUrl: 'https://quanect.kr/policies/sandori-service',
   termsOfServiceUrl: 'https://quanect.kr/policies/terms-of-service',
   accountDeletionUrl: 'https://sandori.kr/account-deletion',
+  /** 새 설치 파일 안내. Play 출시 전까지는 Gitea 릴리스로 보낸다(Android 전용) */
+  appReleasesApi: 'https://git.house.sio2.kr/api/v1/repos/Seokyoung-Hong/Handol-App/releases?limit=1&draft=false',
+  appReleasePage: 'https://git.house.sio2.kr/Seokyoung-Hong/Handol-App/releases/tag/',
 } as const;

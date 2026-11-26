@@ -1,9 +1,14 @@
 import { Modal, Pressable, StyleSheet, View } from 'react-native';
-import { HPressable, HText, LoadingIndicator, MaterialIcon, legacyColors, radius } from '@/design-system';
+import { HPressable, HText, LoadingIndicator, MaterialIcon, colors, legacyColors, radius } from '@/design-system';
 import { userTheme } from '../theme';
 
-/** Flutter Icons.logout_rounded · Icons.error_outline_rounded */
-const ICONS = { logout: 'logout', error: 'errorOutline' } as const;
+/** Flutter Icons.logout_rounded · Icons.error_outline_rounded · 업데이트 안내 */
+const ICONS = { logout: 'logout', error: 'errorOutline', update: 'refreshRounded' } as const;
+/** danger: 로그아웃·탈퇴 같은 되돌리기 어려운 확인, primary: 안내 */
+const TONES = {
+  danger: { color: legacyColors.danger, soft: userTheme.dangerSoft },
+  primary: { color: colors.primary, soft: colors.primarySoft },
+} as const;
 
 type Props = {
   visible: boolean;
@@ -12,6 +17,8 @@ type Props = {
   message: string;
   confirmLabel: string;
   showCancel?: boolean;
+  cancelLabel?: string;
+  tone?: keyof typeof TONES;
   onConfirm: () => void;
   onCancel: () => void;
 };
@@ -20,14 +27,15 @@ type Props = {
  * 확인 다이얼로그 (Flutter confirm_dialog.dart). 옅은 붉은 원 아이콘 + 제목 · 설명 + [취소 · 확인].
  * 바깥(딤)을 누르면 취소로 닫힌다(showDialog 기본 barrierDismissible).
  */
-export function ConfirmDialog({ visible, icon, title, message, confirmLabel, showCancel = true, onConfirm, onCancel }: Props) {
+export function ConfirmDialog({ visible, icon, title, message, confirmLabel, showCancel = true, cancelLabel = '취소', tone = 'danger', onConfirm, onCancel }: Props) {
+  const { color, soft } = TONES[tone];
   return (
     <Modal transparent visible={visible} animationType="fade" onRequestClose={onCancel} statusBarTranslucent>
       <View style={styles.scrim}>
         <Pressable style={StyleSheet.absoluteFill} onPress={onCancel} accessibilityLabel="닫기" />
         <View style={styles.dialog}>
-          <View style={styles.iconCircle}>
-            <MaterialIcon name={ICONS[icon]} size={28} color={legacyColors.danger} />
+          <View style={[styles.iconCircle, { backgroundColor: soft }]}>
+            <MaterialIcon name={ICONS[icon]} size={28} color={color} />
           </View>
           <View style={{ height: 16 }} />
           <HText legacy="title03" style={{ fontSize: 18 }} keepAll>
@@ -40,9 +48,9 @@ export function ConfirmDialog({ visible, icon, title, message, confirmLabel, sho
           <View style={{ height: 24 }} />
           <View style={styles.buttons}>
             {showCancel && (
-              <DialogButton label="취소" background={userTheme.cancelBg} foreground={legacyColors.textSecondary} onPress={onCancel} />
+              <DialogButton label={cancelLabel} background={userTheme.cancelBg} foreground={legacyColors.textSecondary} onPress={onCancel} />
             )}
-            <DialogButton label={confirmLabel} background={legacyColors.danger} foreground={legacyColors.surface} onPress={onConfirm} />
+            <DialogButton label={confirmLabel} background={color} foreground={legacyColors.surface} onPress={onConfirm} />
           </View>
         </View>
       </View>
@@ -84,7 +92,7 @@ const styles = StyleSheet.create({
     paddingTop: 28,
     paddingBottom: 20,
   },
-  iconCircle: { width: 56, height: 56, borderRadius: 28, backgroundColor: userTheme.dangerSoft, alignItems: 'center', justifyContent: 'center' },
+  iconCircle: { width: 56, height: 56, borderRadius: 28, alignItems: 'center', justifyContent: 'center' },
   message: { textAlign: 'center', lineHeight: 21, color: legacyColors.textSecondary },
   buttons: { flexDirection: 'row', gap: 10, alignSelf: 'stretch' },
   btnClip: { flex: 1, borderRadius: radius.md, overflow: 'hidden' },
