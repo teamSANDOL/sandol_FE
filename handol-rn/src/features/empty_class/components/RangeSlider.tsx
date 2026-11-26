@@ -1,7 +1,7 @@
 import { useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
-import * as Haptics from 'expo-haptics';
+import { hapticSelection } from '@/core/haptics';
 import { colors } from '@/design-system';
 import { emptyClassTheme } from '../theme';
 
@@ -66,7 +66,7 @@ export function RangeSlider({ count, value, onChange, onChangeEnd }: Props) {
       if (next.end - next.start < 1) return;
       if (next.start === d.cur.start && next.end === d.cur.end) return;
       d.cur = next;
-      void Haptics.selectionAsync();
+      hapticSelection();
       live.current.onChange(next);
     };
     const end = () => {

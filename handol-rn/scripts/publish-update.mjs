@@ -1,7 +1,8 @@
 #!/usr/bin/env node
 /**
  * OTA 업데이트 배포물 만들기 (docs/OTA_UPDATE_SERVER.md).
- *   node scripts/publish-update.mjs [android|ios|all]   (기본 android)
+ *   node scripts/publish-update.mjs [android|ios|all] [--runtime=0.3.21,0.3.22]   (기본 android, 지금 앱 버전)
+ * --runtime: 이 번들을 다른 설치 파일 버전에도 낸다. 그 설치 파일에 번들이 쓰는 네이티브 모듈이 다 있을 때만 쓴다.
  * JS 번들을 export 하고, 매니페스트를 keys/private-key.pem 으로 서명해 updates-out/ 에 쓴다.
  * updates-out/ 을 서버 데이터 폴더에 그대로 덮어 올리면(rsync 등) 배포된다. 서버는 개인키를 모른다.
  */
@@ -18,7 +19,8 @@ const KEY = process.env.OTA_PRIVATE_KEY ?? path.join(ROOT, 'keys', 'private-key.
 const CERT = path.join(ROOT, 'certs', 'certificate.pem');
 const TYPES = { png: 'image/png', jpg: 'image/jpeg', jpeg: 'image/jpeg', gif: 'image/gif', webp: 'image/webp', xml: 'application/xml', ttf: 'font/ttf', otf: 'font/otf', json: 'application/json', mp4: 'video/mp4' };
 
-const arg = process.argv[2] ?? 'android';
+const runtimeArg = process.argv.find((a) => a.startsWith('--runtime='));
+const arg = process.argv.slice(2).find((a) => !a.startsWith('--')) ?? 'android';
 const platforms = arg === 'all' ? ['android', 'ios'] : [arg];
 if (!platforms.every((p) => p === 'android' || p === 'ios')) throw new Error('플랫폼은 android | ios | all');
 if (!fs.existsSync(KEY)) throw new Error('서명 개인키가 없습니다: ' + KEY);
@@ -28,6 +30,8 @@ const config = JSON.parse(run('npx expo config --json --type public'));
 const rv = typeof config.runtimeVersion === 'string' ? config.runtimeVersion
   : config.runtimeVersion?.policy === 'appVersion' ? config.version : null;
 if (!rv) throw new Error('runtimeVersion 정책이 appVersion 또는 문자열이어야 합니다');
+const runtimes = runtimeArg ? runtimeArg.slice('--runtime='.length).split(',').map((v) => v.trim()) : [rv];
+if (!runtimes.every((v) => /^[A-Za-z0-9._-]+$/.test(v))) throw new Error('--runtime 값이 잘못됐습니다');
 
 fs.rmSync(DIST, { recursive: true, force: true });
 run('npx expo export --output-dir dist ' + platforms.map((p) => '--platform ' + p).join(' '));
@@ -45,7 +49,7 @@ function asset(rel, ext, contentType) {
   return { hash, key: createHash('md5').update(bytes).digest('hex'), contentType, fileExtension: '.' + ext, url: BASE_URL + '/files/' + name };
 }
 
-for (const platform of platforms) {
+for (const platform of platforms) for (const rv of runtimes) {
   const meta = metadata.fileMetadata[platform];
   const createdAt = new Date();
   const manifest = JSON.stringify({
