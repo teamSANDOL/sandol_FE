@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { StyleSheet, View } from 'react-native';
-import * as Haptics from 'expo-haptics';
+import { hapticSelection } from '@/core/haptics';
 import { HText } from '@/design-system';
 import { hourLabel, isToday, nearestTickIndex, ticksFor, type ClassroomQuery } from '../query';
 import { classroomQueryActions, useClassroomQuery } from '../queryStore';
@@ -32,7 +32,7 @@ export function ClassroomTimeRangePicker({ onPreview }: Props) {
       <DayStrip
         selected={query.daysAhead}
         onSelect={(d) => {
-          void Haptics.selectionAsync();
+          hapticSelection();
           classroomQueryActions.setDay(d);
         }}
       />

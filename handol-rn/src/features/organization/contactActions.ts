@@ -1,6 +1,6 @@
 import { Linking } from 'react-native';
 import * as Clipboard from 'expo-clipboard';
-import * as Haptics from 'expo-haptics';
+import { hapticMedium } from '@/core/haptics';
 import { openExternalLink } from '@/core/utils/externalLink';
 import { showToast } from '@/design-system';
 
@@ -24,7 +24,7 @@ export async function openUrl(url: string): Promise<void> {
 
 /** 길게 누름: 햅틱 + 클립보드 복사 + 토스트 */
 export async function copyText(text: string, label = '내용'): Promise<void> {
-  void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium).catch(() => undefined);
+  hapticMedium();
   try {
     await Clipboard.setStringAsync(text);
     showToast(`${label}을(를) 복사했습니다`, CONTACT_TOAST_MS);
