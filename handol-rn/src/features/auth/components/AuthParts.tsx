@@ -1,7 +1,7 @@
 import type { ReactNode } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { Image } from 'expo-image';
-import { colors, HText, Icon, images, metrics, spacing } from '@/design-system';
+import { colors, HText, images, metrics, spacing } from '@/design-system';
 
 /** 한돌이 로고 (HandolBrand) */
 export function HandolBrand() {
@@ -28,15 +28,11 @@ export function AuthBrandHeading({ children }: { children: ReactNode }) {
 export function AuthDivider({ label }: { label: string }) {
   return (
     <View style={styles.dividerRow}>
-      <View style={{ flex: 1 }}>
-        <Icon name="dividerLeft" width="100%" height={1} />
-      </View>
+      <View style={styles.line} />
       <HText variant="caption" tone="muted" style={styles.dividerLabel}>
         {label}
       </HText>
-      <View style={{ flex: 1 }}>
-        <Icon name="dividerRight" width="100%" height={1} />
-      </View>
+      <View style={styles.line} />
     </View>
   );
 }
@@ -45,5 +41,7 @@ const styles = StyleSheet.create({
   brand: { alignItems: 'center' },
   logo: { width: metrics.logoSize, height: metrics.logoSize },
   dividerRow: { flexDirection: 'row', alignItems: 'center' },
+  /** 시안 2:3882 는 border 색 1px 선 */
+  line: { flex: 1, height: 1, backgroundColor: colors.border },
   dividerLabel: { paddingHorizontal: 20, color: colors.muted },
 });

@@ -11,4 +11,6 @@ export const emptyClassTheme = {
   trackSoft: 'rgba(226,226,226,0.5)',
   /** 슬라이더 손잡이 그림자 */
   thumbShadow: '0px 1px 3px rgba(0,0,0,0.2)',
+  /** 잡은 손잡이 뒤 원: primary(#3882D3) 12% */
+  thumbOverlay: 'rgba(56,130,211,0.12)',
 } as const;

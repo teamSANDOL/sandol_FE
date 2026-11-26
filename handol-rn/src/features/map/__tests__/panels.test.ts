@@ -6,7 +6,7 @@ describe('시트 높이', () => {
     expect(maxFracOf('emptyClass')).toBe(0.9);
   });
   it('패널별 열림 높이', () => {
-    expect(fracOf('home', false)).toBe(0.3);
+    expect(fracOf('home', false)).toBe(0.268);
     expect(fracOf('tuk', false)).toBe(0.38);
     expect(fracOf('tuk', true)).toBe(0.55);
     expect(fracOf('tukDetail', false)).toBe(0.9);

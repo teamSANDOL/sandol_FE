@@ -15,6 +15,8 @@ type Props = {
   textStyle?: TextStyle;
   style?: StyleProp<ViewStyle>;
   accessibilityLabel?: string;
+  /** 바탕색과 상관없이 1px border 테두리를 두른다 (회원탈퇴 '계속 사용하기' 2:6298) */
+  hasBorder?: boolean;
 };
 
 const VARIANTS: Record<HandolButtonVariant, { bg: string; fg: string; border?: string }> = {
@@ -22,6 +24,10 @@ const VARIANTS: Record<HandolButtonVariant, { bg: string; fg: string; border?: s
   outlined: { bg: colors.background, fg: colors.text, border: colors.border },
   danger: { bg: colors.red, fg: colors.background },
 };
+
+/** 눌림 물결: 채운 버튼은 흰 20%, 흰 바탕(outlined)은 어두운 12% (Material 기본 splash) */
+const RIPPLE_ON_FILLED = 'rgba(255,255,255,0.2)';
+const RIPPLE_ON_LIGHT = 'rgba(0,0,0,0.12)';
 
 /** 꽉 찬 너비 버튼 (HandolButton) */
 export function HandolButton({
@@ -33,6 +39,7 @@ export function HandolButton({
   textStyle,
   style,
   accessibilityLabel,
+  hasBorder = false,
 }: Props) {
   const v = VARIANTS[variant];
   const isDisabled = isLoading || !onPress;
@@ -44,14 +51,14 @@ export function HandolButton({
         accessibilityState={{ disabled: isDisabled, busy: isLoading }}
         disabled={isDisabled}
         onPress={onPress}
-        rippleColor="rgba(255,255,255,0.2)"
+        rippleColor={variant === 'outlined' ? RIPPLE_ON_LIGHT : RIPPLE_ON_FILLED}
         style={[
           styles.base,
           {
             minHeight: height,
             backgroundColor: isDisabled ? colors.muted : v.bg,
-            borderColor: v.border ?? 'transparent',
-            borderWidth: v.border ? StyleSheet.hairlineWidth * 2 : 0,
+            borderColor: hasBorder ? colors.border : v.border ?? 'transparent',
+            borderWidth: hasBorder ? 1 : v.border ? StyleSheet.hairlineWidth * 2 : 0,
           },
         ]}
       >

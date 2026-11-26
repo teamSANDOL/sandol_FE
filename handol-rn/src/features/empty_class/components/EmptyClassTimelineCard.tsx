@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
+import Animated from 'react-native-reanimated';
 import { HPressable, HText, HandolCard, HandolNote, LoadingIndicator, metrics, radius, spacing } from '@/design-system';
 import { useNearbyEmptyClasses, useRetryEmptyClasses } from '../hooks';
 import { dayShort, isAfterClassDay, isWeekend, timeLabel, type ClassroomQuery } from '../query';
@@ -10,6 +11,9 @@ import { ClassroomTimeRangePicker } from './ClassroomTimeRangePicker';
 
 /** 건물당 미리 보여줄 호실 수. 나머지는 `+N` */
 const PREVIEW_ROOMS = 3;
+/** 다시 불러오는 동안 목록 흐림 (AnimatedOpacity 150ms) */
+const DIM_OPACITY = 0.55;
+const DIM_FADE_MS = 150;
 
 interface Props {
   maxItems?: number;
@@ -100,11 +104,13 @@ function BuildingList({
     );
   }
   return (
-    <View style={{ gap: 14, opacity: dimmed ? 0.55 : 1 }}>
+    <Animated.View
+      style={{ gap: 14, opacity: dimmed ? DIM_OPACITY : 1, transitionProperty: 'opacity', transitionDuration: DIM_FADE_MS, transitionTimingFunction: 'linear' }}
+    >
       {withRooms.map((item) => (
         <BuildingRow key={item.building.className} item={item} showWalk={sortMode === 'distance'} onPress={onBuildingPress} />
       ))}
-    </View>
+    </Animated.View>
   );
 }
 
@@ -126,7 +132,7 @@ function BuildingRow({ item, showWalk, onPress }: { item: NearbyEmptyClass; show
       >
         <View style={{ flex: 1 }}>
           <View style={styles.nameRow}>
-            <HText variant="body" weight="bold">
+            <HText variant="body" weight="bold" tone="accent">
               {b.className}
             </HText>
             {walk !== null ? <HText variant="caption">도보 {walk}분</HText> : null}

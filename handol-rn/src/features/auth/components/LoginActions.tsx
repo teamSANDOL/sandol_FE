@@ -31,7 +31,8 @@ export function TextAction({ label, onPress }: { label: string; onPress?: () => 
   return (
     <View style={styles.textActionClip}>
       <HPressable accessibilityRole="button" disabled={!onPress} onPress={onPress} style={styles.textAction}>
-        <HText variant="caption" tone="muted" style={{ textAlign: 'center' }}>
+        {/* 시안 2:3888: 굵은 14, main 80% */}
+        <HText variant="caption" weight="bold" style={{ textAlign: 'center', color: colors.link }}>
           {label}
         </HText>
       </HPressable>

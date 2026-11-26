@@ -1,5 +1,5 @@
 import { api } from '@/core/api/client';
-import type { Notice } from './model';
+import { keyOf, type Notice } from './model';
 
 const PAGE_SIZE = 10;
 
@@ -26,6 +26,11 @@ export interface NoticePage {
 }
 
 const noticeCache = new Map<string, Notice>();
+
+/** 목록 밖(푸시 알림 등)에서 연 공지도 상세 화면이 찾도록 넣어 둔다. */
+export function rememberNotice(notice: Notice): void {
+  noticeCache.set(keyOf(notice), notice);
+}
 
 /** 상세 화면이 id 로 공지를 꺼내 쓰도록 목록에서 본 공지를 메모리에 둔다. */
 export function cachedNotice(key: string): Notice | undefined {

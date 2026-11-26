@@ -26,7 +26,7 @@ function TextBanner({ banner }: { banner: HomeBanner }) {
           {banner.title}
         </HText>
         {banner.body ? (
-          <HText variant="caption" numberOfLines={2} style={{ color: bannerOnGradient.body }}>
+          <HText variant="body" numberOfLines={2} style={{ color: bannerOnGradient.body }}>
             {banner.body}
           </HText>
         ) : null}
@@ -64,8 +64,9 @@ export function HomeBannerCard({ banner }: { banner: HomeBanner }) {
 }
 
 const styles = StyleSheet.create({
-  card: { flex: 1, borderRadius: radius.md, overflow: 'hidden', backgroundColor: colors.primary },
-  textBanner: { flex: 1, flexDirection: 'row', alignItems: 'center', padding: metrics.cardInset, gap: spacing.md },
+  card: { flex: 1, borderRadius: radius.md, overflow: 'hidden', backgroundColor: gradients.primaryCard.colors[0] },
+  // Figma 2:4327: 글자 묶음이 왼쪽 21 · 위 34 에서 시작한다
+  textBanner: { flex: 1, flexDirection: 'row', alignItems: 'flex-start', paddingLeft: 21, paddingTop: 34, paddingRight: metrics.cardInset, gap: spacing.md },
   texts: { flex: 1, justifyContent: 'center', gap: spacing.xs },
-  iconCircle: { width: 52, height: 52, borderRadius: 26, backgroundColor: bannerOnGradient.iconCircle, alignItems: 'center', justifyContent: 'center' },
+  iconCircle: { width: 52, height: 52, borderRadius: 26, backgroundColor: bannerOnGradient.iconCircle, alignItems: 'center', justifyContent: 'center', alignSelf: 'center' },
 });

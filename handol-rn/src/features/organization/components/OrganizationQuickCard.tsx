@@ -5,7 +5,7 @@ import { usePinnedOrganizationUnits } from '../hooks';
 import { formatPhone, type OrganizationUnit } from '../model';
 
 /** 시안에서 번호 열이 시작하는 위치 */
-const NAME_WIDTH = 138;
+const NAME_WIDTH = 124;
 
 /**
  * 홈 '학과/부서 조회' 카드 (Figma 2153:352). 계약: props 를 바꾸지 말 것.
@@ -29,13 +29,15 @@ export function OrganizationQuickCard({ onOpenAll }: { onOpenAll: () => void }) 
       )}
       <HPressable accessibilityRole="button" onPress={onOpenAll} style={styles.openAll}>
         <View style={{ flex: 1 }}>
-          <HText variant="headline">전체학과/ 부서 조회</HText>
+          <HText variant="headline" weight="bold" tone="onPrimary">
+            전체학과/ 부서 조회
+          </HText>
           <View style={{ height: 3 }} />
-          <HText variant="caption" tone="muted">
+          <HText variant="caption" tone="onPrimary">
             전체 조직도와 연락처를 확인하세요
           </HText>
         </View>
-        <Chevron />
+        <Chevron color={colors.background} />
       </HPressable>
     </HandolCard>
   );
@@ -68,5 +70,5 @@ function ContactRow({ unit }: { unit: OrganizationUnit }) {
 const styles = StyleSheet.create({
   contactRow: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: metrics.cardInset, paddingVertical: spacing.sm },
   divider: { height: 0.5, backgroundColor: colors.border },
-  openAll: { flexDirection: 'row', alignItems: 'center', paddingLeft: metrics.cardInset, paddingRight: metrics.cardInset, paddingTop: 13, paddingBottom: 12 },
+  openAll: { flexDirection: 'row', alignItems: 'center', paddingLeft: metrics.cardInset, paddingRight: metrics.cardInset, paddingTop: 13, paddingBottom: 14, backgroundColor: colors.textSecondary },
 });

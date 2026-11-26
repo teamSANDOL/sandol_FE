@@ -38,11 +38,9 @@ export function BusTimeCard({ onPress }: { onPress?: () => void }) {
         onSwap={() => select(reversedDirection(direction))}
         onRefresh={refreshShuttleClock}
       />
-      <View style={styles.countdown}>
-        <Countdown next={next} nowMinutes={nowMinutes} />
-      </View>
-      <View style={styles.divider} />
       <View style={styles.body}>
+        <Countdown next={next} nowMinutes={nowMinutes} />
+        <View style={{ height: 24 }} />
         <HandolIconLabel icon={<Icon name="busStop" />} label={stops[origin]?.name ?? ''} variant="headline" weight="bold" gap={9} />
         <View style={{ height: 29 }} />
         {departures.length === 0 ? (
@@ -56,7 +54,7 @@ export function BusTimeCard({ onPress }: { onPress?: () => void }) {
         )}
         <View style={{ height: 20 }} />
         <View style={{ alignItems: 'center' }}>
-          <HandolNote text="출발 시간은 교통 상황에 따라 달라질 수 있어요." />
+          <HandolNote text="도착 시간은 교통 상황에 따라 달라질 수 있어요." />
         </View>
       </View>
     </HandolCard>
@@ -100,7 +98,6 @@ const styles = StyleSheet.create({
   },
   route: { flexDirection: 'row', alignItems: 'center', gap: 6 },
   buttons: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
-  countdown: { paddingHorizontal: metrics.cardInset, paddingVertical: 10 },
-  divider: { height: 1, backgroundColor: colors.muted },
-  body: { paddingLeft: metrics.cardInset, paddingTop: 13, paddingRight: metrics.cardInset, paddingBottom: spacing.md },
+  // Figma 2:4369: 안쪽 위아래 10, 머리글-정류장 24, 정류장-출발 29, 출발-안내 20. 아래는 시안 카드 높이 250 에 맞춘 18.
+  body: { paddingHorizontal: metrics.cardInset, paddingTop: 10, paddingBottom: 18 },
 });

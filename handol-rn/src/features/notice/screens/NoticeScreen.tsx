@@ -6,7 +6,7 @@ import { AppTopBar, ErrorRetryView, GradientBackground, HText, LoadingIndicator,
 import type { NoticePage } from '../api';
 import { FilterChips, SearchBox } from '../components/NoticeHeader';
 import { NoticeList } from '../components/NoticeList';
-import { useNoticeList } from '../hooks';
+import { refreshNoticeFirstPage, useNoticeList } from '../hooks';
 import { filterNotices, isKeywordFilter, type Notice, type NoticeFilter } from '../model';
 import { loadBookmarks, markSeen, useBookmarks } from '../storage';
 
@@ -20,7 +20,9 @@ function loadedNotices(client: ReturnType<typeof useQueryClient>): Notice[] {
 
 /** 공지 목록 (전체 · 분류 · 생활관). 분류와 검색은 지금까지 불러온 목록 안에서 거른다. */
 function ListTab({ filter, query }: { filter: NoticeFilter; query: string }) {
-  const list = useNoticeList(filter === 'dormitory');
+  const isDormitory = filter === 'dormitory';
+  const list = useNoticeList(isDormitory);
+  const client = useQueryClient();
   const items = useMemo(
     () => filterNotices(list.data?.pages.flatMap((p) => p.items) ?? [], filter, query),
     [list.data, filter, query],
@@ -32,7 +34,8 @@ function ListTab({ filter, query }: { filter: NoticeFilter; query: string }) {
       </View>
     );
   }
-  if (list.isError) return <ErrorRetryView title="공지사항을 불러올 수 없습니다." onRetry={() => void list.refetch()} />;
+  // 다음 페이지만 실패하면 불러온 목록은 그대로 둔다(Flutter loadNextPage 는 실패를 삼킨다)
+  if (!list.data) return <ErrorRetryView title="공지사항을 불러올 수 없습니다." onRetry={() => void list.refetch()} />;
   // 거르지 않았을 때만 서버가 센 전체 건수를 그대로 보여 준다.
   const narrowed = isKeywordFilter(filter) || query.trim() !== '';
   const total = narrowed ? items.length : (list.data.pages.at(-1)?.total ?? 0);
@@ -42,10 +45,10 @@ function ListTab({ filter, query }: { filter: NoticeFilter; query: string }) {
       total={total}
       isLoadingMore={list.isFetchingNextPage}
       onEndReached={() => {
-        if (list.hasNextPage && !list.isFetchingNextPage) void list.fetchNextPage();
+        if (list.hasNextPage && !list.isFetchingNextPage) void list.fetchNextPage({ cancelRefetch: false });
       }}
       isRefreshing={list.isRefetching && !list.isFetchingNextPage}
-      onRefresh={() => void list.refetch()}
+      onRefresh={() => void refreshNoticeFirstPage(client, isDormitory)}
     />
   );
 }
@@ -104,6 +107,6 @@ export default function NoticeScreen() {
 const styles = StyleSheet.create({
   flex: { flex: 1 },
   center: { flex: 1, alignItems: 'center', justifyContent: 'center' },
-  search: { paddingHorizontal: metrics.pageGutter, paddingTop: spacing.sm },
-  chips: { paddingHorizontal: metrics.pageGutter, paddingTop: spacing.md },
+  search: { paddingHorizontal: metrics.pageGutter, paddingTop: 38 },
+  chips: { paddingHorizontal: metrics.pageGutter, paddingTop: 12 },
 });

@@ -20,12 +20,14 @@ export default function NoticeDetailScreen() {
   const [isLoading, setIsLoading] = useState(true);
   const bookmarks = useBookmarks();
   const notice = cachedNotice(id) ?? bookmarks.find((n) => keyOf(n) === id);
+  // 목록이 밑에 있으면 목록까지 닫고, 알림으로 바로 열려 상세뿐이면 상세를 목록으로 바꾼다
+  const goBack = () => router.dismissTo('/notice');
 
   return (
     <View style={[styles.screen, { paddingTop: insets.top }]}>
       <View style={styles.bar}>
         <View style={styles.backShadow}>
-          <HPressable accessibilityRole="button" accessibilityLabel="뒤로" onPress={() => router.back()} style={styles.back}>
+          <HPressable accessibilityRole="button" accessibilityLabel="뒤로" onPress={goBack} style={styles.back}>
             <Icon name="backArrow" />
           </HPressable>
         </View>

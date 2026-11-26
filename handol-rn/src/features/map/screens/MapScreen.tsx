@@ -1,5 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { Animated, BackHandler, StyleSheet, View } from 'react-native';
+import { BackHandler, StyleSheet, View } from 'react-native';
+import { GestureDetector } from 'react-native-gesture-handler';
+import Animated, { useAnimatedStyle } from 'react-native-reanimated';
 import { useFocusEffect } from 'expo-router';
 import { NaverMapView, type NaverMapViewRef } from '@mj-studio/react-native-naver-map';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -12,6 +14,7 @@ import { consumeEmptyClassFocus, usePendingEmptyClassFocus } from '@/features/em
 import { Grip, MapCover, MapTopBar, RefreshingChip, RoundButton } from '../components/MapChrome';
 import { BuildingMarker, PlaceMarker } from '../components/MapMarkers';
 import { SheetContent } from '../components/SheetContent';
+import { SheetScrollProvider } from '../components/SheetScrollView';
 import { COLLAPSED_H, SNAP_FRAC, fracOf, maxFracOf } from '../panels';
 import { searchPlaces } from '../search';
 import { MapColors, SHEET_RADIUS } from '../theme';
@@ -23,8 +26,13 @@ import { useSnapSheet } from '../useSnapSheet';
 const INITIAL_CAMERA = { latitude: 37.34019, longitude: 126.7336, zoom: 17 };
 const NO_BUILDINGS: EmptyClass[] = [];
 const CAMERA_MS = 300;
+const BUTTONS_ABOVE_SHEET = 20;
+/** 지도 왼쪽 버튼이 사라지고 나타나는 시간 (map_screen.dart AnimatedOpacity 150ms) */
+const BUTTON_FADE_MS = 150;
+/** 상태바 아래 검색창까지 (Figma 2:4993 검색창 y42, 상태바 26 기준 → 16) */
+const TOP_OFFSET = 16;
 /** 검색창 + 탭 높이: 지도 위쪽 여백 */
-const TOP_CONTENT_PADDING = 110;
+const TOP_CONTENT_PADDING = 116;
 
 /**
  * 맵 탭 (Figma '실제 앱 화면' > '맵' 2451:1122 외 맵-* 프레임). 지도 한 장 위에 검색창 · 교내시설/TUK 월드 탭 ·
@@ -48,15 +56,17 @@ function MapBody({ bodyH }: { bodyH: number }) {
   const [search, setSearch] = useState('');
   const [searchFocused, setSearchFocused] = useState(false);
 
-  const maxFracRef = useRef(maxFracOf('home'));
-  const sheet = useSnapSheet({ bodyH, initialFrac: fracOf('home', false), maxFracRef });
+  const sheet = useSnapSheet({ bodyH, initialFrac: fracOf('home', false), initialMaxFrac: maxFracOf('home') });
+  const { height: sheetH, maxFrac } = sheet;
+  const sheetStyle = useAnimatedStyle(() => ({ height: sheetH.value }));
+  const buttonsStyle = useAnimatedStyle(() => ({ bottom: sheetH.value + BUTTONS_ABOVE_SHEET }));
   const moveCamera = useCallback((latitude: number, longitude: number) => {
     mapRef.current?.animateCameraTo({ latitude, longitude, duration: CAMERA_MS });
   }, []);
   const state = useMapState({ buildings, animateTo: sheet.animateTo, currentFrac: sheet.currentFrac, moveCamera });
   useEffect(() => {
-    maxFracRef.current = maxFracOf(state.panel);
-  }, [state.panel]);
+    maxFrac.value = maxFracOf(state.panel);
+  }, [state.panel, maxFrac]);
 
   // TUK 월드는 그 탭이나 검색할 때만 불러온다. 실패하면 건물만 보여준다.
   const tuk = useTukPlaces(state.isTuk || (searchFocused && search.trim().length > 0));
@@ -109,7 +119,7 @@ function MapBody({ bodyH }: { bodyH: number }) {
         <View style={[StyleSheet.absoluteFill, { backgroundColor: MapColors.mapFallback }]} />
       )}
 
-      <View style={[styles.top, { top: insets.top + spacing.sm + 4 }]}>
+      <View style={[styles.top, { top: insets.top + TOP_OFFSET }]}>
         <MapTopBar
           isTuk={state.isTuk}
           results={searchPlaces(search, buildings, places)}
@@ -127,18 +137,19 @@ function MapBody({ bodyH }: { bodyH: number }) {
         />
       </View>
 
-      {/*
-        시트 위 12 에 붙는다. Flutter 는 시트가 한 번 움직이기 전까지 접힘 높이 기준 위치를 써서
-        첫 화면에서는 버튼이 시트에 가려 윗부분만 보인다. 그대로 옮겼다.
-      */}
+      {/* 시트 윗선 위 20 (Figma 2:5048 위치 버튼 아래 636, 시트 656). 처음부터 시트 높이를 따라간다. */}
       <Animated.View
         pointerEvents={sheet.flags.buttonsHidden ? 'none' : 'auto'}
-        style={[styles.buttons, { bottom: sheet.flags.moved ? Animated.add(sheet.height, 12) : sheet.minFrac * bodyH + 12, opacity: sheet.flags.buttonsHidden ? 0 : 1 }]}
+        style={[
+          styles.buttons,
+          buttonsStyle,
+          { opacity: sheet.flags.buttonsHidden ? 0 : 1, transitionProperty: 'opacity', transitionDuration: BUTTON_FADE_MS, transitionTimingFunction: 'linear' },
+        ]}
       >
         <RoundButton
           label="표시할 시설 선택"
           icon="tune"
-          color={colors.muted}
+          iconSize={26}
           onPress={() => (state.isTuk ? state.setTukCategory(null) : void state.show('filter'))}
         />
         <RoundButton label="내 위치" icon="myLocation" onPress={() => void goToMyLocation()} />
@@ -146,17 +157,22 @@ function MapBody({ bodyH }: { bodyH: number }) {
 
       <MapCover visible={sheet.flags.covered} onPress={() => void sheet.animateTo(SNAP_FRAC)} />
 
-      <Animated.View style={[styles.sheet, { height: sheet.height }]}>
-        <View style={styles.gripArea} {...sheet.gripHandlers}>
-          <Grip />
-        </View>
-        <View style={{ flex: 1 }}>
-          <SheetContent state={state} buildings={buildings} moveCamera={moveCamera} collapseSheet={() => void sheet.animateTo(sheet.minFrac)} />
-        </View>
-      </Animated.View>
+      {/* 시트 어디서든 끌 수 있다. 목록은 시트가 최대일 때만 스크롤된다 (useSnapSheet) */}
+      <GestureDetector gesture={sheet.gesture}>
+        <Animated.View style={[styles.sheet, sheetStyle]}>
+          <View style={styles.gripArea}>
+            <Grip />
+          </View>
+          <View style={{ flex: 1 }}>
+            <SheetScrollProvider value={sheet.scroll}>
+              <SheetContent state={state} buildings={buildings} moveCamera={moveCamera} collapseSheet={() => void sheet.animateTo(sheet.minFrac)} />
+            </SheetScrollProvider>
+          </View>
+        </Animated.View>
+      </GestureDetector>
 
       {classes.isPlaceholderData ? (
-        <View pointerEvents="none" style={[styles.refreshing, { top: insets.top + spacing.sm + 4 }]}>
+        <View pointerEvents="none" style={[styles.refreshing, { top: insets.top + TOP_OFFSET }]}>
           <RefreshingChip />
         </View>
       ) : null}
@@ -198,7 +214,8 @@ function useFocusRequest(buildings: readonly EmptyClass[], open: (building: stri
 const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: colors.background },
   top: { position: 'absolute', left: metrics.pageGutter, right: metrics.pageGutter },
-  buttons: { position: 'absolute', left: metrics.pageGutter, gap: spacing.sm },
+  // 두 버튼 사이 7 (Figma 2:5056 아래 582 ~ 2:5048 위 590 = 8 에서 테두리 안쪽 포함)
+  buttons: { position: 'absolute', left: metrics.pageGutter, gap: 7 },
   sheet: {
     position: 'absolute',
     left: 0,
@@ -211,6 +228,7 @@ const styles = StyleSheet.create({
     borderTopRightRadius: SHEET_RADIUS,
     backgroundColor: colors.background,
   },
-  gripArea: { alignItems: 'center', paddingTop: 7, paddingBottom: spacing.sm },
+  // 손잡이 윗선 7.5 (Figma 2:5000 Vector 5 y11.5, 두께 8), 시트 테두리 1 포함
+  gripArea: { alignItems: 'center', paddingTop: 6.5, paddingBottom: 3.5 },
   refreshing: { position: 'absolute', left: 0, right: 0, alignItems: 'center' },
 });

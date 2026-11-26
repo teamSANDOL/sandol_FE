@@ -1,7 +1,8 @@
 export type NotificationSettings = { push: boolean; benefit: boolean; marketing: boolean };
 export type NotificationKey = keyof NotificationSettings;
 
-export const DEFAULT_NOTIFICATION_SETTINGS: NotificationSettings = { push: true, benefit: true, marketing: false };
+/** 혜택·마케팅은 광고성 정보라 동의 전에는 꺼 둔다(정보통신망법 제50조, 사전 동의) */
+export const DEFAULT_NOTIFICATION_SETTINGS: NotificationSettings = { push: true, benefit: false, marketing: false };
 
 export const NOTIFICATION_STORAGE_KEYS: Record<NotificationKey, string> = {
   push: 'notification.push',

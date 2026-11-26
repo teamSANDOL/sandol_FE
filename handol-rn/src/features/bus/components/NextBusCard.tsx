@@ -41,7 +41,9 @@ const styles = StyleSheet.create({
   header: {
     minHeight: 47,
     backgroundColor: colors.primary,
-    paddingHorizontal: 15,
+    paddingLeft: 15,
+    // Figma 2:4778: 실시간 오른쪽 끝이 카드 오른쪽에서 17.2
+    paddingRight: 17,
     flexDirection: 'row',
     alignItems: 'center',
   },

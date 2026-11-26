@@ -1,4 +1,4 @@
-import { Modal, StyleSheet, View } from 'react-native';
+import { Modal, Pressable, StyleSheet, View } from 'react-native';
 import { HPressable, HText, LoadingIndicator, MaterialIcon, legacyColors, radius } from '@/design-system';
 import { userTheme } from '../theme';
 
@@ -16,11 +16,15 @@ type Props = {
   onCancel: () => void;
 };
 
-/** 확인 다이얼로그 (Flutter confirm_dialog.dart). 옅은 붉은 원 아이콘 + 제목 · 설명 + [취소 · 확인]. */
+/**
+ * 확인 다이얼로그 (Flutter confirm_dialog.dart). 옅은 붉은 원 아이콘 + 제목 · 설명 + [취소 · 확인].
+ * 바깥(딤)을 누르면 취소로 닫힌다(showDialog 기본 barrierDismissible).
+ */
 export function ConfirmDialog({ visible, icon, title, message, confirmLabel, showCancel = true, onConfirm, onCancel }: Props) {
   return (
     <Modal transparent visible={visible} animationType="fade" onRequestClose={onCancel} statusBarTranslucent>
       <View style={styles.scrim}>
+        <Pressable style={StyleSheet.absoluteFill} onPress={onCancel} accessibilityLabel="닫기" />
         <View style={styles.dialog}>
           <View style={styles.iconCircle}>
             <MaterialIcon name={ICONS[icon]} size={28} color={legacyColors.danger} />

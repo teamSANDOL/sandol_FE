@@ -7,6 +7,9 @@ import { toggleBookmark, useBookmarks, useSeen } from '../storage';
 import { NoticeCard } from './NoticeCard';
 import { SummaryRow } from './NoticeHeader';
 
+/** 목록 끝에서 이만큼(px) 안으로 스크롤하면 다음 페이지를 부른다(Flutter _pagingController) */
+const LOAD_MORE_EXTENT = 300;
+
 /** 요약 줄('최신 공지 · 총 N건 · 최신순') 아래에 공지 카드를 늘어놓는다. */
 export function NoticeList({
   items,
@@ -49,8 +52,15 @@ export function NoticeList({
           </View>
         ) : undefined
       }
-      onEndReached={onEndReached}
-      onEndReachedThreshold={0.5}
+      // 스크롤할 때만 확인한다: 사용자가 스크롤하기 전엔 다음 페이지를 부르지 않는다
+      onScroll={
+        onEndReached
+          ? ({ nativeEvent: { contentOffset, contentSize, layoutMeasurement } }) => {
+              if (contentSize.height - layoutMeasurement.height - contentOffset.y <= LOAD_MORE_EXTENT) onEndReached();
+            }
+          : undefined
+      }
+      scrollEventThrottle={16}
       refreshControl={
         onRefresh ? (
           <RefreshControl refreshing={isRefreshing} onRefresh={onRefresh} colors={[colors.primary]} progressBackgroundColor={colors.background} />
@@ -72,7 +82,7 @@ export function NoticeList({
 const Gap = () => <View style={{ height: spacing.sm }} />;
 
 const styles = StyleSheet.create({
-  content: { paddingHorizontal: metrics.pageGutter, paddingBottom: spacing.xl },
+  content: { paddingHorizontal: metrics.pageGutter, paddingTop: spacing.md, paddingBottom: spacing.xl },
   empty: { textAlign: 'center', paddingVertical: 60 },
   more: { padding: spacing.md, alignItems: 'center' },
 });

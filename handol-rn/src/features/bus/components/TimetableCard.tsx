@@ -21,13 +21,13 @@ export function TimetableCard({ title, timetable, nowMinutes, showPast }: Props)
   const hasUpcoming = entries.some((e) => !isPastEntry(e, nowMinutes));
 
   return (
-    <HandolCard contentStyle={{ paddingTop: 12, paddingBottom: 36, gap: 12 }}>
+    <HandolCard style={styles.shadow} contentStyle={{ paddingTop: 12, paddingBottom: 36 }}>
       <View style={{ paddingHorizontal: 20 }}>
         <HText weight="bold" tone="accent">
           {title}
         </HText>
       </View>
-      <View style={{ height: 2 }} />
+      <View style={{ gap: 12, marginTop: 16 }}>
       {entries.length === 0 ? (
         <CenteredNote text="오늘은 셔틀을 운행하지 않아요" />
       ) : (
@@ -44,6 +44,7 @@ export function TimetableCard({ title, timetable, nowMinutes, showPast }: Props)
           {!hasUpcoming ? <CenteredNote text="오늘 남은 셔틀이 없어요" /> : null}
         </>
       )}
+      </View>
     </HandolCard>
   );
 }
@@ -105,11 +106,15 @@ function EntryRow({ entry, past, isNext, isLast }: RowProps) {
 }
 
 const styles = StyleSheet.create({
+  // 시간표 카드만 검정 10% 그림자 (Figma 2:4810 y8 blur8)
+  shadow: { boxShadow: '0px 8px 12px rgba(0, 0, 0, 0.1)' },
   row: { minHeight: 24, paddingLeft: 17, paddingRight: 21, flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
   badge: {
     minWidth: 65,
     minHeight: 27,
-    paddingHorizontal: spacing.sm,
+    paddingHorizontal: 6.6,
+    // 배지(27)가 줄(24)보다 커도 줄 간격은 36 그대로 (Figma 2:4810 줄 피치 36.1)
+    marginVertical: -1.5,
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: colors.background,

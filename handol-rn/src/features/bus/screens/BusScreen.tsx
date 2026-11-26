@@ -15,6 +15,8 @@ import { refreshShuttleClock } from '../store';
 import { routeTitle } from '../timetableView';
 
 const REFRESH_DELAY_MS = 300;
+/** 출발 · 도착 카드 → 다음 버스 카드 간격 (Figma 2:4744 아래 232 → 2:4777 259) */
+const CARD_GAP = 27;
 
 /**
  * 셔틀버스 탭 (Figma 2683:2828). 출발 · 도착 카드, 다음 버스 카드, 오늘 전체 시간표.
@@ -38,7 +40,7 @@ export default function BusScreen() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  /** 당겨서 새로고침 · 카드 버튼. 기준 시각을 갱신하면 다음 버스 · 시간표 · 마지막 업데이트가 함께 다시 계산된다 */
+  /** 당겨서 새로고침. 기준 시각을 갱신하면 다음 버스 · 시간표 · 마지막 업데이트가 함께 다시 계산된다 */
   const refresh = async () => {
     refreshShuttleClock();
     setRefreshing(true);
@@ -60,14 +62,16 @@ export default function BusScreen() {
         isRefreshing={refreshing}
         contentContainerStyle={{
           paddingLeft: metrics.pageGutter,
-          paddingTop: spacing.md,
+          // 상단 바 제목 중심에서 첫 카드까지 39 (Figma 2:4744 y93 − 제목 중심 54), 바 높이 56 의 절반 28 을 뺀 값
+          paddingTop: 11,
           paddingRight: metrics.pageGutter,
           paddingBottom: 40,
         }}
       >
         <RouteCard direction={direction} stops={stops} onSwap={() => select(reversed)} onPick={setPicking} />
-        <View style={{ height: spacing.xl }} />
-        <NextBusCard next={next} onRefresh={refresh} />
+        <View style={{ height: CARD_GAP }} />
+        {/* 카드 버튼은 기준 시각만 갱신한다. 당겨서 새로고침 스피너는 띄우지 않는다 */}
+        <NextBusCard next={next} onRefresh={refreshShuttleClock} />
         {transfers ? (
           <>
             <View style={{ height: spacing.xl }} />

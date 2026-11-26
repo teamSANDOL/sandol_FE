@@ -13,7 +13,7 @@ export function DepartureRow({ entry, nowMinutes }: { entry: ShuttleEntry; nowMi
       <View style={{ flex: 1, alignItems: 'flex-start' }}>
         <HandolIconLabel icon={<Icon name="busDeparture" />} label={time} variant="body" gap={spacing.xs} />
       </View>
-      <HText>{trailing}</HText>
+      <HText tone={segment ? undefined : 'accent'}>{trailing}</HText>
     </View>
   );
 }

@@ -11,13 +11,27 @@ type Props = ScrollViewProps & {
   isRefreshing?: boolean;
 };
 
+/** 바닥 쪽 옅은 보라 번짐. 부모의 맨 아래에 붙는다 */
+function BottomGlow() {
+  const g = gradients.screen;
+  return (
+    <View style={[styles.glow, { height: g.height }]} pointerEvents="none">
+      <LinearGradient
+        colors={g.colors as unknown as [string, string]}
+        locations={g.locations as unknown as [number, number]}
+        start={g.start}
+        end={g.end}
+        style={StyleSheet.absoluteFill}
+      />
+    </View>
+  );
+}
+
 /**
- * 스크롤 내용 전체에 걸쳐 번지는 화면 배경 그라데이션 (HandolScrollGradient).
- * 시안 프레임이 스크롤 전체 길이라, 첫 화면은 거의 흰색이고 끝까지 내려야 보라가 짙어진다.
- * 그라데이션을 스크롤 내용 안에 깔아 내용 길이를 그대로 따른다.
+ * 화면 배경 (HandolScrollGradient). 바탕은 background 단색, 스크롤 내용의 맨 끝에만
+ * 옅은 보라 번짐이 있다 (Figma 화면 프레임의 Ellipse 12). 내용 안에 깔아 길이를 따른다.
  */
 export function GradientScrollView({ children, contentContainerStyle, onRefresh, isRefreshing = false, ref, ...rest }: Props) {
-  const g = gradients.screen;
   return (
     <ScrollView
       ref={ref}
@@ -35,32 +49,22 @@ export function GradientScrollView({ children, contentContainerStyle, onRefresh,
       }
       {...rest}
     >
-      <View style={StyleSheet.absoluteFill} pointerEvents="none">
-        <LinearGradient
-          colors={g.colors as unknown as [string, string, string]}
-          locations={g.locations as unknown as [number, number, number]}
-          start={g.start}
-          end={g.end}
-          style={StyleSheet.absoluteFill}
-        />
-      </View>
+      <BottomGlow />
       {children}
     </ScrollView>
   );
 }
 
-/** 스크롤하지 않는 화면 배경 그라데이션 */
+/** 스크롤하지 않는 화면 배경 */
 export function GradientBackground({ children, style }: { children?: ReactNode; style?: ScrollViewProps['style'] }) {
-  const g = gradients.screen;
   return (
-    <LinearGradient
-      colors={g.colors as unknown as [string, string, string]}
-      locations={g.locations as unknown as [number, number, number]}
-      start={g.start}
-      end={g.end}
-      style={[{ flex: 1 }, style as object]}
-    >
+    <View style={[{ flex: 1, backgroundColor: colors.background }, style as object]}>
+      <BottomGlow />
       {children}
-    </LinearGradient>
+    </View>
   );
 }
+
+const styles = StyleSheet.create({
+  glow: { position: 'absolute', left: 0, right: 0, bottom: 0 },
+});

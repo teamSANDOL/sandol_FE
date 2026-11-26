@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { ScrollView, StyleSheet, TextInput, View, type ScrollViewInstance } from 'react-native';
+import { StyleSheet, TextInput, View } from 'react-native';
 import {
   ErrorRetryView,
   HPressable,
@@ -23,6 +23,7 @@ import { ROOM_SORT_LABEL, ROOM_STATUSES, ROOM_STATUS_LABEL, visibleRows, type Ro
 import { MapColors } from '../theme';
 import { PopupMenu, type PopupOption } from './PopupMenu';
 import { BuildingRoomsCard, StatusDot } from './RoomCards';
+import { SheetScrollView, useSheetScrollTo } from './SheetScrollView';
 
 interface Props {
   /** 이 건물 카드로 스크롤한다 */
@@ -48,7 +49,7 @@ export function EmptyClassPanel({ focusBuilding, onBack, onBuildingPress }: Prop
   const [search, setSearch] = useState('');
   const [sort, setSort] = useState<RoomSort>('building');
   const [sortOpen, setSortOpen] = useState(false);
-  const scroll = useRef<ScrollViewInstance>(null);
+  const scrollTo = useSheetScrollTo();
   const cardY = useRef<Record<string, number>>({});
 
   const items = classes.data;
@@ -57,30 +58,35 @@ export function EmptyClassPanel({ focusBuilding, onBack, onBuildingPress }: Prop
 
   const scrollToFocus = (name: string | null) => {
     const y = name ? cardY.current[name] : undefined;
-    if (y !== undefined) scroll.current?.scrollTo({ y: Math.max(y, 0), animated: true }); // Flutter ensureVisible(alignment 0)
+    if (y !== undefined) scrollTo?.(y); // Flutter ensureVisible(alignment 0, 300ms easeOut)
   };
   useEffect(() => scrollToFocus(focusBuilding), [focusBuilding, rows?.length]); // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
-    <ScrollView ref={scroll} nestedScrollEnabled keyboardShouldPersistTaps="handled" contentContainerStyle={styles.content}>
-      <View style={styles.titleRow}>
-        <HPressable accessibilityRole="button" accessibilityLabel="뒤로" hitSlop={8} borderless onPress={onBack} style={styles.back}>
-          <Icon name="backArrow" />
-        </HPressable>
-        <HText variant="headline" weight="bold" style={{ flex: 1 }}>
-          빈 강의실 현황
-        </HText>
-        <HText variant="caption" tone="muted">
+    <SheetScrollView nestedScrollEnabled keyboardShouldPersistTaps="handled" contentContainerStyle={styles.content}>
+      {/* 제목 22 + 8 + 부제 16, 총 N개는 아래 맞춤 (Figma 2:5741) */}
+      <View style={styles.header}>
+        <View style={{ flex: 1 }}>
+          <View style={styles.titleRow}>
+            <HPressable accessibilityRole="button" accessibilityLabel="뒤로" hitSlop={10} borderless onPress={onBack} style={styles.back}>
+              <Icon name="backArrow" />
+            </HPressable>
+            <HText variant="headline" weight="bold">
+              빈 강의실 현황
+            </HText>
+          </View>
+          <View style={{ height: spacing.sm }} />
+          <HText variant="caption" tone="muted">
+            {dayName(query)} {timeLabel(query)} 동안 비어있는 강의실
+          </HText>
+        </View>
+        <HText variant="body" weight="bold" tone="accent" style={{ marginLeft: spacing.sm }}>
           총 {total}개
         </HText>
       </View>
-      <View style={{ height: spacing.xs }} />
-      <HText variant="body">
-        {dayName(query)} {timeLabel(query)} 동안 비어있는 강의실
-      </HText>
-      <View style={{ height: spacing.md }} />
+      <View style={{ height: 18 }} />
       <QueryCard search={search} onSearch={setSearch} />
-      <View style={{ height: spacing.md }} />
+      <View style={{ height: 9 }} />
       <View style={styles.legend}>
         {ROOM_STATUSES.map((s) => (
           <View key={s} style={styles.legendItem}>
@@ -90,10 +96,11 @@ export function EmptyClassPanel({ focusBuilding, onBack, onBuildingPress }: Prop
           </View>
         ))}
         <View style={{ flex: 1 }} />
-        <Pill label={ROOM_SORT_LABEL[sort]} trailing onPress={() => setSortOpen(true)} />
+        <Pill label={ROOM_SORT_LABEL[sort]} trailing minWidth={80} onPress={() => setSortOpen(true)} />
       </View>
       <PopupMenu visible={sortOpen} options={SORT_OPTIONS} onSelect={setSort} onClose={() => setSortOpen(false)} />
-      <View style={{ height: spacing.md }} />
+      {/* 정렬 알약 아래 302 → 목록 카드 330 (Figma 2:5769, 2:5783) */}
+      <View style={{ height: 28 }} />
       {rows === null ? (
         classes.isError ? (
           <View style={{ height: 240 }}>
@@ -127,7 +134,7 @@ export function EmptyClassPanel({ focusBuilding, onBack, onBuildingPress }: Prop
           ) : null}
         </>
       )}
-    </ScrollView>
+    </SheetScrollView>
   );
 }
 
@@ -163,7 +170,7 @@ function QueryCard({ search, onSearch }: { search: string; onSearch: (s: string)
       </View>
       <View style={{ height: 12 }} />
       <View style={[styles.search, { borderColor: focused ? colors.primary : MapColors.line }]}>
-        <MaterialIcon name="search" size={20} color={colors.primary} />
+        <MaterialIcon name="search" size={21} color={colors.primary} />
         <TextInput
           value={search}
           onChangeText={onSearch}
@@ -192,12 +199,15 @@ function Pill({
   icon,
   selected = false,
   trailing = false,
+  minWidth = 90,
   onPress,
 }: {
   label: string;
   icon?: 'schedule';
   selected?: boolean;
   trailing?: boolean;
+  /** Figma 알약은 90x30 (정렬은 80x30) */
+  minWidth?: number;
   onPress: () => void;
 }) {
   const fg = selected ? colors.background : colors.text;
@@ -207,29 +217,31 @@ function Pill({
         accessibilityRole="button"
         accessibilityState={{ selected }}
         onPress={onPress}
-        style={[styles.pill, { backgroundColor: selected ? colors.primary : colors.background }]}
+        style={[styles.pill, { minWidth, backgroundColor: selected ? colors.primary : colors.background }]}
       >
         {icon ? <MaterialIcon name={icon} size={13} color={fg} /> : null}
         <HText variant="caption" style={{ color: fg }}>
           {label}
         </HText>
-        {trailing ? <MaterialIcon name="keyboardArrowDown" size={16} color={fg} /> : null}
+        {trailing ? <MaterialIcon name="keyboardArrowDown" size={14} color={fg} /> : null}
       </HPressable>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  content: { paddingHorizontal: metrics.pageGutter, paddingTop: spacing.sm, paddingBottom: spacing.xl },
+  // 시트 안 제목 윗선 56 (Figma 2:5741), 손잡이 영역 18 + 테두리 1 을 뺀 값
+  content: { paddingHorizontal: metrics.pageGutter, paddingTop: 37, paddingBottom: spacing.xl },
+  header: { flexDirection: 'row', alignItems: 'flex-end' },
   titleRow: { flexDirection: 'row', alignItems: 'center' },
-  /** IconButton + VisualDensity.compact = 40x40 */
-  back: { width: 40, height: 40, alignItems: 'center', justifyContent: 'center' },
+  // 뒤로 버튼은 시안에 없는 기능 진입점. 제목 줄 높이 22 를 넘지 않게 두고 눌리는 영역만 hitSlop 으로 넓힌다.
+  back: { width: 32, height: 22, justifyContent: 'center' },
   legend: { flexDirection: 'row', alignItems: 'center' },
   legendItem: { flexDirection: 'row', alignItems: 'center', marginRight: 20 },
   loading: { padding: spacing.xl, alignItems: 'center' },
   queryCard: {
     paddingTop: 18,
-    paddingHorizontal: 20,
+    paddingHorizontal: 22,
     paddingBottom: 10,
     borderRadius: radius.md,
     borderWidth: 1,
@@ -237,10 +249,11 @@ const styles = StyleSheet.create({
     backgroundColor: colors.white,
   },
   pills: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm },
-  vline: { width: 1, height: 37, marginLeft: 10, marginRight: 10, marginTop: 22, backgroundColor: MapColors.line },
-  search: { height: 44, flexDirection: 'row', alignItems: 'center', paddingLeft: 12, borderRadius: radius.md, borderWidth: 1 },
-  input: { ...typography.caption, flex: 1, height: 44, paddingVertical: 0, paddingHorizontal: 8 },
+  vline: { width: 1, height: 37, marginLeft: 12, marginRight: 11, marginTop: 22, backgroundColor: MapColors.line },
+  // 돋보기 21 x9.6, 글 x40 (Figma 2:5764, 2:5768: 글 12.2/14)
+  search: { height: 44.5, flexDirection: 'row', alignItems: 'center', paddingLeft: 9, borderRadius: radius.md, borderWidth: 1 },
+  input: { ...typography.caption, fontSize: 12.2, lineHeight: 14, flex: 1, height: 44, paddingVertical: 0, paddingLeft: 0, paddingRight: 8, marginLeft: 9 },
   // 높이 고정 대신 세로 여백으로 30을 맞춰 글꼴이 커지면 함께 늘어난다.
   pillClip: { borderRadius: 30, overflow: 'hidden' },
-  pill: { flexDirection: 'row', alignItems: 'center', gap: spacing.xs, paddingHorizontal: 12, paddingVertical: 7, borderRadius: 30, borderWidth: 1, borderColor: MapColors.line },
+  pill: { flexDirection: 'row', alignItems: 'center', gap: spacing.xs, justifyContent: 'center', paddingHorizontal: 11, paddingVertical: 6, borderRadius: 30, borderWidth: 1, borderColor: MapColors.line },
 });

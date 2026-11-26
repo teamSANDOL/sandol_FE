@@ -13,7 +13,8 @@ import { buildRestaurantMenus, defaultMeal, nowMealType, todayIso, weekDays, typ
  * 그 끼니를 내는 식당 카드.
  */
 export default function MealScreen() {
-  const today = todayIso();
+  // 화면을 만들 때 한 번만 정한다 (restaurant_detail_page.dart late final _today). 자정을 넘겨도 고른 날이 바뀌지 않는다.
+  const [today] = useState(todayIso);
   const [day, setDay] = useState(today);
   /** 사용자가 끼니 탭을 직접 고른 값. null 이면 기본 끼니 규칙을 따른다. */
   const [picked, setPicked] = useState<MealType | null>(null);
@@ -45,7 +46,7 @@ export default function MealScreen() {
         />
         <View style={styles.gap18} />
         <MealTabs selected={mealType} nowType={isToday ? nowMealType() : null} onSelect={setPicked} />
-        <View style={styles.gap20} />
+        <View style={styles.gap24} />
         {restaurants.isPending ? (
           <View style={styles.loading}>
             <LoadingIndicator />
@@ -64,8 +65,8 @@ export default function MealScreen() {
 }
 
 const styles = StyleSheet.create({
-  content: { paddingHorizontal: metrics.pageGutter, paddingTop: spacing.md, paddingBottom: spacing.xl },
+  content: { paddingHorizontal: metrics.pageGutter, paddingTop: 12, paddingBottom: spacing.xl },
   gap18: { height: 18 },
-  gap20: { height: 20 },
+  gap24: { height: 24 },
   loading: { paddingTop: 60, alignItems: 'center' },
 });

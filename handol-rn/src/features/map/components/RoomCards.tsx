@@ -30,9 +30,10 @@ export function BuildingRoomsCard({ rows, onPress }: { rows: BuildingRows; onPre
           <MaterialIcon name="chevronRight" size={20} color={colors.text} />
         </HPressable>
       </View>
-      {groupByFloor(rooms).map((g) => (
+      {groupByFloor(rooms).map((g, i) => (
         <View key={g.floor}>
-          <View style={{ height: 12 }} />
+          {/* 건물명 아래 9, 층 사이 16 (Figma 2:5784 ~ 2:5789, 2:5796) */}
+          <View style={{ height: i === 0 ? 9 : 16 }} />
           <View style={styles.floorRow}>
             <Icon name="floor" width={12} />
             <HText variant="caption">{g.floor}</HText>
@@ -65,7 +66,7 @@ function RoomChip({ row }: { row: RoomRow }) {
 }
 
 const styles = StyleSheet.create({
-  card: { borderRadius: radius.md, borderWidth: 1, borderColor: MapColors.line, paddingLeft: 20, paddingRight: 20, paddingTop: 10, paddingBottom: 16 },
+  card: { borderRadius: radius.md, borderWidth: 1, borderColor: MapColors.line, paddingLeft: 20, paddingRight: 20, paddingTop: 9, paddingBottom: 16 },
   headClip: { borderRadius: radius.md, overflow: 'hidden' },
   head: { flexDirection: 'row', alignItems: 'center' },
   floorRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },

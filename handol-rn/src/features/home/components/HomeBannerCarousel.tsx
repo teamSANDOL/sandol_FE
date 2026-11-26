@@ -15,7 +15,8 @@ export function HomeBannerCarousel({ banners }: { banners: readonly HomeBanner[]
   if (banners.length === 0) return null;
 
   const handleLayout = (e: LayoutChangeEvent) => setWidth(e.nativeEvent.layout.width);
-  const handleScrollEnd = (e: NativeSyntheticEvent<NativeScrollEvent>) => {
+  // 끄는 도중 절반을 넘으면 바로 점을 옮긴다 (Flutter onPageChanged). 같은 값이면 다시 그리지 않는다
+  const handleScroll = (e: NativeSyntheticEvent<NativeScrollEvent>) => {
     if (width > 0) setPage(Math.round(e.nativeEvent.contentOffset.x / width));
   };
 
@@ -29,7 +30,8 @@ export function HomeBannerCarousel({ banners }: { banners: readonly HomeBanner[]
             pagingEnabled
             showsHorizontalScrollIndicator={false}
             keyExtractor={(b) => b.title}
-            onMomentumScrollEnd={handleScrollEnd}
+            onScroll={handleScroll}
+            scrollEventThrottle={16}
             getItemLayout={(_, i) => ({ length: width, offset: width * i, index: i })}
             renderItem={({ item }) => (
               <View style={{ width, aspectRatio: ASPECT_RATIO }}>

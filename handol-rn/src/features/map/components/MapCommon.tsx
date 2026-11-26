@@ -54,17 +54,37 @@ export function TileRow({ children }: { children: ReactNode }) {
 }
 
 /** 맵 시안의 두 가지 버튼: 주 동작(primary) · 보조 동작(soft) */
-export function MapButton({ label, onPress, primary = true, icon }: { label: string; onPress: () => void; primary?: boolean; icon?: MaterialIconName }) {
+export function MapButton({
+  label,
+  onPress,
+  primary = true,
+  icon,
+  iconSize = 10,
+  iconGap = spacing.xs,
+  bold = false,
+}: {
+  label: string;
+  onPress: () => void;
+  primary?: boolean;
+  icon?: MaterialIconName;
+  iconSize?: number;
+  iconGap?: number;
+  bold?: boolean;
+}) {
   const fg = primary ? colors.background : colors.text;
   return (
     <View style={styles.buttonClip}>
       <HPressable
         accessibilityRole="button"
         onPress={onPress}
-        style={[styles.button, { backgroundColor: primary ? colors.primary : MapColors.soft }]}
+        style={[styles.button, { gap: iconGap, backgroundColor: primary ? colors.primary : MapColors.soft }]}
       >
-        {icon ? <MaterialIcon name={icon} size={10} color={fg} /> : null}
-        <HText variant="body" style={{ color: fg }}>
+        {icon ? (
+          <View style={{ height: Math.min(iconSize, 21.5), alignItems: 'center', justifyContent: 'center' }}>
+            <MaterialIcon name={icon} size={iconSize} color={fg} />
+          </View>
+        ) : null}
+        <HText variant="body" weight={bold ? 'bold' : undefined} style={{ color: fg }}>
           {label}
         </HText>
       </HPressable>
@@ -87,5 +107,6 @@ const styles = StyleSheet.create({
   tileBox: { alignItems: 'center', justifyContent: 'center' },
   tileRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' },
   buttonClip: { borderRadius: radius.md, overflow: 'hidden' },
-  button: { minHeight: 38, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: spacing.xs },
+  // 안쪽 위아래 10 + 글 18 = 38 (Figma 2:4989)
+  button: { paddingVertical: 10, flexDirection: 'row', alignItems: 'center', justifyContent: 'center' },
 });

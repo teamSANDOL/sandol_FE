@@ -53,7 +53,7 @@ export function HText({
       maxFontSizeMultiplier={1.4}
       lineBreakStrategyIOS={keepAll && Platform.OS === 'ios' ? 'hangul-word' : undefined}
       {...rest}
-      style={[flat, keepAllSpacing(flat, content), trailingSpacing(flat)]}
+      style={[flat, trailingSpacing(flat)]}
     >
       {content}
     </Text>
@@ -68,21 +68,11 @@ function mapStrings(children: ReactNode, fn: (s: string) => string): ReactNode {
   return children;
 }
 
-/**
- * Flutter 는 keepAll 이 끼운 WORD JOINER 에도 자간을 적용해 글이 그만큼 좁아진다. Android 는 그 문자에
- * 자간을 주지 않으므로, 줄어든 총량을 글자들에 고르게 나눠 같은 폭이 되게 한다.
+/*
+ * 이전에는 Flutter 와 폭을 맞추려 keepAll 의 WORD JOINER 몫 자간을 다른 글자에 나눠 더 좁혔다.
+ * 지금 기준은 Figma 이고, Figma 는 보이는 글자에만 자간을 주므로 그 보정을 뺐다
+ * (공지 제목·탈퇴 안내처럼 자간 -1 인 글이 시안보다 3% 좁고 띄어쓰기가 붙어 보이던 원인).
  */
-function keepAllSpacing(s: TextStyle, content: ReactNode): TextStyle | null {
-  const ls = typeof s.letterSpacing === 'number' ? s.letterSpacing : 0;
-  const text = typeof content === 'string' ? content : Array.isArray(content) && content.every((c) => typeof c === 'string') ? content.join('') : null;
-  if (ls === 0 || text === null) return null;
-  const chars = Array.from(text);
-  const joiners = chars.filter((c) => c === '\u2060').length;
-  const visible = chars.length - joiners;
-  if (joiners === 0 || visible < 2) return null;
-  // 글자 사이(visible - 1 칸)에 들어가는 자간 총량이 Flutter(글자 사이 + 끼운 문자 몫)와 같아지게 한다
-  return { letterSpacing: (ls * (visible - 1 + joiners)) / (visible - 1) };
-}
 
 /**
  * Flutter 는 마지막 글자 뒤에도 자간을 붙여 텍스트 상자가 그만큼 좁다(음수 자간이면 더 좁다).

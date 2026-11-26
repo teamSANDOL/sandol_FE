@@ -1,12 +1,12 @@
 import { useEffect, useState } from 'react';
 import { Dimensions, View } from 'react-native';
-import { router } from 'expo-router';
 import { useAuth } from '@/core/auth/AuthProvider';
-import { colors, HandolButton, HandolCheckbox, HText, showToast, spacing, typography } from '@/design-system';
+import { colors, HandolButton, HandolCheckbox, HText, showToast, spacing, TOAST_LONG_MS, typography } from '@/design-system';
 import { AuthBrandHeading, AuthDivider } from '../components/AuthParts';
 import { AuthScaffold } from '../components/AuthScaffold';
 import { SignUpLink, SocialRow, TextAction } from '../components/LoginActions';
 import { loginTopOffset } from '../layout';
+import { useResetTo } from '../navigation';
 
 // HandolButton 이 typography.button 의 글자색(text)을 덮어써 흰 글씨가 검게 나오므로 색을 명시한다
 const BUTTON_TEXT = { ...typography.button, color: colors.background };
@@ -21,20 +21,21 @@ export default function LoginScreen() {
   // Flutter MediaQuery 높이는 엣지-투-엣지에서 화면 전체 높이다(window 는 내비게이션 바만큼 짧을 수 있다)
   const height = Dimensions.get('screen').height;
   const [rememberMe, setRememberMe] = useState(true);
+  const resetTo = useResetTo();
 
   useEffect(() => {
-    if (error) showToast(LOGIN_FAILED);
+    if (error) showToast(LOGIN_FAILED, TOAST_LONG_MS);
   }, [error]);
 
   const handleLogin = async (opts: { useKakao?: boolean; signUp?: boolean } = {}) => {
     const isSuccess = await login({ ...opts, rememberMe });
-    if (isSuccess) router.replace('/home');
+    if (isSuccess) resetTo('home');
   };
 
   /** 둘러보기를 고른 시각을 남기고(7일간 시작 때 로그인 화면 생략) 홈으로 간다 */
   const handleBrowse = async () => {
     await continueAsGuest();
-    router.replace('/home');
+    resetTo('home');
   };
 
   return (
@@ -46,14 +47,14 @@ export default function LoginScreen() {
         </HText>
         {'을 시작해요'}
       </AuthBrandHeading>
-      <View style={{ height: 92 }} />
+      <View style={{ height: 84 }} />
       {session === null ? (
         <>
           <SocialRow
             isBusy={isLoggingIn}
             onKakao={() => void handleLogin({ useKakao: true })}
-            onGoogle={() => showToast('Google 로그인은 준비 중이에요.')}
-            onApple={() => showToast('Apple 로그인은 준비 중이에요.')}
+            onGoogle={() => showToast('Google 로그인은 준비 중이에요.', TOAST_LONG_MS)}
+            onApple={() => showToast('Apple 로그인은 준비 중이에요.', TOAST_LONG_MS)}
           />
           <View style={{ height: 10 }} />
           <AuthDivider label="또는" />
@@ -70,7 +71,7 @@ export default function LoginScreen() {
         </>
       ) : (
         <>
-          <HandolButton label="홈으로 가기" onPress={() => router.replace('/home')} textStyle={BUTTON_TEXT} />
+          <HandolButton label="홈으로 가기" onPress={() => resetTo('home')} textStyle={BUTTON_TEXT} />
           <View style={{ height: 12 }} />
           <TextAction label="로그아웃" onPress={() => void logout()} />
         </>

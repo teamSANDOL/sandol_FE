@@ -87,16 +87,24 @@ export const shadows = {
  * 0..1 좌표로 옮긴 값이다.
  */
 export const gradients = {
-  /** 학식 · 공지 · 홈 배경 (위 → 아래). 흰색 위에 합성한 값 */
+  /**
+   * 화면 배경 (홈_re 2:4325, 학식-2 2:6397). 바탕은 background 단색이고, 맨 아래에만
+   * 보라 원(Ellipse 12, #8B7CF6 10%, 레이어 블러 300)이 아주 옅게 번진다.
+   * Figma 렌더를 재 보면 아래 300dp 에서 #FDFDFD → #F9F8FD 로 바뀌므로 그 구간만 칠한다.
+   */
   screen: {
-    colors: ['#FFFFFF', '#F7FAFE', '#EBE9FE'] as const,
-    locations: [0, 0.7212, 1] as const,
+    colors: ['rgba(139,124,246,0)', 'rgba(139,124,246,0.045)'] as const,
+    locations: [0, 1] as const,
+    height: 300,
     start: { x: 0.5, y: 0 },
     end: { x: 0.5, y: 1 },
   },
-  /** 홈 기능 소개 배너 (Frame 2147234779) */
+  /**
+   * 홈 기능 소개 배너 (Frame 2147234779). 시안(primary → #5FA8EA)이 너무 진해
+   * 두 색을 흰색과 25% 섞어 흐리게 했다.
+   */
   primaryCard: {
-    colors: [colors.primary, '#5FA8EA'] as const,
+    colors: ['#6AA1DE', '#87BEEF'] as const,
     locations: [0, 1] as const,
     start: { x: 0.70145, y: 1.73495 },
     end: { x: -0.0862, y: -0.2132 },

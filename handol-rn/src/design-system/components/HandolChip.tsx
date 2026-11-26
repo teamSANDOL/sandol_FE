@@ -29,7 +29,8 @@ export function HandolChip({ label, isSelected, onPress, chipStyle = 'outline' }
         onPress={onPress}
         style={[styles.chip, { backgroundColor: bg, borderColor: hasBorder ? colors.border : 'transparent' }]}
       >
-        <HText variant="caption" weight={isSelected ? 'bold' : undefined} style={{ color: textColor }}>
+        {/* 한 줄 고정. 여러 줄 텍스트는 음절마다 줄바꿈 지점을 넣어, 자간 때문에 폭이 한 끗 모자라면 끝 글자가 다음 줄로 넘어가 칩 높이에 잘린다 */}
+        <HText variant="caption" numberOfLines={1} weight={isSelected ? 'bold' : undefined} style={{ color: textColor }}>
           {label}
         </HText>
       </HPressable>

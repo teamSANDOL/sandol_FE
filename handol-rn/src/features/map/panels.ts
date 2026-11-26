@@ -17,7 +17,8 @@ export const maxFracOf = (p: Panel): number => (p === 'home' ? SNAP_FRAC : MAX_F
 export function fracOf(p: Panel, hasTukCategory: boolean): number {
   switch (p) {
     case 'home':
-      return 0.3;
+      // Figma 맵 2:4976: 시트 윗선 656, 아래 탭 윗선 847 → 191dp. 기기 본문 713dp 기준 비율 (타일 한 줄 높이)
+      return 0.268;
     case 'filter':
       return SNAP_FRAC;
     case 'building':
@@ -60,6 +61,7 @@ export function nextOnBack(panel: Panel, ctx: { hasBuilding: boolean; hasTukCate
  * 빠른 플링은 진행 방향의 다음 정지점으로, 느리면 가장 가까운 정지점으로.
  */
 export function pickSnapTarget(cur: number, velocity: number, minFrac: number, maxFrac: number): number {
+  'worklet'; // 시트 드래그를 놓을 때 UI 스레드에서 부른다
   const stops = [...new Set([minFrac, SNAP_FRAC, maxFrac])].filter((s) => s <= maxFrac).sort((a, b) => a - b);
   if (Math.abs(velocity) > 0.9) {
     if (velocity > 0) return stops.find((s) => s > cur + 0.01) ?? maxFrac;

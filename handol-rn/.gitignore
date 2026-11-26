@@ -29,12 +29,20 @@ yarn-error.*
 # macOS
 .DS_Store
 *.pem
+# OTA 서명: 인증서(공개)는 앱에 들어가고, 개인키는 절대 올리지 않는다
+!/certs/certificate.pem
+/keys/
+/updates-out/
 
 # local env files
 .env*.local
 
 # typescript
 *.tsbuildinfo
+
+# Firebase 설정(환경별, docs/PUSH.md)
+/google-services.json
+/GoogleService-Info.plist
 
 # generated native folders
 /ios

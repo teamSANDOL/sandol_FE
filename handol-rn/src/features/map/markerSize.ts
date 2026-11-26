@@ -13,19 +13,20 @@ export function estimateTextWidth(text: string, fontSize: number, bold = false):
 }
 
 export const BUBBLE = {
-  padH: 12,
-  padV: 8,
-  gap: 2,
-  tipH: 9,
-  tipHalfW: 8,
+  // Figma 2:4980~2:4983: 카드 122x59, 안쪽 위 11 · 왼쪽 14, 글 사이 3, 꼬리 높이 12 · 밑변 18
+  padH: 14,
+  padV: 11,
+  gap: 3,
+  tipH: 12,
+  tipHalfW: 9,
   /** 그림자가 잘리지 않게 사방에 두는 여백 */
   margin: 16,
-  nameSize: 15,
-  subSize: 12,
+  nameSize: 16,
+  subSize: 14,
   /** 꼬리는 둥근 모서리(12) 안쪽에 남도록 가장자리에서 띄운다 */
   tipInset: 20,
-  nameLine: 17,
-  subLine: 14,
+  nameLine: 18,
+  subLine: 16,
 } as const;
 
 export interface BubbleLayout {

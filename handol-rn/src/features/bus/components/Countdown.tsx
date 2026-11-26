@@ -11,5 +11,5 @@ export function Countdown({ next, nowMinutes }: { next: NextShuttle; nowMinutes:
   const counting = isCounting(next);
   const seconds = useSecondTick(counting);
   const label = counting ? countdownText(next.departureMinutes as number, nowMinutes, seconds) : headline(next);
-  return <HandolIconLabel icon={<Icon name="clock" />} label={label} variant="title" tone="accent" />;
+  return <HandolIconLabel icon={<Icon name="clock" />} label={label} variant="headline" weight="bold" tone="accent" />;
 }

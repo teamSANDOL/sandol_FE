@@ -2,10 +2,13 @@ import { useEffect, useState } from 'react';
 import { StyleSheet, useWindowDimensions, View } from 'react-native';
 import { Image } from 'expo-image';
 import { router } from 'expo-router';
+import { useQueryClient } from '@tanstack/react-query';
 import { createVideoPlayer, VideoView, type VideoPlayer } from 'expo-video';
 import { useAuth } from '@/core/auth/AuthProvider';
 import { guestAccess } from '@/core/auth/guestAccess';
 import { colors, images } from '@/design-system';
+import { discardPendingPush } from '@/features/push/pushService';
+import { prefetchHome } from '../prefetchHome';
 import { splashTarget, type SplashTarget } from '../splashRoute';
 
 /** Figma 원본 1080×1920. 영상도 같은 크기라 정지 이미지 위에 그대로 덮는다 */
@@ -19,14 +22,19 @@ export default function SplashScreen() {
   const { status } = useAuth();
   const { width } = useWindowDimensions();
   const [target, setTarget] = useState<SplashTarget | null>(null);
+  const queryClient = useQueryClient();
 
   useEffect(() => {
     if (status === 'restoring') return;
     let isCancelled = false;
-    void guestAccess.isActive().then((isGuestActive) => {
-      const next = splashTarget(status, isGuestActive);
-      if (!isCancelled && next) setTarget(next);
-    });
+    void (async () => {
+      const next = splashTarget(status, await guestAccess.isActive());
+      if (!next) return;
+      // 홈으로 가면 첫 화면 데이터를 받아 두고(최대 5초), 로그인으로 가면 알림으로 열 화면을 버린다.
+      if (next === '/home') await prefetchHome(queryClient);
+      else discardPendingPush();
+      if (!isCancelled) setTarget(next);
+    })();
     return () => {
       isCancelled = true;
     };

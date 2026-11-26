@@ -1,9 +1,9 @@
 import { StyleSheet, View } from 'react-native';
-import { HText, HandolIconLabel, Icon, LoadingIndicator, spacing, ErrorRetryView, type IconName } from '@/design-system';
+import { HText, HandolIconLabel, Icon, LoadingIndicator, ErrorRetryView, type IconName } from '@/design-system';
 import { useQueryClient } from '@tanstack/react-query';
 import { buildRestaurantMenus, cardsFor, MEAL_LABEL, type MealType, type Restaurant } from '../model';
 import { useMeals } from '../hooks';
-import { UnfoldIcon } from './MealIcons';
+import { ChevronDownIcon } from './MealIcons';
 import { RestaurantCard } from './RestaurantCard';
 
 const MEAL_ICON: Record<MealType, IconName> = {
@@ -41,18 +41,27 @@ export function MealCards({ restaurants, mealType, day }: { restaurants: Restaur
               </View>
             }
             label={MEAL_LABEL[mealType]}
-            variant="title"
+            variant="headline"
+            weight="bold"
             tone="accent"
           />
-          <HText variant="caption" tone="secondary">
+          {/* 시안은 라벨과 식당 수 사이에 목록 점(•)이 있다 (Figma 2:6546) */}
+          <View style={styles.bullet}>
+            <HText variant="caption" tone="secondary" style={styles.lineHeight20}>
+              •
+            </HText>
+          </View>
+          <HText variant="caption" tone="secondary" style={styles.lineHeight20}>
             {`식당 ${cards.length}곳`}
           </HText>
         </View>
         {/* ponytail: 서버에 좋아요·인기 데이터가 없어 정렬은 동작하지 않는다(표시만). */}
-        <HText variant="caption" weight="bold" tone="secondary">
-          인기순
-        </HText>
-        <UnfoldIcon />
+        <View style={styles.sort}>
+          <HText variant="caption" weight="bold" tone="secondary" style={styles.lineHeight20}>
+            인기순
+          </HText>
+          <ChevronDownIcon />
+        </View>
       </View>
       {cards.length === 0 ? (
         <HText variant="caption" tone="muted" keepAll style={styles.empty}>
@@ -72,7 +81,10 @@ export function MealCards({ restaurants, mealType, day }: { restaurants: Restaur
 const styles = StyleSheet.create({
   loading: { paddingVertical: 40, alignItems: 'center' },
   header: { flexDirection: 'row', alignItems: 'center', marginBottom: 13 },
-  titleWrap: { flex: 1, flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', columnGap: spacing.md },
+  titleWrap: { flex: 1, flexDirection: 'row', alignItems: 'center' },
+  bullet: { width: 23, alignItems: 'center' },
+  lineHeight20: { lineHeight: 20 },
+  sort: { flexDirection: 'row', alignItems: 'center', gap: 5 },
   icon: { width: 24, height: 24, alignItems: 'center', justifyContent: 'center' },
   empty: { textAlign: 'center', paddingVertical: 60 },
   list: { gap: 20 },

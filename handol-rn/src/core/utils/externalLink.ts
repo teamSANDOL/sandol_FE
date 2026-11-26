@@ -11,7 +11,7 @@ export async function openExternalLink(url: string): Promise<boolean> {
     await Linking.openURL(url);
     return true;
   } catch {
-    showToast('링크를 열 수 없습니다');
+    showToast('링크를 열 수 없습니다', 2000);
     return false;
   }
 }

@@ -19,6 +19,7 @@ export * from './components/LoadingIndicator';
 export * from './components/ErrorRetryView';
 export * from './components/RemoteImage';
 export * from './components/toast';
+export * from './components/ToastHost';
 export * from './materialIcons';
 export * from './components/MaterialIcon';
 export * from './components/HandolBottomSheet';

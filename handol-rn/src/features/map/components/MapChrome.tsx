@@ -13,11 +13,11 @@ export function Grip() {
 }
 
 /** 지도 왼쪽 원형 버튼 (46x46, 2451:1122 Frame 2147235235/6) */
-export function RoundButton({ label, icon, color = colors.text, onPress }: { label: string; icon: MaterialIconName; color?: string; onPress: () => void }) {
+export function RoundButton({ label, icon, iconSize = 22, onPress }: { label: string; icon: MaterialIconName; iconSize?: number; onPress: () => void }) {
   return (
     <View style={styles.round}>
       <HPressable accessibilityRole="button" accessibilityLabel={label} borderless onPress={onPress} style={styles.roundInner}>
-        <MaterialIcon name={icon} size={22} color={color} />
+        <MaterialIcon name={icon} size={iconSize} color={colors.text} />
       </HPressable>
     </View>
   );
@@ -65,7 +65,7 @@ export function MapTopBar({ isTuk, results, search, onSearch, focused, onFocusCh
   return (
     <View>
       <View style={styles.searchBox}>
-        <View style={{ width: 48, alignItems: 'center' }}>
+        <View style={styles.searchIcon}>
           <MaterialIcon name="search" size={24} color={colors.primary} />
         </View>
         <TextInput
@@ -113,7 +113,7 @@ export function MapTopBar({ isTuk, results, search, onSearch, focused, onFocusCh
         </View>
       ) : (
         <>
-          <View style={{ height: spacing.sm }} />
+          <View style={{ height: TAB_GAP }} />
           <View style={styles.tabs}>
             <View style={{ flex: 1 }}>
               <MapButton label="교내시설" primary={!isTuk} onPress={() => onTab(false)} />
@@ -139,6 +139,9 @@ export function RefreshingChip() {
   );
 }
 
+/** 검색창 아래 ~ 탭 위 (Figma 2:4993 아래 93, 2:4988 탭 위 104) */
+const TAB_GAP = 11;
+
 const styles = StyleSheet.create({
   grip: { width: 42, height: 8, borderRadius: 4, backgroundColor: MapColors.line },
   round: {
@@ -148,7 +151,6 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: MapColors.line,
     backgroundColor: colors.background,
-    boxShadow: '0px 1px 3px rgba(0,0,0,0.25)',
   },
   roundInner: { width: 44, height: 44, borderRadius: 22, alignItems: 'center', justifyContent: 'center' },
   cover: { flex: 1, backgroundColor: MapColors.coverMain },
@@ -162,7 +164,9 @@ const styles = StyleSheet.create({
     borderColor: MapColors.line,
     backgroundColor: colors.background,
   },
-  input: { ...typography.caption, flex: 1, height: 51, paddingVertical: 0, paddingRight: 12 },
+  // 돋보기 24 가 x11 (테두리 1 안쪽), 글 x46 (Figma 2:4994, 2:4997)
+  searchIcon: { width: 45, paddingLeft: 10 },
+  input: { ...typography.caption, flex: 1, height: 51, paddingVertical: 0, paddingLeft: 0, paddingRight: 12 },
   // dense ListTile + 부제 = 최소 높이 64
   result: { minHeight: 64, justifyContent: 'center', paddingHorizontal: spacing.md },
   tabs: { flexDirection: 'row', gap: 29 },

@@ -47,7 +47,8 @@ export function TimetableSection({ cards, now, dayType, needsReview }: Props) {
           <TimetableCard title={c.title} timetable={c.timetable} nowMinutes={nowMinutes} showPast={showPast} />
         </View>
       ))}
-      <View style={{ height: spacing.lg }} />
+      {/* 마지막 카드 → 안내문 (Figma 2:4810 아래 1083 → 2:4809 1101) */}
+      <View style={{ height: 18 }} />
       <HText variant="caption" tone="inactive" style={{ textAlign: 'center' }}>
         {footerText(now, needsReview)}
       </HText>

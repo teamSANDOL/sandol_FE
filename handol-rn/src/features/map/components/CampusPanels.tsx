@@ -1,12 +1,13 @@
-import { ScrollView, StyleSheet, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 import { Image } from 'expo-image';
-import { HPressable, HText, colors, metrics, radius, spacing } from '@/design-system';
+import { Chevron, HPressable, HText, colors, metrics, radius, spacing } from '@/design-system';
 import { showComingSoon } from '@/design-system';
 import { MaterialIcon } from '@/features/empty_class/components/MaterialIcon';
 import type { EmptyClass } from '@/features/empty_class/model';
 import { facilities, type FacilityKey } from '../facilities';
 import { MapColors } from '../theme';
 import { FacilityTile, MapButton, MapSectionTitle, TileRow } from './MapCommon';
+import { SheetScrollView } from './SheetScrollView';
 
 // 교내 시설(식당 · 카페 · 편의점 등)은 위치·운영 정보 API가 아직 없어
 // 빈 강의실 외 시설은 누르면 '준비중' 안내만 띄운다.
@@ -20,15 +21,15 @@ function Tile({ k, onPress, enabled = true }: { k: FacilityKey; onPress?: () => 
 const tiles = (keys: readonly FacilityKey[], enabled = true) => keys.map((k) => <Tile key={k} k={k} enabled={enabled} />);
 
 /** 시트 본문 여백. 패널마다 위 · 아래 여백이 다르다 (campus_panels.dart ListView padding) */
-function SheetScroll({ children, top = spacing.sm, bottom = spacing.lg }: { children: React.ReactNode; top?: number; bottom?: number }) {
+function SheetScroll({ children, top = 8.5, bottom = spacing.lg }: { children: React.ReactNode; top?: number; bottom?: number }) {
   return (
-    <ScrollView
+    <SheetScrollView
       nestedScrollEnabled
       contentContainerStyle={[styles.content, { paddingTop: top, paddingBottom: bottom }]}
       showsVerticalScrollIndicator={false}
     >
       {children}
-    </ScrollView>
+    </SheetScrollView>
   );
 }
 
@@ -37,13 +38,16 @@ export function CampusHomePanel({ onEmptyClass, onShowAll }: { onEmptyClass: () 
   return (
     <SheetScroll>
       <View style={styles.titleRow}>
-        <HText variant="headline" weight="bold" tone="accent" style={{ flex: 1 }}>
+        <HText variant="headline" weight="bold" style={{ flex: 1 }}>
           지금 많이 찾는 시설
         </HText>
         <View style={styles.clip}>
           <HPressable accessibilityRole="button" onPress={onShowAll} style={styles.showAll}>
-            <HText variant="caption">전체보기</HText>
-            <MaterialIcon name="chevronRight" size={18} color={colors.text} />
+            <HText variant="caption" tone="muted">
+              전체보기
+            </HText>
+            <View style={{ width: 4 }} />
+            <Chevron muted />
           </HPressable>
         </View>
       </View>
@@ -59,16 +63,16 @@ export function CampusHomePanel({ onEmptyClass, onShowAll }: { onEmptyClass: () 
 /** '표시할 시설 선택' 시트 (2527:2849 맵- 필터 및 레이어) */
 export function FacilityFilterPanel({ onClose, onEmptyClass }: { onClose: () => void; onEmptyClass: () => void }) {
   return (
-    <SheetScroll>
+    <SheetScroll top={7}>
       <View style={styles.titleRow}>
         <HText variant="headline" weight="bold" style={{ flex: 1 }}>
           표시할 시설 선택
         </HText>
-        <HPressable accessibilityRole="button" accessibilityLabel="닫기" hitSlop={8} borderless onPress={onClose} style={styles.close}>
+        <HPressable accessibilityRole="button" accessibilityLabel="닫기" hitSlop={12} borderless onPress={onClose} style={styles.close}>
           <MaterialIcon name="close" size={24} color={colors.text} />
         </HPressable>
       </View>
-      <View style={{ height: spacing.md }} />
+      <View style={{ height: spacing.lg }} />
       <TileRow>
         <Tile k="all" onPress={onClose} />
         <Tile k="emptyClass" onPress={onEmptyClass} />
@@ -125,7 +129,7 @@ interface BuildingProps {
 export function BuildingPanel({ building, expanded, onDirections, onDetail, onEmptyClass, onDeselect }: BuildingProps) {
   const directions = <MapButton label="길찾기" icon="nearMe" onPress={onDirections ?? showComingSoon} />;
   return (
-    <SheetScroll top={spacing.xs} bottom={spacing.xl}>
+    <SheetScroll top={8} bottom={spacing.xl}>
       <View style={styles.header}>
         <View style={styles.photo}>
           {/* Flutter: 100x80 칸에 안쪽 여백 16 을 두고 contain */}
@@ -186,13 +190,14 @@ function Summary({ directions, onDetail, onEmptyClass }: { directions: React.Rea
           <MapButton label="상세보기" primary={false} onPress={onDetail} />
         </View>
       </View>
-      <View style={{ height: spacing.lg }} />
+      {/* 버튼 아래 153 → 학습 공간 170 (Figma 2:5335, 2:5333) */}
+      <View style={{ height: 17 }} />
       <MapSectionTitle text="학습 공간" />
       <View style={{ flexDirection: 'row', gap: 21 }}>
         <Tile k="emptyClass" onPress={onEmptyClass} />
         {tiles(['studyRoom', 'library'])}
       </View>
-      <View style={{ height: 20 }} />
+      <View style={{ height: 19 }} />
       <MapSectionTitle text="생활 편의" />
       <TileRow>{tiles(['cafe', 'restaurant', 'vending', 'store', 'printer'])}</TileRow>
     </>
@@ -204,8 +209,8 @@ const styles = StyleSheet.create({
   titleRow: { flexDirection: 'row', alignItems: 'center' },
   clip: { borderRadius: radius.md, overflow: 'hidden' },
   showAll: { flexDirection: 'row', alignItems: 'center' },
-  /** IconButton + VisualDensity.compact = 40x40 */
-  close: { width: 40, height: 40, alignItems: 'center', justifyContent: 'center' },
+  /** 닫기 X 는 24x24 (Figma 2:5956), 누를 영역은 hitSlop 으로 넓힌다 */
+  close: { width: 24, height: 24, alignItems: 'center', justifyContent: 'center' },
   header: { flexDirection: 'row', alignItems: 'center' },
   // 손잡이 아래 사진까지 4 (Figma 2905:2464 y27)
   photo: { width: 100, height: 80, padding: spacing.md, borderRadius: radius.md, backgroundColor: MapColors.tile },

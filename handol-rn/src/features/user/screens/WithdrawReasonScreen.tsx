@@ -28,14 +28,15 @@ export default function WithdrawReasonScreen() {
       <GradientScrollView
         keyboardDismissMode="on-drag"
         keyboardShouldPersistTaps="handled"
-        contentContainerStyle={{ paddingHorizontal: metrics.pageGutter, paddingBottom: spacing.xl + insets.bottom }}
+        contentContainerStyle={{ paddingHorizontal: metrics.pageGutter, paddingTop: 29, paddingBottom: spacing.xl + insets.bottom }}
       >
         <View style={{ paddingLeft: 11 }}>
           <HText variant="headline" keepAll>
             탈퇴하는 이유를 알려주세요
           </HText>
         </View>
-        <View style={{ height: 27 }} />
+        {/* 제목 아래 27 - 첫 줄 터치 여백 12 (2:6269 → 2:6270) */}
+        <View style={{ height: 15 }} />
         {WITHDRAW_REASONS.map((label, i) => (
           <ReasonOption key={label} label={label} selected={selected === i} onPress={() => setSelected(i)}>
             {selected === i && <CommentField value={comment} onChange={setComment} />}
@@ -68,7 +69,8 @@ function ReasonOption({ label, selected, onPress, children }: { label: string; s
           </View>
         </HPressable>
       </View>
-      {children ? <View style={{ paddingBottom: 8 }}>{children}</View> : null}
+      {/* 라디오 줄과 의견 칸 사이 8(2:6276), 다음 줄까지 24: 터치 여백 12가 양쪽에 있다 */}
+      {children ? <View style={{ marginTop: -4, paddingBottom: 12 }}>{children}</View> : null}
     </View>
   );
 }
@@ -98,8 +100,8 @@ const styles = StyleSheet.create({
   dot: { width: 12, height: 12, borderRadius: 6, backgroundColor: colors.primary },
   comment: {
     padding: 0,
-    minHeight: 54,
-    maxHeight: 100,
+    minHeight: 81,
+    maxHeight: 140,
     fontFamily: typography.caption.fontFamily,
     fontSize: typography.caption.fontSize,
     color: colors.text,

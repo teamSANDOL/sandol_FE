@@ -34,11 +34,11 @@ export function BuildingMarker({ building, selected, hidden = false, onPress }: 
       {/* 모양이 바뀌면 key 가 바뀌어야 네이티브가 다시 그린다 */}
       <View key={`${building.className}:${building.emptyCount}:${selected}`} collapsable={false} style={{ width: L.width, height: L.height }}>
         <View style={[styles.card, { left: m, top: m, width: L.cardW, height: L.cardH, backgroundColor: bg, paddingHorizontal: padH, paddingVertical: padV }]}>
-          <HText legacy="subtitle" weight="bold" numberOfLines={1} style={{ color: fg, lineHeight: BUBBLE.nameLine }}>
+          <HText variant="body" weight="bold" numberOfLines={1} style={{ color: fg }}>
             {building.className}
           </HText>
           <View style={{ height: gap }} />
-          <HText legacy="caption04" weight="regular" numberOfLines={1} style={{ color: fg, lineHeight: BUBBLE.subLine }}>
+          <HText variant="caption" numberOfLines={1} style={{ color: fg }}>
             빈 강의실 {building.emptyCount}개
           </HText>
         </View>

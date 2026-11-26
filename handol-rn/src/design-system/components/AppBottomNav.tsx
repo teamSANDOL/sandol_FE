@@ -29,8 +29,11 @@ type Props = {
   items?: readonly BottomNavItem[];
 };
 
-/** 아이콘마다 높이가 달라(18.8~24) 이 칸 안에서 가운데 맞춰 라벨 줄을 맞춘다 */
-const ICON_BOX = 24;
+/**
+ * Figma 2:6372: 아이콘 위 15, 아이콘 높이 20(홈만 18.8), 라벨 위 39(=15+20+4), 라벨 14/16.
+ * 아이콘마다 높이가 달라 20 칸 안에서 가운데 맞춰 라벨 줄을 맞춘다.
+ */
+const ICON_BOX = 20;
 
 /** 하단 네비 (AppBottomNav) */
 export function AppBottomNav({ currentIndex, onPress, items = BOTTOM_NAV_ITEMS }: Props) {
@@ -79,8 +82,9 @@ const styles = StyleSheet.create({
     borderTopLeftRadius: radius.md,
     borderTopRightRadius: radius.md,
   },
-  row: { height: metrics.bottomNavHeight, flexDirection: 'row' },
-  item: { flex: 1, alignItems: 'center', paddingTop: 13 },
+  /** 다섯 칸 간격 77.4 = (412 - 12×2) / 5 */
+  row: { height: metrics.bottomNavHeight, flexDirection: 'row', paddingHorizontal: 12 },
+  item: { flex: 1, alignItems: 'center', paddingTop: 15 },
   iconBox: { height: ICON_BOX, alignItems: 'center', justifyContent: 'center' },
   label: { paddingHorizontal: 4 },
 });

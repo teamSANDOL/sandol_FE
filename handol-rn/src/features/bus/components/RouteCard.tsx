@@ -4,6 +4,11 @@ import { DIRECTIONS, STOP_IDS, viaSchool, type ShuttleDirection, type ShuttleSto
 import type { StopEnd } from '../stopPick';
 
 const SWAP_ROW_HEIGHT = 36.58;
+// Figma 2:4744: 출발 줄 아래 8 → 구분선 → 도착 줄까지 합 21, 바꾸기 버튼(36.58)은 구분선 중심(+0.5)에 걸친다
+const LINE_BELOW_ROW = 8;
+const ROW_GAP = 21;
+// 바꾸기 버튼이 출발 줄 아래로 파고드는 높이. 승차 안내문이 있으면 그만큼 비워 글자가 버튼 밑으로 지나가지 않게 한다
+const SWAP_OVERLAP = SWAP_ROW_HEIGHT / 2 - LINE_BELOW_ROW - 0.5 + 2;
 
 
 type Props = {
@@ -23,7 +28,7 @@ export function RouteCard({ direction, stops, onSwap, onPick }: Props) {
 
   return (
     <HandolCard>
-      <HPressable accessibilityRole="button" onPress={() => onPick('origin')} style={{ paddingLeft: 18, paddingTop: 18, paddingRight: 20 }}>
+      <HPressable accessibilityRole="button" onPress={() => onPick('origin')} style={{ paddingLeft: 18, paddingTop: 19, paddingRight: 20, paddingBottom: stops[origin]?.boardingNote ? SWAP_OVERLAP : 0 }}>
         <StopRow
           icon="busStopPin"
           label="출발"
@@ -38,7 +43,7 @@ export function RouteCard({ direction, stops, onSwap, onPick }: Props) {
         <View style={styles.line} />
         <HandolIconButton label="출발 · 도착 바꾸기" icon={<Icon name="busSwap" />} onPress={onSwap} />
       </View>
-      <HPressable accessibilityRole="button" onPress={() => onPick('destination')} style={{ paddingLeft: 18, paddingRight: 20, paddingBottom: 24 }}>
+      <HPressable accessibilityRole="button" onPress={() => onPick('destination')} style={{ paddingLeft: 18, paddingRight: 20, paddingBottom: 19 }}>
         <StopRow
           icon="busStopFlag"
           label="도착"
@@ -110,7 +115,14 @@ export function StopPickerSheet({ visible, title, stops, selected, onPick, onClo
 }
 
 const styles = StyleSheet.create({
-  swapRow: { height: SWAP_ROW_HEIGHT, alignItems: 'center', justifyContent: 'center' },
+  swapRow: {
+    height: SWAP_ROW_HEIGHT,
+    alignItems: 'center',
+    justifyContent: 'center',
+    zIndex: 1,
+    marginTop: LINE_BELOW_ROW + 0.5 - SWAP_ROW_HEIGHT / 2,
+    marginBottom: ROW_GAP - (LINE_BELOW_ROW + 0.5 + SWAP_ROW_HEIGHT / 2),
+  },
   line: { position: 'absolute', left: 0, right: 0, height: 1, backgroundColor: colors.field },
   sheetBody: { paddingTop: spacing.md, paddingBottom: spacing.md, paddingHorizontal: metrics.cardInset },
   optionClip: { borderRadius: radius.md, overflow: 'hidden' },

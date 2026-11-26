@@ -68,7 +68,7 @@ export default function OrganizationTreeScreen() {
 /** 돋보기 + 입력칸 (2158:884) */
 function SearchField({ value, onChange }: { value: string; onChange: (v: string) => void }) {
   return (
-    <HandolCard contentStyle={styles.searchCard}>
+    <HandolCard isFlat contentStyle={styles.searchCard}>
       <Icon name="orgSearch" />
       <TextInput
         value={value}
@@ -94,7 +94,7 @@ function TreeCard({ root }: { root: OrganizationGroup }) {
         <OrganizationNodeCard key={`${u.name}-${i}`} node={u} />
       ))}
       {groups.length > 0 && (
-        <View>
+        <View style={{ marginVertical: -10 }}>
           {groups.map((g, i) => (
             <OrganizationNodeCard key={`${g.name}-${i}`} node={g} />
           ))}
@@ -121,7 +121,8 @@ function SearchResultCard({ root, query }: { root: OrganizationGroup; query: str
 
 const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: colors.background },
-  content: { paddingHorizontal: metrics.pageGutter, paddingTop: spacing.sm, paddingBottom: spacing.xl },
-  searchCard: { flexDirection: 'row', alignItems: 'center', gap: 11, paddingLeft: 10, paddingRight: metrics.cardInset, paddingVertical: 12 },
+  content: { paddingHorizontal: metrics.pageGutter, paddingTop: 38, paddingBottom: spacing.xl },
+  // 시안 검색창(2:5988)은 테두리만 있고 그림자가 없다 (위 HandolCard isFlat)
+  searchCard: { flexDirection: 'row', alignItems: 'center', gap: 11, paddingLeft: 11, paddingRight: metrics.cardInset, paddingTop: 13, paddingBottom: 14 },
   input: { flex: 1, height: 24, padding: 0, textAlignVertical: 'center', fontFamily: typography.caption.fontFamily, fontSize: typography.caption.fontSize, color: colors.text },
 });

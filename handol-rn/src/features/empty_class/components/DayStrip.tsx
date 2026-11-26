@@ -1,13 +1,21 @@
-import { useMemo } from 'react';
+import { useEffect, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { HPressable, HText, colors, radius } from '@/design-system';
 import { dayChips, shortWeekday, type DayChip } from '../query';
 import { emptyClassTheme } from '../theme';
 
+/** 오늘 칸을 고를 수 있는지 다시 확인하는 간격. 화면을 켜 둔 채 21:40 이 지나도 오늘 칸이 꺼진다 */
+const CLOCK_CHECK_MS = 30_000;
+
 /** 오늘부터 일주일 날짜 칸. 마지막 교시 시작(21:40)이 지나면 오늘은 고를 수 없다. */
 export function DayStrip({ selected, onSelect }: { selected: number; onSelect: (daysAhead: number) => void }) {
-  // 화면이 다시 그려질 때마다 시계를 읽지 않도록 선택이 바뀔 때만 새로 만든다.
-  const chips = useMemo(() => dayChips(), [selected]); // eslint-disable-line react-hooks/exhaustive-deps
+  // Flutter 처럼 그릴 때마다 시계를 읽고, 켜 둔 동안에도 주기적으로 다시 그린다.
+  const [, setTick] = useState(0);
+  useEffect(() => {
+    const id = setInterval(() => setTick((t) => t + 1), CLOCK_CHECK_MS);
+    return () => clearInterval(id);
+  }, []);
+  const chips = dayChips();
   return (
     <View style={styles.row}>
       {chips.map((c) => (

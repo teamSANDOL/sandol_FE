@@ -1,5 +1,17 @@
-import { useEffect, useRef, useState, type ComponentRef } from 'react';
-import { ScrollView, StyleSheet, View, useWindowDimensions, type NativeScrollEvent, type NativeSyntheticEvent } from 'react-native';
+import { useEffect, useRef } from 'react';
+import { StyleSheet, View, useWindowDimensions } from 'react-native';
+import Animated, {
+  Easing,
+  cancelAnimation,
+  runOnJS,
+  scrollTo,
+  useAnimatedReaction,
+  useAnimatedRef,
+  useAnimatedScrollHandler,
+  useAnimatedStyle,
+  useSharedValue,
+  withTiming,
+} from 'react-native-reanimated';
 import { HText, HandolCard, HandolChip, HPressable, RemoteImage, colors, metrics, spacing } from '@/design-system';
 import { selectRestaurant, useSelectedRestaurantId } from '../hooks';
 import { findCurrentOrNextSlot, formatWon, photoUrlFor, type RestaurantMenu } from '../model';
@@ -54,68 +66,154 @@ function MealMenuCard({ menu }: { menu: RestaurantMenu }) {
   );
 }
 
-/** 식당 선택 칩 줄(가로 스크롤) + 식당 메뉴 카드 가로 페이지 */
+/** 칩 탭으로 카드를 옮길 때의 모션 (Flutter animateToPage 250ms, Curves.easeInOut) */
+const SNAP_MS = 250;
+const EASE_IN_OUT = Easing.bezier(0.42, 0, 0.58, 1);
+
+/** page 실수값에서 이웃한 두 값(lo, hi)을 소수부로 보간한다. 한쪽이 없으면(0) 다른 쪽을 쓴다 */
+function lerpAt(values: number[], page: number): number {
+  'worklet';
+  const last = values.length - 1;
+  const lo = Math.min(Math.max(Math.floor(page), 0), Math.max(last, 0));
+  const hi = Math.min(lo + 1, Math.max(last, 0));
+  const a = values[lo] ?? 0;
+  const b = values[hi] ?? 0;
+  if (!a || !b) return a || b;
+  return a + (b - a) * Math.min(Math.max(page - lo, 0), 1);
+}
+
+/**
+ * 식당 선택 칩 줄(가로 스크롤) + 식당 메뉴 카드 가로 페이지 (Flutter HomeMealSection).
+ * 카드 스크롤 위치(page 실수값)를 UI 스레드에서 매 프레임 따라 칩 줄을 밀고 카드 높이를 보간한다.
+ */
 export function HomeMealPager({ menus, onPress }: { menus: RestaurantMenu[]; onPress?: () => void }) {
   const { width } = useWindowDimensions();
   const pageWidth = width - 2 * metrics.pageGutter + CARD_GAP;
   const selectedId = useSelectedRestaurantId();
   const found = menus.findIndex((m) => m.restaurant.id === selectedId);
   const index = found < 0 ? 0 : found;
-  const currentId = menus[index].restaurant.id;
 
-  const pager = useRef<ComponentRef<typeof ScrollView>>(null);
-  const chips = useRef<ComponentRef<typeof ScrollView>>(null);
-  const chipBox = useRef<Record<number, { x: number; w: number }>>({});
-  const didMount = useRef(false);
-  const [heights, setHeights] = useState<Record<number, number>>({});
+  const pager = useAnimatedRef<Animated.ScrollView>();
+  const chips = useAnimatedRef<Animated.ScrollView>();
+  const chipBox = useRef<Record<number, number>>({});
+  const heightOf = useRef<Record<number, number>>({});
 
-  const centerChip = (id: number, animated: boolean) => {
-    const box = chipBox.current[id];
-    if (box) chips.current?.scrollTo({ x: box.x + box.w / 2 - width / 2, animated });
+  const page = useSharedValue(index);
+  const pageW = useSharedValue(pageWidth);
+  const ids = useSharedValue<number[]>([]);
+  const heights = useSharedValue<number[]>([]);
+  const chipCenters = useSharedValue<number[]>([]);
+  const chipContentW = useSharedValue(0);
+  const viewportW = useSharedValue(width);
+  /** 칩 탭 · 상세 선택으로 카드를 옮기는 중. 지나치는 중간 카드가 선택을 바꾸지 않게 막는다 */
+  const animating = useSharedValue(false);
+  const snapX = useSharedValue(0);
+
+  // 식당 목록이 바뀌면 id 순서대로 측정값을 다시 맞춘다.
+  const syncMeasures = () => {
+    ids.value = menus.map((m) => m.restaurant.id);
+    heights.value = menus.map((m) => heightOf.current[m.restaurant.id] ?? 0);
+    chipCenters.value = menus.map((m) => chipBox.current[m.restaurant.id] ?? 0);
   };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  useEffect(syncMeasures, [menus]);
 
-  // 선택이 바뀌면(칩 탭 · 스와이프 · 상세에서 선택) 카드와 칩 줄을 그 식당에 맞춘다.
+  // 화면 폭이 바뀌면(첫 마운트 포함) 선택 카드로 바로 옮긴다.
   useEffect(() => {
-    pager.current?.scrollTo({ x: index * pageWidth, animated: didMount.current });
-    centerChip(currentId, didMount.current);
-    didMount.current = true;
+    pageW.value = pageWidth;
+    viewportW.value = width;
+    page.value = index;
+    pager.current?.scrollTo({ x: index * pageWidth, animated: false });
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [index, pageWidth, width]);
+  }, [pageWidth, width]);
 
-  const onEnd = (e: NativeSyntheticEvent<NativeScrollEvent>) => {
-    const i = Math.round(e.nativeEvent.contentOffset.x / pageWidth);
-    const hit = menus[Math.min(Math.max(i, 0), menus.length - 1)];
-    selectRestaurant(hit.restaurant.id);
-  };
+  // 칩 탭 · 상세 페이지에서 선택이 바뀌면 카드를 250ms easeInOut 으로 옮긴다. 손가락으로 끌어 도착했으면 그대로 둔다.
+  useEffect(() => {
+    if (Math.round(page.value) === index) return;
+    animating.value = true;
+    snapX.value = page.value * pageWidth;
+    snapX.value = withTiming(index * pageWidth, { duration: SNAP_MS, easing: EASE_IN_OUT }, () => {
+      animating.value = false;
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [index]);
 
-  const height = heights[currentId];
+  useAnimatedReaction(
+    () => snapX.value,
+    (x) => {
+      if (animating.value) scrollTo(pager, x, 0, false);
+    },
+  );
+
+  const onScroll = useAnimatedScrollHandler({
+    onBeginDrag: () => {
+      cancelAnimation(snapX);
+      animating.value = false;
+    },
+    onScroll: (e) => {
+      page.value = e.contentOffset.x / pageW.value;
+    },
+  });
+
+  // 끄는 도중 절반을 넘으면 바로 그 식당을 선택한다 (Flutter onPageChanged)
+  useAnimatedReaction(
+    () => Math.round(page.value),
+    (cur, prev) => {
+      if (prev === null || cur === prev || animating.value) return;
+      const id = ids.value[Math.min(Math.max(cur, 0), ids.value.length - 1)];
+      if (id !== undefined) runOnJS(selectRestaurant)(id);
+    },
+  );
+
+  // 칩 줄을 page 에 맞춰 매 프레임 민다. 이웃한 두 칩의 가운데를 page 소수부로 보간한다.
+  useAnimatedReaction(
+    () => ({ center: lerpAt(chipCenters.value, page.value), max: chipContentW.value - viewportW.value }),
+    ({ center, max }) => {
+      if (!center) return;
+      scrollTo(chips, Math.min(Math.max(center - viewportW.value / 2, 0), Math.max(max, 0)), 0, false);
+    },
+  );
+
+  // 측정 전·측정값이 이상할 때는 높이를 주지 않아(자연 높이) 카드가 접히지 않는다.
+  const pagerHeight = useAnimatedStyle(() => {
+    const h = lerpAt(heights.value, page.value);
+    return h > MIN_CARD_HEIGHT ? { height: h + 2 * SHADOW_PAD } : {};
+  });
+
   return (
     <View>
-      <ScrollView ref={chips} horizontal showsHorizontalScrollIndicator={false} style={styles.bleed} contentContainerStyle={styles.chips}>
+      <Animated.ScrollView
+        ref={chips}
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        style={styles.bleed}
+        contentContainerStyle={styles.chips}
+        onContentSizeChange={(w) => (chipContentW.value = w)}
+      >
         {menus.map((m, i) => (
           <View
             key={m.restaurant.id}
             onLayout={(e) => {
               const { x, width: w } = e.nativeEvent.layout;
-              chipBox.current[m.restaurant.id] = { x, w };
-              if (m.restaurant.id === currentId) centerChip(currentId, false);
+              chipBox.current[m.restaurant.id] = x + w / 2;
+              syncMeasures();
             }}
           >
             <HandolChip label={m.restaurant.name} isSelected={i === index} onPress={() => selectRestaurant(m.restaurant.id)} />
           </View>
         ))}
-      </ScrollView>
+      </Animated.ScrollView>
       <View style={{ height: spacing.sm }} />
-      <ScrollView
+      <Animated.ScrollView
         ref={pager}
         horizontal
         showsHorizontalScrollIndicator={false}
         snapToInterval={pageWidth}
         decelerationRate="fast"
         disableIntervalMomentum
-        onMomentumScrollEnd={onEnd}
-        // 측정 전·측정값이 이상할 때는 높이를 주지 않아(자연 높이) 카드가 접히지 않는다.
-        style={[styles.pager, height !== undefined && height > MIN_CARD_HEIGHT && { height: height + 2 * SHADOW_PAD }]}
+        onScroll={onScroll}
+        scrollEventThrottle={16}
+        style={[styles.pager, pagerHeight]}
         contentContainerStyle={styles.pages}
       >
         {menus.map((m) => (
@@ -124,7 +222,9 @@ export function HomeMealPager({ menus, onPress }: { menus: RestaurantMenu[]; onP
             style={{ width: pageWidth, paddingHorizontal: CARD_GAP / 2 }}
             onLayout={(e) => {
               const h = e.nativeEvent.layout.height;
-              setHeights((prev) => (prev[m.restaurant.id] === h ? prev : { ...prev, [m.restaurant.id]: h }));
+              if (heightOf.current[m.restaurant.id] === h) return;
+              heightOf.current[m.restaurant.id] = h;
+              syncMeasures();
             }}
           >
             <HPressable
@@ -138,7 +238,7 @@ export function HomeMealPager({ menus, onPress }: { menus: RestaurantMenu[]; onP
             </HPressable>
           </View>
         ))}
-      </ScrollView>
+      </Animated.ScrollView>
     </View>
   );
 }
