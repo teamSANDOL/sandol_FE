@@ -59,7 +59,7 @@ module.exports = {
     android: {
       // 네이버 지도 키가 패키지명에 묶여 있어 Flutter 앱과 같은 ID 를 쓴다.
       package: 'app.handol.student',
-      versionCode: 3023,
+      versionCode: 3024,
       ...(hasAndroidFirebase && { googleServicesFile: './google-services.json' }),
       // 개발 메뉴용 오버레이, 쓰지 않는 저장소, 광고 ID(광고 SDK 없음)는 배포본에서 뺀다.
       blockedPermissions: [
