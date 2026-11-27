@@ -1,4 +1,5 @@
 import type { QueryClient } from '@tanstack/react-query';
+import { fetchHomeBanners, HOME_BANNERS_KEY } from './contentsApi';
 import { fetchEmptyClasses } from '@/features/empty_class/api';
 import { clockOf, dayName, defaultFor, formatMinutes } from '@/features/empty_class/query';
 import { fetchOrganizationTree } from '@/features/organization/api';
@@ -19,6 +20,7 @@ export function prefetchHome(client: QueryClient): Promise<unknown> {
   // 스플래시 시점엔 조회 구간을 아직 아무도 바꾸지 않았으므로 기본 구간(queryStore 초기값)과 같다.
   const q = defaultFor(clockOf());
   const all = Promise.all([
+    client.prefetchQuery({ queryKey: HOME_BANNERS_KEY, queryFn: fetchHomeBanners, staleTime: 5 * 60_000 }),
     client.prefetchQuery({ queryKey: ['school_meal', 'restaurants'], queryFn: fetchRestaurants }),
     client.prefetchQuery({ queryKey: ['school_meal', 'meals', day], queryFn: () => fetchMeals(day) }),
     client.prefetchQuery({

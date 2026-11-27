@@ -93,10 +93,10 @@ export default function UserScreen() {
         </Section>
         <View style={{ height: spacing.md }} />
         <Section label="고객 지원">
-          <LinkRow icon="myNotice" label="공지사항" chevronColor={colors.border} onPress={() => router.navigate('/notice')} />
-          <LinkRow icon="myFaq" label="자주 묻는 질문" chevronColor={colors.border} onPress={showComingSoon} />
+          <LinkRow icon="myNotice" label="공지사항" chevronColor={colors.border} onPress={() => router.push('/user/announcements')} />
+          <LinkRow icon="myFaq" label="자주 묻는 질문" chevronColor={colors.border} onPress={() => router.push('/user/faq')} />
           <LinkRow icon="myInquiry" label="1:1 문의" chevronColor={colors.border} onPress={showComingSoon} />
-          <LinkRow icon="myInfo" label="서비스 안내" chevronColor={colors.border} onPress={showComingSoon} />
+          <LinkRow icon="myInfo" label="서비스 안내" chevronColor={colors.border} onPress={() => router.push('/user/guide')} />
         </Section>
         <View style={{ height: spacing.md }} />
         <Section label="기타">

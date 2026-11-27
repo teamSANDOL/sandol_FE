@@ -29,7 +29,7 @@ export function HomeBannerCarousel({ banners }: { banners: readonly HomeBanner[]
             horizontal
             pagingEnabled
             showsHorizontalScrollIndicator={false}
-            keyExtractor={(b) => b.title}
+            keyExtractor={(b) => b.id ?? b.title}
             onScroll={handleScroll}
             scrollEventThrottle={16}
             getItemLayout={(_, i) => ({ length: width, offset: width * i, index: i })}
