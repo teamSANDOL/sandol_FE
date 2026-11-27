@@ -4,6 +4,7 @@ import * as Notifications from 'expo-notifications';
 import { router } from 'expo-router';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { api } from '@/core/api/client';
+import { env } from '@/core/env';
 import { rememberNotice } from '../notice/api';
 import type { NotificationSettings } from '../user/notificationSettings';
 import { pushTargetFrom, type PushTarget } from './pushTarget';
@@ -133,7 +134,7 @@ export async function askPushPermissionOnce(): Promise<PushPermission | null> {
  * 로그아웃 뒤 다시 부르면 인증 없이 가서 묶음이 풀린다.
  */
 export function registerPushDevice(deviceToken: string, preferences: NotificationSettings): Promise<unknown> {
-  return api.put('/app/v1/push/devices', {
+  return api.put(`${env.bffBaseUrl}/app/v1/push/devices`, {
     token: deviceToken,
     platform: Platform.OS,
     token_type: 'fcm',

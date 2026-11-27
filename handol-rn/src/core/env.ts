@@ -13,6 +13,8 @@ export const env = {
   apiBaseUrl: str(extra.apiBaseUrl) ?? 'https://sandori.kr',
   /** 운영 서버가 못 받는 GET 을 1회 재시도할 대체 주소. 없으면 재시도 안 함 */
   apiFallbackBaseUrl: str(extra.apiFallbackBaseUrl),
+  /** 앱 전용 BFF (푸시 기기 등록 · 앱 콘텐츠). docs/BFF_APP_CONTENT.md */
+  bffBaseUrl: str(extra.bffBaseUrl) ?? 'https://handol-bff.quanect.kr',
   authIssuer: str(extra.authIssuer) ?? 'https://sandori.kr/auth/realms/Sandori',
   authClientId: str(extra.authClientId) ?? 'handori-app',
   authRedirectUri: 'kr.sandori.handori://oauthredirect',
