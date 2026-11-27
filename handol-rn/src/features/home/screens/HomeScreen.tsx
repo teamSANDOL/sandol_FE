@@ -12,18 +12,19 @@ import { requestEmptyClassFocus } from '@/features/empty_class/focus';
 import { classroomQueryActions } from '@/features/empty_class/queryStore';
 import { OrganizationQuickCard } from '@/features/organization/components/OrganizationQuickCard';
 import { HomeMealSection } from '@/features/school_meal/components/HomeMealSection';
-import { homeBanners } from '../banners';
+import { HOME_BANNERS_KEY, useHomeBanners } from '../contentsApi';
 import { HomeBannerCarousel } from '../components/HomeBannerCarousel';
 
 const EMPTY_CLASS_MAX_ITEMS = 3;
 /** 당겨서 새로고침이 다시 불러올 홈 섹션 쿼리 (Flutter home_screen _refreshAll) */
-const HOME_QUERY_KEYS = [['school_meal', 'restaurants'], ['school_meal', 'meals'], ['emptyClasses'], ['organization', 'tree']];
+const HOME_QUERY_KEYS = [HOME_BANNERS_KEY, ['school_meal', 'restaurants'], ['school_meal', 'meals'], ['emptyClasses'], ['organization', 'tree']];
 
 /** 홈 (Figma 홈_re 2890:2393) */
 export default function HomeScreen() {
   const queryClient = useQueryClient();
   const refreshLocation = useRefreshUserLocation();
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const banners = useHomeBanners();
 
   /**
    * 당겨서 새로고침: 홈 섹션 쿼리만 다시 불러온다. 일부가 실패해도 인디케이터는 내려간다.
@@ -60,7 +61,7 @@ export default function HomeScreen() {
       >
         {/* 배너 아래 끝 → 학식 제목 31 (Figma). 점(8+6)이 그 사이에 들어가므로 나머지 17 만 둔다 */}
         <View style={{ marginBottom: -23 }}>
-          <HomeBannerCarousel banners={homeBanners} />
+          <HomeBannerCarousel banners={banners} />
         </View>
         <HandolSection title="학식">
           <HomeMealSection onPress={() => router.navigate('/meal')} />

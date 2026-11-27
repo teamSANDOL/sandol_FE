@@ -3,7 +3,7 @@ import type { HomeBanner } from './model';
 
 /**
  * 홈 배너 목록. 앞에서부터 보인다.
- * ponytail: 앱에 박은 목록. BFF 가 생기면 그 응답으로 바꾸고 이 목록은 대체로 남긴다.
+ * 앱 내장 목록. BFF 응답도 저장본도 없을 때만 쓴다(contentsApi.ts).
  */
 export const homeBanners: readonly HomeBanner[] = [
   // 디자이너 임시 광고(2901:1129). 링크는 아직 정해지지 않아 눌리지 않는다.

@@ -5,11 +5,7 @@ import { AppTopBar, GradientScrollView, HandolCard, HPressable, HText, LoadingIn
 import { openExternalLink } from '@/core/utils/externalLink';
 import { usePolicy } from '../policyApi';
 import { POLICY_DOCS, toPolicyDocId } from '../policyDocs';
-import type { PolicyBlock } from '../policyParser';
-
-/** 번호 항목 한 단계 들여쓰기(머리표 칸) */
-const MARKER_WIDTH = 24;
-const BODY_LINE = 16 * 1.6;
+import { DocBlocks } from '../components/DocBlocks';
 
 /** 서비스 이용약관 · 개인정보처리방침을 앱 안에서 보여 준다. */
 export default function PolicyScreen() {
@@ -48,9 +44,7 @@ export default function PolicyScreen() {
               paddingBottom: spacing.lg,
             }}
           >
-            {policy.data.blocks.map((b, i) => (
-              <Block key={i} block={b} />
-            ))}
+            <DocBlocks blocks={policy.data.blocks} />
           </HandolCard>
         </GradientScrollView>
       ) : policy.isError ? (
@@ -59,39 +53,6 @@ export default function PolicyScreen() {
         <View style={styles.center}>
           <LoadingIndicator />
         </View>
-      )}
-    </View>
-  );
-}
-
-function Block({ block }: { block: PolicyBlock }) {
-  if (block.isHeading) {
-    return (
-      <HText variant="headline" keepAll style={{ marginTop: spacing.lg, marginBottom: 6 }}>
-        {block.text}
-      </HText>
-    );
-  }
-  const body = (
-    <HText variant="body" keepAll style={{ lineHeight: BODY_LINE }}>
-      {block.text}
-    </HText>
-  );
-  // 항목 안의 항목은 머리표 칸만큼 더 들어간다.
-  const indent = MARKER_WIDTH * (block.depth - (block.marker === null ? 0 : 1));
-  return (
-    <View style={{ marginTop: 6, paddingLeft: indent }}>
-      {block.marker !== null ? (
-        <View style={{ flexDirection: 'row', alignItems: 'flex-start' }}>
-          <View style={{ width: MARKER_WIDTH }}>
-            <HText variant="body" tone="muted" style={{ lineHeight: BODY_LINE }}>
-              {block.marker}
-            </HText>
-          </View>
-          <View style={{ flex: 1 }}>{body}</View>
-        </View>
-      ) : (
-        body
       )}
     </View>
   );

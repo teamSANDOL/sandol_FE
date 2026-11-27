@@ -131,7 +131,7 @@ GET /app/v1/contents?platform=android&app_version=0.3.18&build=3018
 | null | 눌리지 않음 | |
 
 - 앱 화면은 **앱이 허용한 경로만** 연다. 지금 허용 목록: `/home`, `/meal`, `/bus`,
-  `/notice`, `/map`, `/home/organization`, `/user`. 서비스 공지 화면이 생기면 더한다.
+  `/notice`, `/map`, `/home/organization`, `/user`, `/user/announcements`, `/user/faq`, `/user/guide`.
 - 메뉴에 없는 **숨은 화면**은 앱이 라우터와 허용 목록에 먼저 넣어 배포한 뒤 서버가
   그 경로를 내린다. 그보다 옛 앱에는 `min_app_build`(4.4)로 안 보이게 한다.
 - `http://`, `javascript:`, `intent:`, 허용 목록에 없는 경로는 앱이 무시한다.
@@ -374,10 +374,10 @@ GET /app/v1/service-guide
 | `expo-updates` 설치·서명 인증서·채널 설정 | 서버 주소 확정 후(앱 설정 몇 줄) |
 | 「스토어에서 업데이트」 화면(`min_supported_build`) | API 확정 후 |
 | 배너 모델·링크 규칙·여러 장 넘기기·서버 그림 대체 | 완료(테스트 있음) |
-| 배너 API 호출, 저장본, `ends_at` 거르기 | API 확정 후 |
+| 배너 API 호출, 저장본, `ends_at` 거르기 | 완료(2026-11-27). `image_url`·본문 그림은 https 또는 BFF `/app/v1/assets/...` 경로. 글자 배너 아이콘은 `icon_url` 대신 링크 화면의 앱 아이콘 |
 | 점검 안내 화면 | API 확정 후 |
 | 푸시 수신·표시, 누르면 화면 이동, 알림 권한, 기기 등록 호출(7.1), 광고성 동의 일자 안내 | 완료. Firebase 설정 파일을 넣고 빌드하면 켜진다 |
-| 서비스 공지 목록·상세, FAQ, 서비스 안내 화면 | API 확정 후(마이 > 공지사항 연결도 그때 바꿈) |
+| 서비스 공지 목록·상세, FAQ, 서비스 안내 화면 | 완료(2026-11-27). 마이 > 공지사항·자주 묻는 질문·서비스 안내. 목록은 첫 50개 |
 
 ## 12. 정해 주셔야 할 것
 
