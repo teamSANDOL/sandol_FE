@@ -35,9 +35,9 @@ module.exports = {
   expo: {
     name: '한돌이',
     slug: 'handol',
-    // Keycloak 로그인 딥링크(kr.sandori.handori://oauthredirect)와 같은 스킴
-    scheme: 'kr.sandori.handori',
-    version: '0.3.23',
+    // Keycloak 로그인 딥링크(app.handol.student://oauthredirect)와 같은 스킴. 0.3.23 까지는 kr.sandori.handori (src/core/env.ts)
+    scheme: 'app.handol.student',
+    version: '0.3.24',
     // OTA 업데이트(자체 서버, docs/OTA_UPDATE_SERVER.md). 같은 version 으로 나간 스토어 빌드끼리만 JS 번들을 나눠 받는다.
     // 네이티브(패키지·권한·플러그인)를 바꾸면 version 을 올려 스토어에 새로 올린다.
     runtimeVersion: { policy: 'appVersion' },
