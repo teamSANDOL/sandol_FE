@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react';
-import { StyleSheet, View, useWindowDimensions } from 'react-native';
+import { Platform, StyleSheet, View, useWindowDimensions } from 'react-native';
 import Animated, {
   Easing,
   cancelAnimation,
@@ -68,6 +68,10 @@ function MealMenuCard({ menu }: { menu: RestaurantMenu }) {
 
 /** 칩 탭으로 카드를 옮길 때의 모션 (Flutter animateToPage 250ms, Curves.easeInOut) */
 const SNAP_MS = 250;
+/** 이보다 빠르게 놓으면(dp/ms) 절반을 못 넘어도 끈 방향의 다음 카드로 간다 */
+const FLICK_VELOCITY = 0.5;
+/** Android 는 snapToInterval 스냅이 이 화면에서 동작하지 않아(놓은 자리에 멈춤) 손을 떼면 직접 맞춘다 */
+const JS_SNAP = Platform.OS === 'android';
 const EASE_IN_OUT = Easing.bezier(0.42, 0, 0.58, 1);
 
 /** page 실수값에서 이웃한 두 값(lo, hi)을 소수부로 보간한다. 한쪽이 없으면(0) 다른 쪽을 쓴다 */
@@ -108,6 +112,11 @@ export function HomeMealPager({ menus, onPress }: { menus: RestaurantMenu[]; onP
   /** 칩 탭 · 상세 선택으로 카드를 옮기는 중. 지나치는 중간 카드가 선택을 바꾸지 않게 막는다 */
   const animating = useSharedValue(false);
   const snapX = useSharedValue(0);
+  /** 끌기 시작한 카드와 직전 스크롤 표본(속도 계산용) */
+  const dragStart = useSharedValue(0);
+  const lastX = useSharedValue(0);
+  const lastT = useSharedValue(0);
+  const velocity = useSharedValue(0);
 
   // 식당 목록이 바뀌면 id 순서대로 측정값을 다시 맞춘다.
   const syncMeasures = () => {
@@ -146,12 +155,37 @@ export function HomeMealPager({ menus, onPress }: { menus: RestaurantMenu[]; onP
   );
 
   const onScroll = useAnimatedScrollHandler({
-    onBeginDrag: () => {
+    onBeginDrag: (e) => {
       cancelAnimation(snapX);
       animating.value = false;
+      dragStart.value = Math.round(e.contentOffset.x / pageW.value);
+      velocity.value = 0;
     },
     onScroll: (e) => {
-      page.value = e.contentOffset.x / pageW.value;
+      const x = e.contentOffset.x;
+      const t = Date.now();
+      if (t > lastT.value) velocity.value = (x - lastX.value) / (t - lastT.value);
+      lastX.value = x;
+      lastT.value = t;
+      page.value = x / pageW.value;
+    },
+    // 절반을 넘겼거나 빠르게 넘기면 다음 카드, 아니면 제자리 카드를 가운데로. 한 번에 한 장만 넘어간다.
+    onEndDrag: (e) => {
+      if (!JS_SNAP) return;
+      const x = e.contentOffset.x;
+      const cur = x / pageW.value;
+      const start = dragStart.value;
+      let target = Math.round(cur);
+      const speed = Math.max(Math.abs(velocity.value), Math.abs(e.velocity?.x ?? 0));
+      if (speed > FLICK_VELOCITY && target === start && cur !== start) target = start + Math.sign(cur - start);
+      target = Math.min(Math.max(target, start - 1, 0), start + 1, ids.value.length - 1);
+      const id = ids.value[target];
+      animating.value = true;
+      snapX.value = x;
+      snapX.value = withTiming(target * pageW.value, { duration: SNAP_MS, easing: EASE_IN_OUT }, (done) => {
+        animating.value = false;
+        if (done && id !== undefined) runOnJS(selectRestaurant)(id);
+      });
     },
   });
 
@@ -204,6 +238,8 @@ export function HomeMealPager({ menus, onPress }: { menus: RestaurantMenu[]; onP
         ))}
       </Animated.ScrollView>
       <View style={{ height: spacing.sm }} />
+      {/* 높이 보간은 바깥 틀에만 준다. ScrollView 자체 높이가 바뀌면 Android 가 스냅 애니메이션을 끊는다(onLayout forceFinished) */}
+      <Animated.View style={[styles.pager, pagerHeight]}>
       <Animated.ScrollView
         ref={pager}
         horizontal
@@ -213,7 +249,7 @@ export function HomeMealPager({ menus, onPress }: { menus: RestaurantMenu[]; onP
         disableIntervalMomentum
         onScroll={onScroll}
         scrollEventThrottle={16}
-        style={[styles.pager, pagerHeight]}
+        style={styles.flexNone}
         contentContainerStyle={styles.pages}
       >
         {menus.map((m) => (
@@ -239,6 +275,7 @@ export function HomeMealPager({ menus, onPress }: { menus: RestaurantMenu[]; onP
           </View>
         ))}
       </Animated.ScrollView>
+      </Animated.View>
     </View>
   );
 }
@@ -253,6 +290,8 @@ const styles = StyleSheet.create({
   /** 섹션 여백 밖으로 화면 끝까지 흘려 보낸다 */
   bleed: { marginHorizontal: -metrics.pageGutter, flexGrow: 0 },
   chips: { paddingHorizontal: metrics.pageGutter, gap: 12 },
-  pager: { marginHorizontal: -metrics.pageGutter, marginVertical: -SHADOW_PAD, flexGrow: 0 },
+  pager: { marginHorizontal: -metrics.pageGutter, marginVertical: -SHADOW_PAD, overflow: 'hidden' },
+  /** 바깥 틀 높이를 따라 줄지 않게 (RN ScrollView 기본 flexShrink: 1) */
+  flexNone: { flexGrow: 0, flexShrink: 0 },
   pages: { paddingHorizontal: metrics.pageGutter - CARD_GAP / 2, paddingVertical: SHADOW_PAD, alignItems: 'flex-start' },
 });
